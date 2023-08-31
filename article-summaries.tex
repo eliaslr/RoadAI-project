@@ -5,8 +5,19 @@
 \usepackage{graphicx}
 \usepackage{tabularx}		% lets you choose width of tabular(x) environment
 %\usepackage{titlesec}		% see redefinition of \section command
-%\uepackagr{minted}		% compile with -shell-escape flag to get syntax highlighting for code blocks (\begin{minted}{<programming lang>} <...>\end{minted}, \inputminted{programming lang}{filename})
-%\usepackage{times}		% Times New Roman. \documentclass{article}[12] gives 12 pt. writing.
+\usepackage{minted}		% compile with -shell-escape flag to get syntax highlighting for code blocks (\begin{minted}{<programming lang>} <...>\end{minted}, \inputminted{programming lang}{filename})
+\usepackage{times}		% Times New Roman. \documentclass{article}[12] gives 12 pt. writing.
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+    }
+
+\urlstyle{same}
 
 %custom commands:
 \newcommand{\vectorarrow}{\overset{\rightharpoonup}}
@@ -23,6 +34,42 @@
 %\tableofcontents
 \end{titlepage}
 
+\subsection*{Useful links}
+\begin{description}
+  \item[Project description]\ref{sec.porj_desc} \url{https://www.nora.ai/competition/roadai-competition/}
+  \item[MARL Wikipedia]\ref{sec.wiki} \url{\includegraphics[scale=.4]{early-MARL-algorithms}}
+  \item[Multiagent Reinforcement Learning PowerPoint, DeepMind]\ref{sec.deepmind} \url{https://rlss.inria.fr/files/2019/07/RLSS_Multiagent.pdf}
+  \item[StarCraft Multi-Agent Challenge]\ref{sec.smac} \url{\includegraphics[scale=.4]{early-MARL-algorithms}}
+  \item[Apple Core Motion documentation] \url{https://developer.apple.com/documentation/coremotion/getting_raw_accelerometer_events}
+\end{description}
+
+
+\section*{Project Description}          \label{sec.proj_desc}
+\mintinline{python}{pandas.read_hdf} to read \texttt{hdf} vibration files.
+
+\noindent
+\textbf{Reasonable assumptions to make:}
+\begin{itemize}
+  \item Excavators have infinite mass to move.\\
+  \item Long term plan isn't digitally available.\\
+  \item Noone will be using the system if they have to add a bunch of extra info. manually.
+\end{itemize}
+
+
+\section*{Wikipedia}          \label{sec.wiki}
+
+
+\section*{DeepMind presentation, MARL}\label{sec.deepmind}
+\includegraphics[scale=.4]{algorithm-value-iteration}
+\includegraphics[scale=.4]{algorithm-minimax-q}
+\includegraphics[scale=.4]{early-MARL-algorithms}
+\includegraphics[scale=.4]{early-MARL-algorithms-2}
+\includegraphics{algorithm-exploratory-descent}
+
+
+\section*{StarCraft Multi-Agent Challenge}        \label{sec.smac}
+\mintinline{python}{PyMARL} is an open-source learning framework based on
+\mintinline{python}{PyTorch} which serveds as a template for dealing with deep MARL algorithms.
 
 
 
