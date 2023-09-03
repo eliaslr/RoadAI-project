@@ -34,13 +34,44 @@
 %\tableofcontents
 \end{titlepage}
 
-\subsection*{Useful links}
+\subsection*{Useful links}    \label{sec.links}
+\textbf{Articles:}
 \begin{description}
   \item[Project description]\ref{sec.porj_desc} \url{https://www.nora.ai/competition/roadai-competition/}
   \item[MARL Wikipedia]\ref{sec.wiki} \url{\includegraphics[scale=.4]{early-MARL-algorithms}}
   \item[Multiagent Reinforcement Learning PowerPoint, DeepMind]\ref{sec.deepmind} \url{https://rlss.inria.fr/files/2019/07/RLSS_Multiagent.pdf}
-  \item[StarCraft Multi-Agent Challenge]\ref{sec.smac} \url{\includegraphics[scale=.4]{early-MARL-algorithms}}
+  \item[StarCraft Multi-Agent Challenge (SMAC)]\ref{sec.smac} \url{\includegraphics[scale=.4]{early-MARL-algorithms}}
+  \item[SMACv2]\ref{sec.smacv2} \url{https://arxiv.org/abs/2212.07489}
+  \item[Multi-Agent Learning Environments]\ref{sec.male} \url{https://agents.inf.ed.ac.uk/blog/multiagent-learning-environments/}
+  \item[Dealing w/ Non-Stationarity in MARL] \ref{sec.non_stat_marl} \url{https://arxiv.org/abs/1906.04737}
+  \item[Independent vs. Cooperative Agents] \ref{sec.ind_vs_coop} \url{https://web.media.mit.edu/~cynthiab/Readings/tan-MAS-reinfLearn.pdf}
+\end{description}
+
+\noindent
+\textbf{libraries:}
+\begin{description}
+  \item[RLlib] \url{https://docs.ray.io/en/latest/rllib/index.html}
+  \item[RLlib, MARL] \url{https://docs.ray.io/en/latest/rllib/rllib-env.html#multi-agent-and-hierarchical}
+  \item[PyMARL]
+  \item[Stable Baselines] \url{https://stable-baselines3.readthedocs.io/en/master/}
+  \item[PettingZoo] \url{https://pettingzoo.farama.org}
+\end{description}
+
+\noindent
+\textbf{Examples of usage:}
+\begin{description}
+  \item[MARL ex. using Stable-Baselines and PettingZoo] \url{https://pettingzoo.farama.org/tutorials/sb3/}
+  \item[Training Multiple Agents for Area Coverage, MathWorks] \url{https://se.mathworks.com/help/reinforcement-learning/ug/train-3-agents-for-area-coverage.html?s_eid=PSM_15028}
+\end{description}
+
+\noindent
+\textbf{Other:}
+\begin{description}
+  \item[Hugging Face MARL course] \url{https://huggingface.co/learn/deep-rl-course/unit7/introduction-to-marl}
   \item[Apple Core Motion documentation] \url{https://developer.apple.com/documentation/coremotion/getting_raw_accelerometer_events}
+  \item[Flatland Challenge] \url{https://flatland.aicrowd.com/intro.html}
+  \item[TalkRL Podcast] \url{https://www.talkrl.com}
+  \item[TalkRL on MARL] \url{https://www.talkrl.com/episodes/jakob-foerster}
 \end{description}
 
 
@@ -48,7 +79,7 @@
 \mintinline{python}{pandas.read_hdf} to read \texttt{hdf} vibration files.
 
 \noindent
-\textbf{Reasonable assumptions to make:}
+\textbf{Assumptions:}
 \begin{itemize}
   \item Excavators have infinite mass to move.\\
   \item Long term plan isn't digitally available.\\
@@ -60,16 +91,27 @@
 
 
 \section*{DeepMind presentation, MARL}\label{sec.deepmind}
-\includegraphics[scale=.4]{algorithm-value-iteration}
-\includegraphics[scale=.4]{algorithm-minimax-q}
-\includegraphics[scale=.4]{early-MARL-algorithms}
-\includegraphics[scale=.4]{early-MARL-algorithms-2}
-\includegraphics{algorithm-exploratory-descent}
+\includegraphics[scale=.3]{algorithm-value-iteration}\\
+\includegraphics[scale=.3]{algorithm-minimax-q}\\
+\includegraphics[scale=.3]{early-MARL-algorithms}\\
+\includegraphics[scale=.3]{early-MARL-algorithms-2}\\
+\includegraphics[scale=.3]{algorithm-exploratory-descent}\\
 
 
-\section*{StarCraft Multi-Agent Challenge}        \label{sec.smac}
+\section*{StarCraft Multi-Agent Challenge (SMAC)}        \label{sec.smac}
 \mintinline{python}{PyMARL} is an open-source learning framework based on
-\mintinline{python}{PyTorch} which serveds as a template for dealing with deep MARL algorithms.
+\mintinline{python}{PyTorch} which served as a template for dealing with deep MARL algorithms.
+
+
+\section*{SMACv2}               \label{sec.smacv2}
+
+
+\section*{Multi-Agent Learning Environments}      \label{sec.male}
+
+\section*{Dealing with Non-Stationarity in Multi-Agent Deep Reinforcement Learning}  \label{sec.non_stat_marl}
+
+\section*{Multi-Agent Reinforcement Learning: Independent vs. Cooperative Agents}   \label{sec.ind_vs_coop}
+
 
 
 
