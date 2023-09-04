@@ -37,8 +37,8 @@
 \subsection*{Useful links}    \label{sec.links}
 \textbf{Articles:}
 \begin{description}
-  \item[Project description]\ref{sec.porj_desc} \url{https://www.nora.ai/competition/roadai-competition/}
-  \item[MARL Wikipedia]\ref{sec.wiki} \url{\includegraphics[scale=.4]{early-MARL-algorithms}}
+  \item[Project description]\ref{sec.proj_desc} \url{https://www.nora.ai/competition/roadai-competition/}
+  \item[MARL Wikipedia]\ref{sec.wiki} \url{https://en.wikipedia.org/wiki/Multi-agent_reinforcement_learning}
   \item[Multiagent Reinforcement Learning PowerPoint, DeepMind]\ref{sec.deepmind} \url{https://rlss.inria.fr/files/2019/07/RLSS_Multiagent.pdf}
   \item[StarCraft Multi-Agent Challenge (SMAC)]\ref{sec.smac} \url{\includegraphics[scale=.4]{early-MARL-algorithms}}
   \item[SMACv2]\ref{sec.smacv2} \url{https://arxiv.org/abs/2212.07489}
@@ -75,7 +75,7 @@
 \end{description}
 
 
-\section*{Project Description}          \label{sec.proj_desc}
+\section*{Project Description}\label{sec.proj_desc}
 \mintinline{python}{pandas.read_hdf} to read \texttt{hdf} vibration files.
 
 \noindent
@@ -87,7 +87,7 @@
 \end{itemize}
 
 
-\section*{Wikipedia}          \label{sec.wiki}
+\section*{Wikipedia}      \label{sec.wiki}
 
 
 \section*{DeepMind presentation, MARL}\label{sec.deepmind}
@@ -99,8 +99,18 @@
 
 
 \section*{StarCraft Multi-Agent Challenge (SMAC)}        \label{sec.smac}
+This  article trains a MARL system on StarCraft II. In addition, it introduces the \texttt{Python} library
+\mintinline{Python}{PyMARL}.
+
 \mintinline{python}{PyMARL} is an open-source learning framework based on
 \mintinline{python}{PyTorch} which served as a template for dealing with deep MARL algorithms.
+
+In this paper, they have used \textit{centralzed training with decentralized execution}. This means there
+is no communication between agents during execution. Thus, agents only know the global state during
+centralized training. For this case, the reward used was hit-point damage dealt by each agent. Meanwhile,
+the goal is to maximize the win rate.
+
+
 
 
 \section*{SMACv2}               \label{sec.smacv2}
