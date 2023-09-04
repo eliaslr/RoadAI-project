@@ -1,0 +1,6 @@
+/env
+/_minted-article-summaries
+*.aux
+*.log
+*.out
+*.pdf
