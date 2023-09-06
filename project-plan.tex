@@ -21,6 +21,9 @@
 %custom commands:
 \newcommand{\vectorarrow}{\overset{\rightharpoonup}}
 %\titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{1em}{}[\hrule]		% redefines \section command. if active along with package "titlesec", will add line under title of each new section
+\makeatletter
+\renewcommand\@makefntext[1]{\leftskip=2em\hskip-2em\@makefnmark#1}
+\makeatother
 
 \title{Project Plan - RoadAI}
 \author{Berezin, Ilya; Hasle, Viktor R.; Hatland, Ada; Ringkjoeb, Elias}
@@ -30,17 +33,18 @@
 
 \begin{document}
 
-\begin{titlepage}
+% \begin{titlepage}
 \maketitle
-\tableofcontents
-\end{titlepage}
+% \tableofcontents
+% \end{titlepage}
 
-
+%---------------------------------
 \section{Overall goal}
 In the RoadAI project, we plan to use Multi Agent Reinforcement Learning to reduce emissions coming from
 construction machines. Using a data set provided from NORA (Norwegian Artificial Research Consortium) consisting of GPS, vibration and drone data, the goal is to reduce the overall emissions from road construction. We intend to utilize MARL as a techninque to optimize
 the trucks idle time as they haul construction materials.
 
+%---------------------------------
 \section{Step-by-step plan}
 \begin{enumerate}
   \item Read up on general MARL.
@@ -52,32 +56,74 @@ the trucks idle time as they haul construction materials.
   \item Evaluate performance of the algorithm.
 \end{enumerate}
 
-
+%---------------------------------
 \section{Meeting plan}
-We will be having regular meetings weekly. Depending on the workflow we may decide meet more frequently.
-We have also set up a discord channel where we are able to more quickly collaborate.
+We will be having weekly meetings to discuss our progress. Depending on the workflow we may decide to 
+meet more frequently. In addition, we will be meeting with our supervisor for this project every other week. This way,
+we will be able to communicate effectively. We have also set up a discord channel where we are able to more quickly collaborate.
+
+%---------------------------------
 \section{Methods/tools}
+There are several \texttt{python} libraries which will be useful for us in this project.
+Among these libraries are the following:
 \begin{description}
-  \item[PettingZoo] We will be using PettingZoo \href{https://pettingzoo.farama.org}{[1]} to create the environments for the MARL system.
-  \item[Rllib] We will be using Rllib \href{https://docs.ray.io/en/latest/rllib/index.html}{[2]} for agent implentation
+  \item[PettingZoo] We will be using PettingZoo\footnote[1]{\url{https://pettingzoo.farama.org}}
+    to create the environments for the MARL system.
+  \item[Rllib] We will be using Rllib\footnote[2]{\url{https://docs.ray.io/en/latest/rllib/index.html}}
+    for agent implentation.
+  \item[PyMARL] PyMARL\footnote[3]{https://github.com/oxwhirl/pymarl} is a PyTorch based library
+    developed for MARL problems specifically. The library was made specificaly to solve the StarCraft
+    Multi-Agent Challenge (SMAC)\footnote[4]{Samvelyan, M., Rashid, T., De Witt, C. S., Farquhar, G., Nardelli, N., Rudner, T. G., ... \& Whiteson, S. (2019). The starcraft multi-agent challenge. \textit{arXiv preprint arXiv:1902.04043}.}. %APA formatting
+    This library features implementations of baseline as well as state-of-the-art algorithms.
 \end{description}
+
+%----
+\noindent
+Various research articles studying MARL problems have utilized algorithms which have potential for our
+project.
+These include, but are not limited to\footnote[5]{Algorithms have to be tested in order for us to decide
+which have the best performance.}...
+\begin{description}
+  \item[QMIX] In (Samvelyan et al, 2019), the QMIX algorithm has the highest average win
+    rate. PyMARL also features implementation of this algorithm.
+  % \item[]
+\end{description}
+%---- ^Remove this?
+
+\noindent
+In additoin to the aforementioned tools, there is a chance that we may discover some other libraries and/org
+algorithms which work better for out project. In such a case, we might consider using these.
+
+Lastly, the University of Oslo offers computational resources, which we might consider using in order to
+train our model in a faster fashion, as parts of the data we will be using is quite extensive.
+
+%---------------------------------
 \section{Timeline}
 \begin{figure}[h]
     \begin{center}
         \includegraphics[width=\textwidth]{Timeline.png}
     \end{center}
     \caption{Timeline}
-    \label{fig:}
+    \label{fig:timeline}
 \end{figure}
 
-
+%---------------------------------
 \section{Responsibilities overview}
+As we have not yet had the opportunity to meet with our supervisor due to sickness, we are unsure of
+how to divide the responsibilities between ourselves.
 
+% %----
+% We have chosen to divide the project responsibilities into two main parts: \textit{MARL environment}
+% and \textit{MARL algorithms}. The thought is for us all to cooperate on both parts, but we will divide
+% the main parts such that Ada and Viktor has the main responsibility for setting up and tuning the 
+% environments, and Elias and Ilya has the main responsibility for implementing algorithms.
+% %---- ^Proposal for responsibilities
 
-\section*{References}
-\begin{enumerate}
-  \item https://pettingzoo.farama.org
-  \item https://docs.ray.io/en/latest/rllib/index.html
-\end{enumerate}
+%---------------------------------
+% \section*{References}
+% \begin{enumerate}
+%   \item https://pettingzoo.farama.org
+%   \item https://docs.ray.io/en/latest/rllib/index.html
+% \end{enumerate}
 
 \end{document}
