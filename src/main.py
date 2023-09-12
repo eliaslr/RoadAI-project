@@ -4,7 +4,8 @@ import hydra
 
 
 def main():
-    env = RoadEnv()
+    env = RoadEnv(reward.reward)
+    env.eval_episode()
     
 
 if __name__ == "__main__":
