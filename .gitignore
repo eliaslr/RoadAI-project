@@ -1,4 +1,5 @@
 /env
+/venv
 /_minted-article-summaries
 *.aux
 *.log
