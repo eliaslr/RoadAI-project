@@ -4,11 +4,11 @@ import ray
 import hydra
 
 
-def main(): -> None
-    ray.init()
+def main():
+    #ray.init()
     env = RoadEnv(reward.reward)
     for _ in range(1):
-        env.eval_episode(render_mode = "console")
+        env.eval_episode(render_mode = "pygame")
     
 
 if __name__ == "__main__":
