@@ -11,7 +11,7 @@ WINDOW_W = 600
 class RoadEnv(ParallelEnv):
     def __init__(self, reward_func, max_agents = None):
         self._action_spaces = {}
-        self._observation_spaces = {}
+        #self._observation_spaces = {} # The obs space is the entire map
         self.agents = []
         self.holes = []
         self.curr_ep = 0
@@ -24,12 +24,13 @@ class RoadEnv(ParallelEnv):
         for agent in self.agents:
         #TODO update action/obs space for each agent
             #Cardinal movement for each truck
-            self._action_spaces[agent] = gym.spaces.Tuple((gym.spaces.Discrete(3, start = agent.pos_y-1),
-                                                gym.spaces.Discrete(3, start = agent.pos_x-1)))
-            agent.step(None, None)
+            self._action_spaces[agent] = gym.spaces.Tuple((gym.spaces.Discrete(3, start = -1),
+                                                gym.spaces.Discrete(3, start = -1)))
+            agent.step(self.map, self._action_spaces[agent])
             #reward = self.reward_func(agent, self.map)
             #agent.update(reward)
-        return None, True
+            # Add metrics of avg reward 
+        return None, False
 
     
     def render(self, render_mode="console"):
@@ -52,6 +53,7 @@ class RoadEnv(ParallelEnv):
                 print("")
         #TODO add pygame rendering for sprites
         elif render_mode == "pygame":
+            self._screen.fill((0, 0, 0), rect= None)
             for i in range(H):
                 for j in range(W):
                     pos = pygame.Rect((self._margin + j * self._s_size, 
@@ -84,13 +86,12 @@ class RoadEnv(ParallelEnv):
             self._s_size = (WINDOW_H - self._margin) // H if H > W else (WINDOW_W - self._margin) // W
             self._screen = pygame.display.set_mode((self._s_size * W + 2 * self._margin, 
                                                     self._s_size * H + 2 * self._margin))
-            self._screen.fill((0, 0, 0), rect= None)
         self.curr_step = 0
         self.curr_ep += 1
         term = False
         while not term:
             self.curr_step += 1
-            #rewards, term = self.step()
+            rewards, term = self.step()
             # TODO avg rewards/ call back to update agents
             self.render(render_mode = render_mode)
             if render_mode == "pygame":
@@ -133,14 +134,7 @@ class RoadEnv(ParallelEnv):
 
         #Add terrain noise
         self.map = np.random.randint(10, size = (H, W))
-        self._num_agents = np.random.randint(3,10)
-        for _ in range(self._num_agents):
-        #TODO add option for fixed startpositions/A deposit where the material is hauled from
-            start_pos = (np.random.randint(0, H), np.random.randint(0, W))
-            self.agents.append(TruckAgent(start_pos[0], start_pos[1]))
-            self.map[start_pos[0], start_pos[1]] = -1
-        
-        #TODO add topological features / noise
+                #TODO add topological features / noise
         num_of_features = np.random.randint(3, 10)
         for _ in range(num_of_features):
             start_pos = (np.random.randint(0,  4 * H // 5 - 20), np.random.randint(0, W - 20))
@@ -149,6 +143,17 @@ class RoadEnv(ParallelEnv):
             mag = 3
             self._topograph_feature(start_pos, size[0], size[1], mag)
 
+        self._num_agents = np.random.randint(3,10)
+        for _ in range(self._num_agents):
+        #TODO add option for fixed startpositions/A deposit where the material is hauled from
+            start_pos = (np.random.randint(0, 4 * H // 5), np.random.randint(0, W))
+            #Make sure we start off in a flat space
+            while self.map[start_pos[0], start_pos[1]] >= 10:
+                start_pos = (np.random.randint(0, 4 * H // 5), np.random.randint(0, W))
+            self.agents.append(TruckAgent(start_pos[0], start_pos[1], self.map[start_pos[0], start_pos[1]]))
+            self.map[start_pos[0], start_pos[1]] = -1
+        
+
 
         # For now we assume 20% of the road is to be filled
         num_holes = H * W // 5
@@ -156,6 +161,9 @@ class RoadEnv(ParallelEnv):
         for _ in range(num_excavators):
             #Excavators always start at the top of the map
             pos = (np.random.randint(0, H // 2), np.random.randint(0, W))
+            #Make sure we start off in a flat space
+            while self.map[start_pos[0], start_pos[1]] >= 10:
+                start_pos = (np.random.randint(0, H // 2), np.random.randint(0, W))
             self.map[pos[0], pos[1]] = -3
 
 
