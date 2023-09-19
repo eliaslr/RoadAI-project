@@ -6,3 +6,4 @@
 *.out
 *.pdf
 *.toc
+src/__pycache__
