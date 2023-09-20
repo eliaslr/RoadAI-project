@@ -25,8 +25,8 @@ def reward(agent, env):
     prev_dist = []
     if agent.filled:
         for hole in env.holes:
-            distances.append(np.abs(hole[0]-agent.pos_x) + np.abs(hole[1]-agent.pos_y))
-            prev_dist.append(np.abs(hole[0]-previous["pos_x"]) + np.abs(hole[1]-previous["pos_y"]))
+            distances.append(np.abs(hole[1][0]-agent.pos_x) + np.abs(hole[1][1]-agent.pos_y))
+            prev_dist.append(np.abs(hole[1][0]-previous["pos_x"]) + np.abs(hole[1][1]-previous["pos_y"]))
 
     else:
         for excav in env.excavators:

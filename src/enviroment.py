@@ -26,8 +26,9 @@ class RoadEnv(ParallelEnv):
             #Cardinal movement for each truck
             self._action_spaces[agent] = gym.spaces.Tuple((gym.spaces.Discrete(3, start = -1),
                                                 gym.spaces.Discrete(3, start = -1)))
-            agent.step(self.map, self._action_spaces[agent])
+            agent.step(self.map, self._action_spaces[agent], self)
             reward = self.reward_func(agent, self)
+
             #agent.update(reward)
             # Add metrics of avg reward
         return None, False
@@ -175,10 +176,10 @@ class RoadEnv(ParallelEnv):
 
 
         mass_per_hole = 1000 #Number of kilograms of road mass per square
-        for i in range(4 * H // 5, H):
+        for i in range(9 * H // 10, H):
             for j in range(W):
                 self.map[i, j] = -2
-                #holes.append((mass_per_hole, curr_hole_pos))
+                self.holes.append((mass_per_hole, (i,j)))
 
         # Unsure if max_dim is needed
         # TODO Add map gen from drone data
