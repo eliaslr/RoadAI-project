@@ -73,7 +73,16 @@ class RoadEnv(ParallelEnv):
             return
 
     def reset(self):
-        pass
+        self._action_spaces = {}
+        self.agents = []
+        self.holes = []
+        self.curr_ep = 0
+        self.reward_func = reward_func
+        self.excavators = []
+
+        self.generate_map()
+
+        return self.map
 
 
 
