@@ -29,6 +29,7 @@ Pillow==10.0.0
 protobuf==4.24.2
 pyarrow==13.0.0
 Pygments==2.16.1
+pygame==2.5.1
 python-dateutil==2.8.2
 pytz==2023.3
 PyWavelets==1.4.1
