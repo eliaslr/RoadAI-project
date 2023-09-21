@@ -1,2 +1,2 @@
-def reward():
+def reward() -> float:
     pass

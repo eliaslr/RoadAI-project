@@ -1,7 +1,6 @@
 from enviroment import RoadEnv
 import reward
 import ray
-import hydra
 
 
 def main():
