@@ -70,11 +70,11 @@ class RoadEnv(ParallelEnv):
                         (self._s_size, self._s_size),
                     )
                     if self.map[i, j] == -1:
-                        pygame.draw.rect(self._screen, (255, 0, 0), pos)
+                        pygame.draw.rect(self._screen, (0, 158, 158), pos)
                     elif self.map[i, j] == -2:
                         pygame.draw.rect(self._screen, (0, 0, 255), pos)
-                    elif self.map[i, j] == -3:
-                        pygame.draw.rect(self._screen, (0, 158, 158), pos)
+                    elif self.map[i, j] <= -3:
+                        pygame.draw.rect(self._screen, (255, 0, 0), pos)
                     else:
                         c = min(200, self.map[i, j])
                         pygame.draw.rect(self._screen, (200 - c, 200 - c, 200 - c), pos)
@@ -179,7 +179,7 @@ class RoadEnv(ParallelEnv):
             self._topograph_feature(start_pos, size[0], size[1], mag)
 
         self._num_agents = np.random.randint(3, 10)
-        for _ in range(self._num_agents):
+        for i in range(self._num_agents):
             # TODO add option for fixed startpositions/A deposit where the material is hauled from
             start_pos = (np.random.randint(0, 4 * H // 5), np.random.randint(0, W))
             # Make sure we start off in a flat space
@@ -193,7 +193,8 @@ class RoadEnv(ParallelEnv):
                     self.holes,
                 )
             )
-            self.map[start_pos[0], start_pos[1]] = -1
+            # to make the agents distinguishable for the network
+            self.map[start_pos[0], start_pos[1]] = -3-i
         num_excavators = 3
         for _ in range(num_excavators):
             # Excavators always start at the top of the map
@@ -210,7 +211,7 @@ class RoadEnv(ParallelEnv):
             # Make sure we start off in a flat space
             while self.map[pos[0], pos[1]] >= 10:
                 pos = (np.random.randint(0, H // 2), np.random.randint(0, W))
-            self.map[pos[0], pos[1]] = -3
+            self.map[pos[0], pos[1]] = -1
 
         mass_per_hole = 1000  # Number of kilograms of road mass per square
         for i in range(9 * H // 10, H):

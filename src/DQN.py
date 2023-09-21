@@ -200,3 +200,4 @@ for i_episode in range(num_episodes):
 
     for t in count():
         actions = select_action(state)
+        observation, reward, terminated, truncated = env.step_deep()
