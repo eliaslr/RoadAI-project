@@ -14,7 +14,7 @@ def reward(agent, env):
     filled_emptied = 10
 
     if agent.collided:
-        tot_reward -= 100
+        tot_reward -= collision_pen
 
     if previous["pos_x"] == agent.pos_x and previous["pos_y"] == agent.pos_y:
         tot_reward += idle_penalty
