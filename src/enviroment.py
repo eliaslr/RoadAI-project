@@ -29,7 +29,7 @@ class RoadEnv(ParallelEnv):
             self._action_spaces[agent] = gym.spaces.Tuple(
                 (gym.spaces.Discrete(3, start=-1), gym.spaces.Discrete(3, start=-1))
             )
-            agent.step(self.map, self._action_spaces[agent])
+            agent.step(self.map, self._action_spaces[agent], self)
             reward = self.reward_func(agent, self)
 
             # agent.update(reward)
@@ -234,7 +234,7 @@ class RoadEnv(ParallelEnv):
         reward = 0
         for i in range(len(self.agents)):
             self.agents[i].deep_step(self, actions[i])
-            reward += self.reward_func(agent, self)
+            reward += self.reward_func(self.agents[i], self)
 
 
         return self.map, reward/len(self.agents), False, False

@@ -17,10 +17,10 @@ class TruckAgent:
         self.collided = False
         self.agent_num = agent_num
 
-    def _in_bounds(self, pos, map):
-        return (0 < pos[0] < map.shape[0]) and (0 < pos[1] < map.shape[1])
+    def _in_bounds(self, pos, env):
+        return (0 < pos[0] < env.map.shape[0]) and (0 < pos[1] < env.map.shape[1])
 
-    def step(self, map, act_space):
+    def step(self, map, act_space, env):
         self.prev_agent = {
             "pos_x": self.pos_x,
             "pos_y": self.pos_y,
@@ -55,7 +55,7 @@ class TruckAgent:
         ]
 
         for pos in adj:
-            if not self._in_bounds(pos, map):
+            if not self._in_bounds(pos, env):
                 continue
             if map[pos[0], pos[1]] == -1:
                 self.filled = True
@@ -100,8 +100,8 @@ class TruckAgent:
                 self.collided = True
             else:
                 self.collided = False
-                self._ground = map[self.pos_y, self.pos_x]
-                map[self.pos_y, self.pos_x] = -3 -self.agent_num
+                self._ground = env.map[self.pos_y, self.pos_x]
+                env.map[self.pos_y, self.pos_x] = -3 -self.agent_num
             self._ground = env.map[self.pos_y, self.pos_x]
             env.map[self.pos_y, self.pos_x] = -3 -self.agent_num
 
@@ -114,12 +114,12 @@ class TruckAgent:
         ]
 
         for pos in adj:
-            if not self._in_bounds(pos, map):
+            if not self._in_bounds(pos, env):
                 continue
-            if map[pos[0], pos[1]] == -1:
+            if env.map[pos[0], pos[1]] == -1:
                 self.filled = True
 
-            elif map[pos[0], pos[1]] == -2 and self.filled:
+            elif env.map[pos[0], pos[1]] == -2 and self.filled:
                 self.filled = False
                 self.holes[pos] -= self.capacity
                 if self.holes[pos] <= 0:
