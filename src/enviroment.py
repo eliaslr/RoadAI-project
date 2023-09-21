@@ -16,6 +16,7 @@ class RoadEnv(ParallelEnv):
         self.holes = []
         self.curr_ep = 0
         self.reward_func = reward_func
+        self.excavators = []
 
     # Based on the example given in custom env tutorial from petting zoo
     # Returns rewards and termination status
@@ -28,8 +29,9 @@ class RoadEnv(ParallelEnv):
                 (gym.spaces.Discrete(3, start=-1), gym.spaces.Discrete(3, start=-1))
             )
             agent.step(self.map, self._action_spaces[agent])
-            # reward = self.reward_func(agent, self.map)
-            # agent.update(reward)
+            reward = self.reward_func(agent, self)
+
+            #agent.update(reward)
             # Add metrics of avg reward
         return None, False
 
@@ -67,7 +69,8 @@ class RoadEnv(ParallelEnv):
                         ),
                         (self._s_size, self._s_size),
                     )
-                    if self.map[i, j] == -1:
+                                       self._margin + i * self._s_size), (self._s_size, self._s_size))
+                    if self.map[i,j] == -1:
                         pygame.draw.rect(self._screen, (255, 0, 0), pos)
                     elif self.map[i, j] == -2:
                         pygame.draw.rect(self._screen, (0, 0, 255), pos)
@@ -82,7 +85,16 @@ class RoadEnv(ParallelEnv):
             return
 
     def reset(self):
-        pass
+        self._action_spaces = {}
+        self.agents = []
+        self.holes = []
+        self.curr_ep = 0
+        self.reward_func = reward_func
+        self.excavators = []
+
+        self.generate_map()
+
+        return self.map
 
     # Evaluates one episode of play
     def eval_episode(self, render_mode="console"):
@@ -110,7 +122,6 @@ class RoadEnv(ParallelEnv):
             self.curr_step += 1
             rewards, term = self.step()
             # TODO avg rewards/ call back to update agents
-            # educe framerate
             self.render(render_mode=render_mode)
             if render_mode == "pygame":
                 for event in pygame.event.get():
@@ -145,7 +156,7 @@ class RoadEnv(ParallelEnv):
             self.map[start_pos[0] + h, start_pos[1]] += rand_val
             h -= 1
 
-    def generate_map(self, seed=None, min_h=50, min_w=50, max_h=100, max_w=100):
+    def generate_map(self, seed=None, min_h = 50, min_w = 50, max_h = 100, max_w = 100):
         if seed != None:
             np.random.seed(seed)
 
@@ -181,23 +192,30 @@ class RoadEnv(ParallelEnv):
                 )
             )
             self.map[start_pos[0], start_pos[1]] = -1
-
         # For now we assume 20% of the road is to be filled
         num_holes = H * W // 5
         num_excavators = 3
         for _ in range(num_excavators):
             # Excavators always start at the top of the map
             pos = (np.random.randint(0, H // 2), np.random.randint(0, W))
-            # Make sure we start off in a flat space
+            #Make sure we start off in a flat space
+
+            """
+                QUESTION
+                should the excavators move frequently enough for that to happen during an episode or is it fine to just store their position?
+            """
+            # We need this for reward function
+            self.excavators.append(pos)
+            #Make sure we start off in a flat space
             while self.map[start_pos[0], start_pos[1]] >= 10:
                 start_pos = (np.random.randint(0, H // 2), np.random.randint(0, W))
             self.map[pos[0], pos[1]] = -3
 
-        mass_per_hole = 1000  # Number of kilograms of road mass per square
-        for i in range(4 * H // 5, H):
+        mass_per_hole = 1000 #Number of kilograms of road mass per square
+        for i in range(9 * H // 10, H):
             for j in range(W):
                 self.map[i, j] = -2
-                # holes.append((mass_per_hole, curr_hole_pos))
+                self.holes.append((mass_per_hole, (i,j)))
 
         # Unsure if max_dim is needed
         # TODO Add map gen from drone data
