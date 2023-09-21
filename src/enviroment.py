@@ -198,3 +198,15 @@ class RoadEnv(ParallelEnv):
         # 4. Add some noise to the map values to better simulate real road conditions
         def gen_map_from_image(self, image_file, classification_model):
             pass
+
+
+    def step_deep(self, actions):
+        reward = 0
+        for i in range(len(self.agents)):
+        #TODO update action/obs space for each agent
+            #Cardinal movement for each truck
+            self.agents[i].deep_step(self, actions[i])
+            reward += self.reward_func(agent, self)
+
+
+        return self.map, reward/len(self.agents), False, False
