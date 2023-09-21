@@ -200,4 +200,15 @@ for i_episode in range(num_episodes):
 
     for t in count():
         actions = select_action(state)
-        observation, reward, terminated, truncated = env.step_deep()
+        observation, reward, terminated, truncated = env.step_deep(actions)
+        reward = torch.tensor([reward], device = device)
+        done = terminated or truncated
+
+        if terminated:
+            next_state = None
+        else:
+            next_state = torch.tensor(observation, dtype = torch.float32, device = device).unsqueeze(0)
+
+        memory.push(state, action, next_state, reward)
+
+        state = next_state

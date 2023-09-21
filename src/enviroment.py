@@ -191,6 +191,7 @@ class RoadEnv(ParallelEnv):
                     start_pos[1],
                     self.map[start_pos[0], start_pos[1]],
                     self.holes,
+                    i
                 )
             )
             # to make the agents distinguishable for the network
@@ -232,8 +233,6 @@ class RoadEnv(ParallelEnv):
     def step_deep(self, actions):
         reward = 0
         for i in range(len(self.agents)):
-        #TODO update action/obs space for each agent
-            #Cardinal movement for each truck
             self.agents[i].deep_step(self, actions[i])
             reward += self.reward_func(agent, self)
 
