@@ -1,7 +1,12 @@
 from enviroment import RoadEnv
 import reward
 import ray
+<<<<<<< HEAD
+||||||| 011ecd8
+import hydra
+=======
 # import hydra
+>>>>>>> 4a2a90df982fc4a23663db50e9c250fe9f700eb8
 
 
 def main():
