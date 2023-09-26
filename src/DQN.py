@@ -107,7 +107,7 @@ def select_action(state):
     # were using epsilon-greedy to decide action
     if sample > eps_threshhold:
         with torch.no_grad():
-            output = policy_net(state)
+            output = policy_net(state.flatten())
             actions = []
             for i in range(0,len(output),actions_per_agent):
                 actions.append(np.argmax(output[i:i+actions_per_agent]))
@@ -195,7 +195,7 @@ else:
 
 
 for i_episode in range(num_episodes):
-    state = env.reset()
+    state = env.reset().flatten()
     state = torch.tensor(state, dtype = torch.float32, device = device).unsqueeze(0)
 
     for t in count():

@@ -83,7 +83,7 @@ class RoadEnv(ParallelEnv):
         elif render_mode is None:
             return
 
-    def reset(self):
+    def reset(self, seed = None):
         self._action_spaces = {}
         self.agents = []
         self.holes = {}
@@ -91,7 +91,7 @@ class RoadEnv(ParallelEnv):
         # self.reward_func = reward_func
         self.excavators = []
 
-        self.generate_map()
+        self.generate_map(seed)
 
         return self.map
 
