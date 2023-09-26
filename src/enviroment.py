@@ -10,15 +10,17 @@ WINDOW_W = 600
 
 # Note that we use (y,x) instead of (x, y) in our coordinates
 class RoadEnv(ParallelEnv):
-    def __init__(self, reward_func, max_agents=None):
+    def __init__(self, reward_func, max_agents = None, n_agents = None):
         self._action_spaces = {}
         # self._observation_spaces = {} # The obs space is the entire map
         self.agents = []
         self.holes = {}
+        self.n_agents = n_agents
         self.curr_ep = 0
         self.reward_func = reward_func
         self.excavators = []
-
+        self.curr_step = 0
+        self._screen = None
     # Based on the example given in custom env tutorial from petting zoo
     # Returns rewards and termination status
     def step(self):
@@ -59,6 +61,21 @@ class RoadEnv(ParallelEnv):
                         print("#", end="")
                 print("")
         elif render_mode == "pygame":
+            if not self._screen:
+                pygame.init()
+                # TODO ADD CONSTANTS IN HYDRA
+                self._margin = 50
+                self._s_size = (
+                    (WINDOW_H - self._margin) // H
+                    if H > W
+                    else (WINDOW_W - self._margin) // W
+                )
+                self._screen = pygame.display.set_mode(
+                    (
+                        self._s_size * W + 2 * self._margin,
+                        self._s_size * H + 2 * self._margin,
+                    )
+                )
             self._screen.fill((0, 0, 0), rect=None)
             for i in range(H):
                 for j in range(W):
@@ -83,7 +100,7 @@ class RoadEnv(ParallelEnv):
         elif render_mode is None:
             return
 
-    def reset(self, seed = None):
+    def reset(self, seed=None, min_h=50, min_w=50, max_h=100, max_w=100, n_agents = None):
         self._action_spaces = {}
         self.agents = []
         self.holes = {}
@@ -91,7 +108,7 @@ class RoadEnv(ParallelEnv):
         # self.reward_func = reward_func
         self.excavators = []
 
-        self.generate_map(seed)
+        self.generate_map(seed = seed, min_h = min_h, max_h = max_h, min_w = min_w, max_w = max_w)
 
         return self.map
 
@@ -159,8 +176,15 @@ class RoadEnv(ParallelEnv):
         if seed != None:
             np.random.seed(seed)
 
-        H = np.random.randint(min_h, max_h)
-        W = np.random.randint(min_w, max_w)
+        if min_h == max_h:
+            H = min_h
+        else:
+            H = np.random.randint(min_h, max_h)
+
+        if min_w == max_w:
+            W = min_w
+        else:
+            W = np.random.randint(min_w, max_w)
 
         # Add terrain noise
         self.map = np.random.randint(10, size=(H, W))
@@ -178,7 +202,10 @@ class RoadEnv(ParallelEnv):
             mag = 3
             self._topograph_feature(start_pos, size[0], size[1], mag)
 
-        self._num_agents = np.random.randint(3, 10)
+        if self.n_agents:
+            self._num_agents = self.n_agents
+        else:
+            self._num_agents = np.random.randint(3, 10)
         for i in range(self._num_agents):
             # TODO add option for fixed startpositions/A deposit where the material is hauled from
             start_pos = (np.random.randint(0, 4 * H // 5), np.random.randint(0, W))
@@ -230,11 +257,14 @@ class RoadEnv(ParallelEnv):
             pass
 
 
-    def step_deep(self, actions):
+    def step_deep(self, actions, render):
+        print(actions)
         reward = 0
         for i in range(len(self.agents)):
             self.agents[i].deep_step(self, actions[i])
             reward += self.reward_func(self.agents[i], self)
+        self.curr_step += 1
+        if render:
+            self.render(render_mode = render)
 
-
-        return self.map, reward/len(self.agents), False, False
+        return self.map.flatten(), reward/len(self.agents), False, False

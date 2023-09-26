@@ -11,6 +11,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from collections import namedtuple, deque
 from itertools import count
+import argparse
 
 import torch
 import torch.nn as nn
@@ -21,7 +22,11 @@ from enviroment import RoadEnv
 import reward
 import agent
 
-env = RoadEnv(reward.reward)
+# 5 actions per agent, if this is changed in the future it needs to change here as well
+actions_per_agent = 5
+n_agents = 5
+
+env = RoadEnv(reward.reward, n_agents = n_agents)
 
 is_ipython = "inline" in matplotlib.get_backend()
 if is_ipython:
@@ -77,13 +82,9 @@ EPS_DECAY = 1000
 TAU = 0.005
 LR = 1e-4
 
-# 5 actions per agent, if this is changed in the future it needs to change here as well
-actions_per_agent = 5
-n_agents = len(env._action_spaces)
-
 n_actions = n_agents*actions_per_agent
 
-state = env.reset().flatten()
+state = env.reset(min_h = 70, max_h = 70, min_w = 70, max_w = 70, n_agents = n_agents).flatten()
 n_observations = len(state)
 
 policy_net = DQN(n_observations, n_actions).to(device)
@@ -107,7 +108,8 @@ def select_action(state):
     # were using epsilon-greedy to decide action
     if sample > eps_threshhold:
         with torch.no_grad():
-            output = policy_net(state.flatten())
+            output = policy_net(state).unsqueeze(0)[0][0]
+            print(output)
             actions = []
             for i in range(0,len(output),actions_per_agent):
                 actions.append(np.argmax(output[i:i+actions_per_agent]))
@@ -193,42 +195,55 @@ if torch.cuda.is_available():
 else:
     num_episodes = 50
 
+def main(render):
+    for i_episode in range(num_episodes):
+        state = env.reset(min_h = 70, max_h = 70, min_w = 70, max_w = 70, n_agents = n_agents).flatten()
+        state = torch.tensor(state, dtype = torch.float32, device = device).unsqueeze(0)
 
-for i_episode in range(num_episodes):
-    state = env.reset().flatten()
-    state = torch.tensor(state, dtype = torch.float32, device = device).unsqueeze(0)
+        for t in count():
+            actions = select_action(state)
+            observation, reward, terminated, truncated = env.step_deep(actions, render)
+            reward = torch.tensor([reward], device = device)
+            done = terminated or truncated
 
-    for t in count():
-        actions = select_action(state)
-        observation, reward, terminated, truncated = env.step_deep(actions)
-        reward = torch.tensor([reward], device = device)
-        done = terminated or truncated
+            if terminated:
+                next_state = None
+            else:
+                next_state = torch.tensor(observation, dtype = torch.float32, device = device).unsqueeze(0)
 
-        if terminated:
-            next_state = None
-        else:
-            next_state = torch.tensor(observation, dtype = torch.float32, device = device).unsqueeze(0)
+            memory.push(state, actions, next_state, reward)
 
-        memory.push(state, actions, next_state, reward)
+            state = next_state
 
-        state = next_state
+            optimize_model()
 
-        optimize_model()
+            target_net_state_dict = target_net.state_dict()
+            policy_net_state_dict = policy_net.state_dict()
 
-        target_net_state_dict = target_net.state_dict()
-        policy_net_state_dict = policy_net.state_dict()
+            for key in policy_net_state_dict:
+                target_net_state_dict[key] = policy_net_state_dict[key]*TAU + target_net_state_dict[key]*(1-TAU)
 
-        for key in policy_net_state_dict:
-            target_net_state_dict[key] = policy_net_state_dict[key]*TAU + target_net_state_dict[key]*(1-TAU)
+            target_net.load_state_dict(target_net_state_dict)
 
-        target_net.load_state_dict(target_net_state_dict)
+            if done:
+                episode_durations.append(t+1)
+                plot_durations()
+                break
 
-        if done:
-            episode_durations.append(t+1)
-            plot_durations()
-            break
+    print("Complete")
+    plot_durations(show_result=True)
+    plt.ioff()
+    plt.show()
 
-print("Complete")
-plot_durations(show_result=True)
-plt.ioff()
-plt.show()
+
+def parse_args():
+  """Parse command line argument."""
+
+  parser = argparse.ArgumentParser("Train roadAI MARL.")
+  parser.add_argument("-r", "--render", help="How to render the model while training (console, pygame). Leave blank to not render")
+
+  return parser.parse_args()
+
+if __name__ == '__main__':
+    args = parse_args()
+    main(args.render)
