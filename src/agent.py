@@ -1,5 +1,5 @@
 import numpy as np
-
+import torch
 
 class TruckAgent:
     def __init__(self, pos_y, pos_x, ground, holes, agent_num):
@@ -16,6 +16,7 @@ class TruckAgent:
         self.holes = holes
         self.collided = False
         self.agent_num = agent_num
+        self.info = torch.tensor([agent_num, self.filled]).unsqueeze(0)
 
     def _in_bounds(self, pos, env):
         return (0 < pos[0] < env.map.shape[0]) and (0 < pos[1] < env.map.shape[1])
@@ -74,6 +75,7 @@ class TruckAgent:
                             "pos_y"     : self.pos_y,
                             "ground"    : self._ground,
                             "filled"    : self.filled,
+                            "info"      : self.info,
                             }
 
 
@@ -118,9 +120,10 @@ class TruckAgent:
                 continue
             if env.map[pos[0], pos[1]] == -1:
                 self.filled = True
-
+                self.info[0,1] = 1
             elif env.map[pos[0], pos[1]] == -2 and self.filled:
                 self.filled = False
+                self.info[0,1] = 0
                 self.holes[pos] -= self.capacity
                 if self.holes[pos] <= 0:
                     map[pos[0], pos[1]] = 1

@@ -24,9 +24,8 @@ import agent
 
 # 5 actions per agent, if this is changed in the future it needs to change here as well
 actions_per_agent = 5
-n_agents = 5
 
-env = RoadEnv(reward.reward, n_agents = n_agents)
+env = RoadEnv(reward.reward)
 
 is_ipython = "inline" in matplotlib.get_backend()
 if is_ipython:
@@ -82,10 +81,14 @@ EPS_DECAY = 1000
 TAU = 0.005
 LR = 1e-4
 
-n_actions = n_agents*actions_per_agent
+n_actions = actions_per_agent
 
-state = env.reset(min_h = 70, max_h = 70, min_w = 70, max_w = 70, n_agents = n_agents).flatten()
-n_observations = len(state)
+state = torch.tensor(env.reset(min_h = 70, max_h = 70, min_w = 70, max_w = 70).flatten())
+
+states = torch.from_numpy(np.array([torch.cat((*agent.info,state)) for agent in env.agents]))
+
+# +2 because we need to include info about the agent
+n_observations = len(state) + 2
 
 policy_net = DQN(n_observations, n_actions).to(device)
 target_net = DQN(n_observations, n_actions).to(device)
@@ -96,7 +99,7 @@ memory = ReplayMemory(10000)
 
 steps_done = 0
 
-def select_action(state):
+def select_action(states):
     global steps_done
     sample = random.random()
 
@@ -108,18 +111,17 @@ def select_action(state):
     # were using epsilon-greedy to decide action
     if sample > eps_threshhold:
         with torch.no_grad():
-            output = policy_net(state).unsqueeze(0)[0][0]
-            print(output)
             actions = []
-            for i in range(0,len(output),actions_per_agent):
-                actions.append(np.argmax(output[i:i+actions_per_agent]))
+            for state in states:
+                output = policy_net(state).unsqueeze(0)[0][0]
+                actions.append(np.argmax(output))
     else:
         actions = []
         for i in range(len(env.agents)):
             sample = random.randint(0,4)
             actions.append(range(5)[sample])
 
-    return actions
+    return torch.tensor(actions)
 episode_durations = []
 
 def plot_durations(show_result = False):
@@ -150,7 +152,9 @@ def plot_durations(show_result = False):
             display.display(plt.gcf())
 
 
+
 def optimize_model():
+    # TODO: Make this work for multi agents, this is for single agent
     if len(memory) < BATCH_SIZE:
         return
 
@@ -160,6 +164,7 @@ def optimize_model():
     batch = Transition(*zip(*transitions))
 
     non_final_mask = torch.tensor(tuple(map(lambda s: s is not None, batch.next_state)), device=device, dtype = torch.bool)
+
     non_final_next_states = torch.cat([s for s in batch.next_state if s is not None])
 
     state_batch = torch.cat(batch.state)
@@ -197,11 +202,11 @@ else:
 
 def main(render):
     for i_episode in range(num_episodes):
-        state = env.reset(min_h = 70, max_h = 70, min_w = 70, max_w = 70, n_agents = n_agents).flatten()
-        state = torch.tensor(state, dtype = torch.float32, device = device).unsqueeze(0)
+        state = torch.tensor(torch.from_numpy(env.reset(min_h = 70, max_h = 70, min_w = 70, max_w = 70).flatten()), dtype = torch.float32, device = device).unsqueeze(0)
+        states = torch.from_numpy(np.array([torch.cat((agent.info,state),1) for agent in env.agents]))
 
         for t in count():
-            actions = select_action(state)
+            actions = select_action(states)
             observation, reward, terminated, truncated = env.step_deep(actions, render)
             reward = torch.tensor([reward], device = device)
             done = terminated or truncated
@@ -209,9 +214,10 @@ def main(render):
             if terminated:
                 next_state = None
             else:
-                next_state = torch.tensor(observation, dtype = torch.float32, device = device).unsqueeze(0)
+                next_state = torch.tensor(torch.from_numpy(observation), dtype = torch.float32, device = device).unsqueeze(0)
+                next_states = [torch.cat((agent.info,next_state),1) for agent in env.agents]
 
-            memory.push(state, actions, next_state, reward)
+            memory.push(states, actions, next_states, reward)
 
             state = next_state
 

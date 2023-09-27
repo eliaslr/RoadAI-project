@@ -258,7 +258,6 @@ class RoadEnv(ParallelEnv):
 
 
     def step_deep(self, actions, render):
-        print(actions)
         reward = 0
         for i in range(len(self.agents)):
             self.agents[i].deep_step(self, actions[i])
@@ -266,5 +265,6 @@ class RoadEnv(ParallelEnv):
         self.curr_step += 1
         if render:
             self.render(render_mode = render)
-
+        else:
+            print(f"Step: {self.curr_step}, Episode: {self.curr_ep}", end = "\r")
         return self.map.flatten(), reward/len(self.agents), False, False
