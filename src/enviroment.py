@@ -1,7 +1,8 @@
 import numpy as np
-from pettingzoo import ParallelEnv
-import gymnasium as gym
 import pygame
+import gymnasium as gym
+from ppo import PPO
+from gymnasium import spaces
 from agent import TruckAgent
 
 WINDOW_H = 600
@@ -9,32 +10,48 @@ WINDOW_W = 600
 
 
 # Note that we use (y,x) instead of (x, y) in our coordinates
-class RoadEnv(ParallelEnv):
+class RoadEnv(gym.Env):
     def __init__(self, reward_func, max_agents=None):
-        self._action_spaces = {}
-        # self._observation_spaces = {} # The obs space is the entire map
+        self.action_space = {}
         self.agents = []
+        self.observation_space = {}
         self.holes = {}
         self.curr_ep = 0
         self.reward_func = reward_func
+        self.avg_rewards = {}
         self.excavators = []
+        # View distance of trucks
+        self.view_dist = 4
+        self.algo = PPO(self, 0.005, 0.2)
+
 
     # Based on the example given in custom env tutorial from petting zoo
     # Returns rewards and termination status
     def step(self):
-        rewards = []
+        agent_rewards = [0] * self._num_agents
+        actions = [0] * self._num_agents
+        #term_status = {}
+        #infos = {{} for _ in range(len(self.agents))} # Only for ray api req
+        #truncs = {{} for _ in range(len(self.agents))} # Only for ray api req
         for agent in self.agents:
             # TODO update action/obs space for each agent
             # Cardinal movement for each truck
-            self._action_spaces[agent] = gym.spaces.Tuple(
-                (gym.spaces.Discrete(3, start=-1), gym.spaces.Discrete(3, start=-1))
-            )
-            agent.step(self.map, self._action_spaces[agent])
+            self.action_space[agent.id] = spaces.MultiDiscrete([agent.pos_y + 1, agent.pos_x + 1],
+                                                                start=[agent.pos_y -1, agent.pos_x +1])
+            self.observation_space[agent.id] = agent.view_cone()
+            # Get next action
+            action = self.algo.action(observation_space[agent.id], agent)
+            agent.step(self.map, action)
+            # Get reward
             reward = self.reward_func(agent, self)
-
-            # agent.update(reward)
-            # Add metrics of avg reward
-        return None, False
+            agent_rewards[agent.id] = reward
+            actions[agent.id] = action
+            #term_status[agent] = False # Change this to custom
+            # Running avg
+            self.avg_rewards[agent] += (
+                reward - self.avg_rewards[agent]
+            ) / self.curr_step
+        return (self.observation_space, actions, agent_rewards)
 
     # Renders the environment accepts 3 modes
     # Console prints the enviroment in ascii to console
@@ -69,11 +86,15 @@ class RoadEnv(ParallelEnv):
                         ),
                         (self._s_size, self._s_size),
                     )
-                    if self.map[i, j] == -1:
+                    if self.map[i, j] <= -3:
                         pygame.draw.rect(self._screen, (255, 0, 0), pos)
+                        # TODO add rendering for view cones
+                        cone = self.observation_space[self.map[i, j] * -1 + 3]
+                        for sq in cone:
+                            pygame.draw.rect(self._screen, (255, 255, 255, 10))
                     elif self.map[i, j] == -2:
                         pygame.draw.rect(self._screen, (0, 0, 255), pos)
-                    elif self.map[i, j] == -3:
+                    elif self.map[i, j] == -1:
                         pygame.draw.rect(self._screen, (0, 158, 158), pos)
                     else:
                         c = min(200, self.map[i, j])
@@ -84,7 +105,8 @@ class RoadEnv(ParallelEnv):
             return
 
     def reset(self):
-        self._action_spaces = {}
+        self.action_space = {}
+        self.observation_space = {}
         self.agents = []
         self.holes = {}
         self.curr_ep = 0
@@ -93,11 +115,14 @@ class RoadEnv(ParallelEnv):
 
         self.generate_map()
 
-        return self.map
+        return self.observation_space
 
     # Evaluates one episode of play
-    def eval_episode(self, render_mode="console"):
+    def eval_episode(self, train=True, render_mode="console"):
         self.generate_map()
+        self.avg_rewards = {}
+        for agent in self.agents:
+            self.avg_rewards[agent] = 0
         (H, W) = self.map.shape
         if render_mode == "pygame":
             pygame.init()
@@ -116,16 +141,21 @@ class RoadEnv(ParallelEnv):
             )
         self.curr_step = 0
         self.curr_ep += 1
+        # Main evaluation loop
         term = False
         while not term:
             self.curr_step += 1
-            rewards, term = self.step()
-            # TODO avg rewards/ call back to update agents
+            if train:
+                self.algo.learn()
+            else:
+                self.step()
+            print(np.mean(list(self.avg_rewards.values())))
             self.render(render_mode=render_mode)
             if render_mode == "pygame":
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         term = True
+        return np.mean(self.avg_rewards.values())
 
     # Generates
     def _topograph_feature(self, start_pos, h, w, mag):
@@ -156,12 +186,11 @@ class RoadEnv(ParallelEnv):
             h -= 1
 
     def generate_map(self, seed=None, min_h=50, min_w=50, max_h=100, max_w=100):
-        if seed != None:
+        if seed is not None:
             np.random.seed(seed)
 
         H = np.random.randint(min_h, max_h)
         W = np.random.randint(min_w, max_w)
-
         # Add terrain noise
         self.map = np.random.randint(10, size=(H, W))
         # TODO add topological features / noise
@@ -179,7 +208,7 @@ class RoadEnv(ParallelEnv):
             self._topograph_feature(start_pos, size[0], size[1], mag)
 
         self._num_agents = np.random.randint(3, 10)
-        for _ in range(self._num_agents):
+        for i in range(self._num_agents):
             # TODO add option for fixed startpositions/A deposit where the material is hauled from
             start_pos = (np.random.randint(0, 4 * H // 5), np.random.randint(0, W))
             # Make sure we start off in a flat space
@@ -187,13 +216,15 @@ class RoadEnv(ParallelEnv):
                 start_pos = (np.random.randint(0, 4 * H // 5), np.random.randint(0, W))
             self.agents.append(
                 TruckAgent(
+                    i,
                     start_pos[0],
                     start_pos[1],
                     self.map[start_pos[0], start_pos[1]],
                     self.holes,
+                    self.view_dist
                 )
             )
-            self.map[start_pos[0], start_pos[1]] = -1
+            self.map[start_pos[0], start_pos[1]] = -i - 3
         num_excavators = 3
         for _ in range(num_excavators):
             # Excavators always start at the top of the map
@@ -210,7 +241,7 @@ class RoadEnv(ParallelEnv):
             # Make sure we start off in a flat space
             while self.map[pos[0], pos[1]] >= 10:
                 pos = (np.random.randint(0, H // 2), np.random.randint(0, W))
-            self.map[pos[0], pos[1]] = -3
+            self.map[pos[0], pos[1]] = -1
 
         mass_per_hole = 1000  # Number of kilograms of road mass per square
         for i in range(9 * H // 10, H):

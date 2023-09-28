@@ -1,8 +1,11 @@
 import numpy as np
+import ray 
+from ray.rllib.algorithms import ppo
 
 
 class TruckAgent:
-    def __init__(self, pos_y, pos_x, ground, holes):
+    def __init__(self, id, pos_y, pos_x, ground, env, view_height):
+        self.id = id
         self.pos_x = pos_x
         self.pos_y = pos_y
         # We have to keep track of whats under the truck when we replace tiles on the map
@@ -13,13 +16,25 @@ class TruckAgent:
         # Remember previous state of the agent to calculate reward later
         self.prev_agent = None
         self.capacity = 1000
-        self.holes = holes
+        self.env = env
         self.collided = False
+        self.view_height = view_height
+
+    # This is a 2d raycasting where phi = pi / 4
+    # The viewcone dims could be changed but you would then we to change 
+    # the input dims for the algos
+    def view_cone(self):
+        cone = []
+        for i in range(self.obs_space):
+            for j in range(2*i + 1):
+                if self._in_bounds:
+                    cone.append((selfpos_y + i, self.pos_x - i + j, env.map[self.pos_y + i, self._pos_x + j))
+        return cone
 
     def _in_bounds(self, pos, map):
         return (0 < pos[0] < map.shape[0]) and (0 < pos[1] < map.shape[1])
 
-    def step(self, map, act_space):
+    def step(self, map):
         self.prev_agent = {
             "pos_x": self.pos_x,
             "pos_y": self.pos_y,
@@ -29,9 +44,6 @@ class TruckAgent:
         }
 
         # For now we just move randomly
-        dy = act_space[0].sample()
-        dx = act_space[1].sample()
-
         if dx or dy:
             map[self.pos_y, self.pos_x] = self._ground
             if 0 < self.pos_x + dx < map.shape[1]:
