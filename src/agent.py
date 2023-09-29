@@ -18,23 +18,53 @@ class TruckAgent:
         self.capacity = 1000
         self.env = env
         self.collided = False
+        self.out_of_bounds = False
         self.view_height = view_height
+        self.dir = 1  # Start pointing North
 
     # This is a 2d raycasting where phi = pi / 4
-    # The viewcone dims could be changed but you would then we to change 
+    # The viewcone dims could be changed but you would then we to change
     # the input dims for the algos
-    def view_cone(self):
+    def view(self):
         cone = []
-        for i in range(self.obs_space):
-            for j in range(2*i + 1):
-                if self._in_bounds:
-                    cone.append((selfpos_y + i, self.pos_x - i + j, env.map[self.pos_y + i, self._pos_x + j))
+        if self.dir == 1:
+            for i in range(self.view_height):
+                for j in range(2*i + 1):
+                    if self._in_bounds((self.pos_y - i, self.pos_x - i + j)):
+                        cone.append((self.pos_y - i, self.pos_x - i + j,
+                                     self.env.map[self.pos_y - i, self.pos_x - i + j]))
+                    else:
+                        cone.append((self.pos_y - i, self.pos_x - i + j, 1000))
+        elif self.dir == 2:
+            for i in range(self.view_height):
+                for j in range(2*i + 1):
+                    if self._in_bounds((self.pos_y + i, self.pos_x - i + j)):
+                        cone.append((self.pos_y + i, self.pos_x - i + j,
+                                     self.env.map[self.pos_y + i, self.pos_x - i + j]))
+                    else:
+                        cone.append((self.pos_y + i, self.pos_x - i + j, 1000))
+        elif self.dir == 3:
+            for i in range(self.view_height):
+                for j in range(2*i + 1):
+                    if self._in_bounds((self.pos_y - i + j, self.pos_x + i)):
+                        cone.append((self.pos_y - i + j, self.pos_x + i,
+                                     self.env.map[self.pos_y - i + j, self.pos_x + i]))
+                    else:
+                        cone.append((self.pos_y - i + j, self.pos_x + i, 1000))
+        else:
+            for i in range(self.view_height):
+                for j in range(2*i + 1):
+                    if self._in_bounds((self.pos_y - i + j, self.pos_x - i)):
+                        cone.append((self.pos_y - i + j, self.pos_x - i,
+                                     self.env.map[self.pos_y - i + j, self.pos_x - i]))
+                    else:
+                        cone.append((self.pos_y - i + j, self.pos_x - i, 1000))
         return cone
 
-    def _in_bounds(self, pos, map):
-        return (0 < pos[0] < map.shape[0]) and (0 < pos[1] < map.shape[1])
+    def _in_bounds(self, pos):
+        return (0 <= pos[0] < self.env.map.shape[0]) and (0 <= pos[1] < self.env.map.shape[1])
 
-    def step(self, map):
+    def step(self, action):
         self.prev_agent = {
             "pos_x": self.pos_x,
             "pos_y": self.pos_y,
@@ -42,20 +72,34 @@ class TruckAgent:
             "filled": self.filled,
             "collided": self.collided,
         }
+        # Change dir we are facing
+        dx, dy = 0, 0
+        if action == 1:
+            dy = -1
+        elif action == 2:
+            dy = 1
+        elif action == 3:
+            dx = -1
+        elif action == 4:
+            dx = 1
 
-        # For now we just move randomly
         if dx or dy:
-            map[self.pos_y, self.pos_x] = self._ground
-            if 0 < self.pos_x + dx < map.shape[1]:
-                self.pos_x += dx
-            if 0 < self.pos_y + dy < map.shape[0]:
-                self.pos_y += dy
-            if map[self.pos_y, self.pos_x] == -1:
+            self.dir = action
+            self.env.map[self.pos_y, self.pos_x] = self._ground
+            self.pos_x += dx
+            self.pos_y += dy
+            if not self._in_bounds((self.pos_y, self.pos_x)):
+                self.out_of_bounds = True
+                self.pos_x -= dx
+                self.pos_y -= dy
+            else:
+                self.out_of_bounds = False
+            if self.env.map[self.pos_y, self.pos_x] == -1  or self.env.map[self.pos_y, self.pos_x] <= -3:
                 self.collided = True
             else:
                 self.collided = False
-                self._ground = map[self.pos_y, self.pos_x]
-                map[self.pos_y, self.pos_x] = -1
+                self._ground = self.env.map[self.pos_y, self.pos_x]
+                self.env.map[self.pos_y, self.pos_x] = -self.id - 3
 
         # fill if were by an excavators
         adj = [
@@ -66,13 +110,13 @@ class TruckAgent:
         ]
 
         for pos in adj:
-            if not self._in_bounds(pos, map):
+            if not self._in_bounds(pos):
                 continue
-            if map[pos[0], pos[1]] == -3:
+            if self.env.map[pos[0], pos[1]] == -3:
                 self.filled = True
                 break
-            elif map[pos[0], pos[1]] == -2 and self.filled:
+            elif self.env.map[pos[0], pos[1]] == -2 and self.filled:
                 self.filled = False
-                self.holes[pos] -= self.capacity
-                if self.holes[pos] <= 0:
-                    map[pos[0], pos[1]] = 1
+                self.env.holes[pos] -= self.capacity
+                if self.env.holes[pos] <= 0:
+                    self.env.map[pos[0], pos[1]] = 1

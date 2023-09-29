@@ -7,6 +7,7 @@ from agent import TruckAgent
 
 WINDOW_H = 600
 WINDOW_W = 600
+MAX_STEPS = 100000
 
 
 # Note that we use (y,x) instead of (x, y) in our coordinates
@@ -38,10 +39,10 @@ class RoadEnv(gym.Env):
             # Cardinal movement for each truck
             self.action_space[agent.id] = spaces.MultiDiscrete([agent.pos_y + 1, agent.pos_x + 1],
                                                                 start=[agent.pos_y -1, agent.pos_x +1])
-            self.observation_space[agent.id] = agent.view_cone()
+            self.observation_space[agent.id] = agent.view()
             # Get next action
-            action = self.algo.action(observation_space[agent.id], agent)
-            agent.step(self.map, action)
+            action = self.algo.action(self.observation_space[agent.id], agent)
+            agent.step(action)
             # Get reward
             reward = self.reward_func(agent, self)
             agent_rewards[agent.id] = reward
@@ -89,9 +90,12 @@ class RoadEnv(gym.Env):
                     if self.map[i, j] <= -3:
                         pygame.draw.rect(self._screen, (255, 0, 0), pos)
                         # TODO add rendering for view cones
-                        cone = self.observation_space[self.map[i, j] * -1 + 3]
-                        for sq in cone:
-                            pygame.draw.rect(self._screen, (255, 255, 255, 10))
+                        #cone = self.observation_space[self.map[i, j] * -1 - 3]
+                        #for sq in cone:
+                        #    pos = pygame.Rect((self._margin + sq[1] * self._s_size,
+                        #                      self._margin + sq[0] * self._s_size),
+                        #                      (self._s_size, self._s_size))
+                        #    pygame.draw.rect(self._screen, (255, 255, 255, 1), pos)
                     elif self.map[i, j] == -2:
                         pygame.draw.rect(self._screen, (0, 0, 255), pos)
                     elif self.map[i, j] == -1:
@@ -127,7 +131,7 @@ class RoadEnv(gym.Env):
         if render_mode == "pygame":
             pygame.init()
             # TODO ADD CONSTANTS IN HYDRA
-            self._margin = 50
+            self._margin = 25
             self._s_size = (
                 (WINDOW_H - self._margin) // H
                 if H > W
@@ -145,11 +149,15 @@ class RoadEnv(gym.Env):
         term = False
         while not term:
             self.curr_step += 1
+            if self.curr_step > MAX_STEPS:
+                term = True
             if train:
                 self.algo.learn()
             else:
                 self.step()
-            print(np.mean(list(self.avg_rewards.values())))
+            if self.curr_step % 100 == 0:
+                print(self.curr_step)
+                print(np.mean(list(self.avg_rewards.values())))
             self.render(render_mode=render_mode)
             if render_mode == "pygame":
                 for event in pygame.event.get():
@@ -220,7 +228,7 @@ class RoadEnv(gym.Env):
                     start_pos[0],
                     start_pos[1],
                     self.map[start_pos[0], start_pos[1]],
-                    self.holes,
+                    self,
                     self.view_dist
                 )
             )
