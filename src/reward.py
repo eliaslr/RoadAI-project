@@ -1,17 +1,17 @@
 import numpy as np
+from omegaconf import DictConfig
 
 
-def reward(agent, env):
+def reward(agent, env, cfg : DictConfig):
     tot_reward = 0
     previous = agent.prev_agent
 
     # Rewards
-    idle_penalty = -0.01
-    step_penalty = -0.1
-    collision_pen = 100
-    right_direction = 1
-
-    filled_emptied = 10
+    idle_penalty = float(cfg.REWARD.IDLE)
+    step_penalty = float(cfg.REWARD.STEP)
+    collision_pen = float(cfg.REWARD.COLLISION)
+    right_direction = float(cfg.REWARD.RIGHT_DIRECTION)
+    filled_emptied = float(cfg.REWARD.FILLED_EMPTIED)
 
     if agent.collided:
         tot_reward -= collision_pen

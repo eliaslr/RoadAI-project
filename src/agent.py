@@ -1,8 +1,11 @@
 import numpy as np
+from omegaconf import DictConfig
 import torch
 
 class TruckAgent:
-    def __init__(self, pos_y, pos_x, ground, holes, agent_num):
+    def __init__(self, pos_y, pos_x, ground, holes, agent_num, config : DictConfig):
+        self.cfg = config
+
         self.pos_x = pos_x
         self.pos_y = pos_y
         # We have to keep track of whats under the truck when we replace tiles on the map
@@ -12,7 +15,7 @@ class TruckAgent:
         self.filled = False
         # Remember previous state of the agent to calculate reward later
         self.prev_agent = None
-        self.capacity = 1000
+        self.capacity = self.cfg.TRUCK.CAPACITY
         self.holes = holes
         self.collided = False
         self.agent_num = agent_num
