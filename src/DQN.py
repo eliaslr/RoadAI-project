@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from collections import namedtuple, deque
 from itertools import count
 import argparse
+from omegaconf import DictConfig
 
 import torch
 import torch.nn as nn
@@ -73,12 +74,14 @@ class DQN(nn.Module):
         x = F.relu(self.layer2(x))
         return self.layer3(x)
 
-BATCH_SIZE = 128
-GAMMA = 0.99
-EPS_START = 0.9
-EPS_END = 0.05
-EPS_DECAY = 1000
-TAU = 0.005
+
+## Moved to config file
+# BATCH_SIZE = 128
+# GAMMA = 0.99
+# EPS_START = 0.9
+# EPS_END = 0.05
+# EPS_DECAY = 1000
+# TAU = 0.005
 LR = 1e-4
 
 n_actions = actions_per_agent
@@ -99,12 +102,12 @@ memory = ReplayMemory(10000)
 
 steps_done = 0
 
-def select_action(states):
+def select_action(states, cfg : DictConfig):
     global steps_done
     sample = random.random()
 
     #epsilon for policy
-    eps_threshhold = EPS_END + (EPS_START-EPS_END)*math.exp(-1*steps_done/EPS_DECAY)
+    eps_threshhold = float(cfg.DQN.EPS_END) + (float(cfg.DQN.EPS_START)-float(cfg.DQN.EPS_END))*math.exp(-1*steps_done/float(cfg.DQN.EPS_DECAY))
 
     steps_done += 1
 
@@ -153,12 +156,12 @@ def plot_durations(show_result = False):
 
 
 
-def optimize_model():
+def optimize_model(cfg : DictConfig):
     # TODO: Make this work for multi agents, this is for single agent
-    if len(memory) < BATCH_SIZE:
+    if len(memory) < int(cfg.DQN.BATCH_SIZE):
         return
 
-    transitions = memory.sample(BATCH_SIZE)
+    transitions = memory.sample(int(cfg.DQN.BATCH_SIZE))
 
     #transpose the batch for some reason
     batch = Transition(*zip(*transitions))
@@ -176,11 +179,11 @@ def optimize_model():
     # taken for each batch state according to policy_net
     state_action_values = policy_net(state_batch).gather(1, action_batch)
 
-    next_state_values = torch.zeros(BATCH_SIZE, device = device)
+    next_state_values = torch.zeros(int(cfg.DQN.BATCH_SIZE), device = device)
     with torch.no_grad():
         next_state_values[non_final_mask] = target_net(non_final_next_states).max(1)[0]
 
-    expected_state_action_values = (next_state_values*GAMMA) + reward_batch
+    expected_state_action_values = (next_state_values*float(cfg.DQN.GAMMA)) + reward_batch
 
     # hubert loss
     criterion = nn.SmoothL1Loss()
@@ -200,13 +203,14 @@ if torch.cuda.is_available():
 else:
     num_episodes = 50
 
-def main(render):
+@hydra.main(config_name="config", config_path="conf")
+def main(render, cfg : DictConfig):
     for i_episode in range(num_episodes):
         state = torch.tensor(torch.from_numpy(env.reset(min_h = 70, max_h = 70, min_w = 70, max_w = 70).flatten()), dtype = torch.float32, device = device).unsqueeze(0)
         states = torch.from_numpy(np.array([torch.cat((agent.info,state),1) for agent in env.agents]))
 
         for t in count():
-            actions = select_action(states)
+            actions = select_action(states, cfg)
             observation, reward, terminated, truncated = env.step_deep(actions, render)
             reward = torch.tensor([reward], device = device)
             done = terminated or truncated
@@ -221,13 +225,13 @@ def main(render):
 
             state = next_state
 
-            optimize_model()
+            optimize_model(cfg)
 
             target_net_state_dict = target_net.state_dict()
             policy_net_state_dict = policy_net.state_dict()
 
             for key in policy_net_state_dict:
-                target_net_state_dict[key] = policy_net_state_dict[key]*TAU + target_net_state_dict[key]*(1-TAU)
+                target_net_state_dict[key] = policy_net_state_dict[key]*float(cfg.DQN.TAU) + target_net_state_dict[key]*(1-float(cfg.DQN.TAU))
 
             target_net.load_state_dict(target_net_state_dict)
 
