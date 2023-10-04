@@ -7,7 +7,7 @@ from agent import TruckAgent
 
 WINDOW_H = 600
 WINDOW_W = 600
-MAX_STEPS = 100000
+MAX_STEPS = 1_000
 
 
 # Note that we use (y,x) instead of (x, y) in our coordinates
@@ -123,7 +123,8 @@ class RoadEnv(gym.Env):
 
     # Evaluates one episode of play
     def eval_episode(self, train=True, render_mode="console"):
-        self.generate_map()
+        self.reset()
+        # self.generate_map()
         self.avg_rewards = {}
         for agent in self.agents:
             self.avg_rewards[agent] = 0
@@ -155,15 +156,17 @@ class RoadEnv(gym.Env):
                 self.algo.learn()
             else:
                 self.step()
+
+            # print every 100th finished step
             if self.curr_step % 100 == 0:
-                print(self.curr_step)
+                print(f"step: {self.curr_step}")
                 print(np.mean(list(self.avg_rewards.values())))
             self.render(render_mode=render_mode)
             if render_mode == "pygame":
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         term = True
-        return np.mean(self.avg_rewards.values())
+        return np.mean(list(self.avg_rewards.values()))
 
     # Generates
     def _topograph_feature(self, start_pos, h, w, mag):

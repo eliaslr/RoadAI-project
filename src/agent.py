@@ -83,7 +83,7 @@ class TruckAgent:
         elif action == 4:
             dx = 1
 
-        if dx or dy:
+        if (dx or dy) and self._in_bounds((self.pos_y, self.pos_x)):
             self.dir = action
             self.env.map[self.pos_y, self.pos_x] = self._ground
             self.pos_x += dx
