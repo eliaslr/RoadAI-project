@@ -4,11 +4,13 @@ import reward
 #import ray
 import hydra
 
+N_EPISODES = 1
+
 @hydra.main(config_path="conf", config_name="config")
-def main(cfg : DictConfig) -> None:
+def main() -> None:
     #ray.init()
-    env = RoadEnv(reward.reward, cfg)
-    for _ in range(cfg.N_EPISODES):
+    env = RoadEnv(reward.reward)
+    for _ in range(N_EPISODES):
         env.eval_episode(render_mode = "pygame")
 
 

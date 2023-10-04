@@ -1,15 +1,16 @@
 import numpy as np
-from omegaconf import DictConfig
 from pettingzoo import ParallelEnv
 import gymnasium as gym
 import pygame
 from agent import TruckAgent
 
+WINDOW_H = 600
+WINDOW_W = 600
+
 
 # Note that we use (y,x) instead of (x, y) in our coordinates
 class RoadEnv(ParallelEnv):
-    def __init__(self, reward_func, config : DictConfig, max_agents = None, n_agents = None):
-        self.cfg = config
+    def __init__(self, reward_func, max_agents = None, n_agents = None):
         self._action_spaces = {}
         # self._observation_spaces = {} # The obs space is the entire map
         self.agents = []
@@ -31,7 +32,7 @@ class RoadEnv(ParallelEnv):
                 (gym.spaces.Discrete(3, start=-1), gym.spaces.Discrete(3, start=-1))
             )
             agent.step(self.map, self._action_spaces[agent], self)
-            reward = self.reward_func(agent, self, self.cfg)
+            reward = self.reward_func(agent, self)
 
             # agent.update(reward)
             # Add metrics of avg reward
@@ -62,11 +63,12 @@ class RoadEnv(ParallelEnv):
         elif render_mode == "pygame":
             if not self._screen:
                 pygame.init()
-                self._margin = int(self.cfg.ENV.MARGIN)
+                # TODO ADD CONSTANTS IN HYDRA
+                self._margin = 50
                 self._s_size = (
-                    (int(self.cfg.WINDOW_H) - self._margin) // H
+                    (WINDOW_H - self._margin) // H
                     if H > W
-                    else (int(self.cfg.WINDOW_W) - self._margin) // W
+                    else (WINDOW_W - self._margin) // W
                 )
                 self._screen = pygame.display.set_mode(
                     (
@@ -98,7 +100,7 @@ class RoadEnv(ParallelEnv):
         elif render_mode is None:
             return
 
-    def reset(self):
+    def reset(self, seed=None, min_h=50, min_w=50, max_h=100, max_w=100, n_agents = None):
         self._action_spaces = {}
         self.agents = []
         self.holes = {}
@@ -106,7 +108,7 @@ class RoadEnv(ParallelEnv):
         # self.reward_func = reward_func
         self.excavators = []
 
-        self.generate_map()
+        self.generate_map(seed = seed, min_h = min_h, max_h = max_h, min_w = min_w, max_w = max_w)
 
         return self.map
 
@@ -116,11 +118,12 @@ class RoadEnv(ParallelEnv):
         (H, W) = self.map.shape
         if render_mode == "pygame":
             pygame.init()
-            self._margin = int(self.cfg.ENV.MARGIN)
+            # TODO ADD CONSTANTS IN HYDRA
+            self._margin = 50
             self._s_size = (
-                (int(self.cfg.WINDOW_H) - self._margin) // H
+                (WINDOW_H - self._margin) // H
                 if H > W
-                else (int(self.cfg.WINDOW_W) - self._margin) // W
+                else (WINDOW_W - self._margin) // W
             )
             self._screen = pygame.display.set_mode(
                 (
@@ -169,13 +172,7 @@ class RoadEnv(ParallelEnv):
             self.map[start_pos[0] + h, start_pos[1]] += rand_val
             h -= 1
 
-    def generate_map(self):
-        min_h = int(self.cfg.ENV.GEN_MAP.MIN_H) 
-        min_w = int(self.cfg.ENV.GEN_MAP.MIN_W) 
-        max_h = int(self.cfg.ENV.GEN_MAP.MAX_H) 
-        max_w = int(self.cfg.ENV.GEN_MAP.MAX_W)
-        seed  = self.cfg.ENV.GEN_MAP.SEED
-        
+    def generate_map(self, seed=None, min_h=50, min_w=50, max_h=100, max_w=100):
         if seed != None:
             np.random.seed(seed)
 
@@ -221,13 +218,12 @@ class RoadEnv(ParallelEnv):
                     start_pos[1],
                     self.map[start_pos[0], start_pos[1]],
                     self.holes,
-                    i,
-                    self.cfg
+                    i
                 )
             )
             # to make the agents distinguishable for the network
             self.map[start_pos[0], start_pos[1]] = -3-i
-        num_excavators = int(self.cfg.ENV.GEN_MAP.N_EXCAVATORS)
+        num_excavators = 3
         for _ in range(num_excavators):
             # Excavators always start at the top of the map
             pos = (np.random.randint(0, H // 2), np.random.randint(0, W))
@@ -245,7 +241,7 @@ class RoadEnv(ParallelEnv):
                 pos = (np.random.randint(0, H // 2), np.random.randint(0, W))
             self.map[pos[0], pos[1]] = -1
 
-        mass_per_hole = float(self.cfg.ENV.GEN_MAP.MASS_PER_HOLE)  # Number of kilograms of road mass per square
+        mass_per_hole = 1000  # Number of kilograms of road mass per square
         for i in range(9 * H // 10, H):
             for j in range(W):
                 self.map[i, j] = -2
@@ -265,7 +261,7 @@ class RoadEnv(ParallelEnv):
         reward = 0
         for i in range(len(self.agents)):
             self.agents[i].deep_step(self, actions[i])
-            reward += self.reward_func(self.agents[i], self, self.cfg)
+            reward += self.reward_func(self.agents[i], self)
         self.curr_step += 1
         if render:
             self.render(render_mode = render)
