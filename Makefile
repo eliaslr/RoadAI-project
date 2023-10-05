@@ -9,3 +9,4 @@ clean:
 	rm *.log
 	rm *.out
 	rm *.pdf
+	rm *.toc
