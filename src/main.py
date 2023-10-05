@@ -6,7 +6,7 @@ import hydra
 
 N_EPISODES = 1
 
-@hydra.main(config_path="conf", config_name="config")
+# @hydra.main(config_path="conf", config_name="config")
 def main() -> None:
     #ray.init()
     env = RoadEnv(reward.reward)
