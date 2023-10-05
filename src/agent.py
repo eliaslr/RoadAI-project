@@ -120,10 +120,10 @@ class TruckAgent:
                 continue
             if env.map[pos[0], pos[1]] == -1:
                 self.filled = True
-                self.info[0,1] = 1
+                self.info[0,1] = 1.
             elif env.map[pos[0], pos[1]] == -2 and self.filled:
                 self.filled = False
-                self.info[0,1] = 0
+                self.info[0,1] = 0.
                 self.holes[pos] -= self.capacity
                 if self.holes[pos] <= 0:
                     map[pos[0], pos[1]] = 1

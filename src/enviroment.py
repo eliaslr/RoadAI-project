@@ -187,7 +187,7 @@ class RoadEnv(ParallelEnv):
             W = np.random.randint(min_w, max_w)
 
         # Add terrain noise
-        self.map = np.random.randint(10, size=(H, W))
+        self.map = np.random.randint(10, size=(H, W)).astype(np.float32)
         # TODO add topological features / noise
         num_of_features = np.random.randint(3, 10)
         for _ in range(num_of_features):

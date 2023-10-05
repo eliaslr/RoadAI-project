@@ -113,15 +113,16 @@ def select_action(states):
         with torch.no_grad():
             actions = []
             for state in states:
-                output = policy_net(state).unsqueeze(0)[0][0]
-                actions.append(np.argmax(output))
+                actions.append(policy_net(state).max(1)[1].view(1, 1))
+                print(actions[-1])
     else:
         actions = []
         for i in range(len(env.agents)):
             sample = random.randint(0,4)
             actions.append(range(5)[sample])
 
-    return torch.tensor(actions)
+    return torch.tensor(actions, dtype = torch.int64)
+
 episode_durations = []
 
 def plot_durations(show_result = False):
@@ -174,6 +175,7 @@ def optimize_model():
 
     # Compute Q(s_t, a), we compute Q(s_t) then we select action. these are the actions we wouldve
     # taken for each batch state according to policy_net
+
     state_action_values = policy_net(state_batch).gather(1, action_batch)
 
     next_state_values = torch.zeros(BATCH_SIZE, device = device)
@@ -202,8 +204,8 @@ else:
 
 def main(render):
     for i_episode in range(num_episodes):
-        state = torch.tensor(torch.from_numpy(env.reset(min_h = 70, max_h = 70, min_w = 70, max_w = 70).flatten()), dtype = torch.float32, device = device).unsqueeze(0)
-        states = torch.from_numpy(np.array([torch.cat((agent.info,state),1) for agent in env.agents]))
+        state = torch.tensor(env.reset(min_h = 70, max_h = 70, min_w = 70, max_w = 70).flatten(), dtype = torch.float32, device = device).unsqueeze(0)
+        states = torch.from_numpy(np.array([torch.cat((agent.info,state),1) for agent in env.agents], dtype = np.float32))
 
         for t in count():
             actions = select_action(states)
@@ -215,9 +217,9 @@ def main(render):
                 next_state = None
             else:
                 next_state = torch.tensor(torch.from_numpy(observation), dtype = torch.float32, device = device).unsqueeze(0)
-                next_states = [torch.cat((agent.info,next_state),1) for agent in env.agents]
-
-            memory.push(states, actions, next_states, reward)
+                next_states = torch.from_numpy(np.array([torch.cat((agent.info,next_state),1) for agent in env.agents]))
+            for i in range(len(actions)):
+                memory.push(states[i], actions[i].view(1,1), next_states[i], reward.view(1,1))
 
             state = next_state
 
