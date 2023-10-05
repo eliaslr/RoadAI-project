@@ -114,7 +114,6 @@ def select_action(states):
             actions = []
             for state in states:
                 actions.append(policy_net(state).max(1)[1].view(1, 1))
-                print(actions[-1])
     else:
         actions = []
         for i in range(len(env.agents)):
@@ -172,11 +171,12 @@ def optimize_model():
     action_batch = torch.cat(batch.action)
     reward_batch = torch.cat(batch.reward)
 
-
+    action_batch = torch.tensor(action_batch, dtype = torch.int64)
+    state_batch = torch.tensor(state_batch, dtype = torch.float32)
     # Compute Q(s_t, a), we compute Q(s_t) then we select action. these are the actions we wouldve
     # taken for each batch state according to policy_net
 
-    state_action_values = policy_net(state_batch).gather(1, action_batch)
+    state_action_values = policy_net(torch.transpose(state_batch,-2,0)).gather(1, action_batch)
 
     next_state_values = torch.zeros(BATCH_SIZE, device = device)
     with torch.no_grad():
@@ -219,6 +219,7 @@ def main(render):
                 next_state = torch.tensor(torch.from_numpy(observation), dtype = torch.float32, device = device).unsqueeze(0)
                 next_states = torch.from_numpy(np.array([torch.cat((agent.info,next_state),1) for agent in env.agents]))
             for i in range(len(actions)):
+                print(states[i])
                 memory.push(states[i], actions[i].view(1,1), next_states[i], reward.view(1,1))
 
             state = next_state

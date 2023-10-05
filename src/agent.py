@@ -126,4 +126,4 @@ class TruckAgent:
                 self.info[0,1] = 0.
                 self.holes[pos] -= self.capacity
                 if self.holes[pos] <= 0:
-                    map[pos[0], pos[1]] = 1
+                    self.map[pos[0], pos[1]] = 1
