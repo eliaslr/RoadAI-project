@@ -62,23 +62,53 @@
 
 % -----------------------------------
 % ------------ ABSTRACT -------------
-\begin{abstract}
-% Abstract is last thing we should write.
+% \begin{abstract}
+% % Abstract is last thing we should write.
 
-% Should have 3-5 keywords.
-Index Terms - Multi-Agent Reinforcement Learning (MARL), 
-\end{abstract}
+% % Should have 3-5 keywords.
+% Index Terms - Multi-Agent Reinforcement Learning (MARL), 
+% \end{abstract}
 
 
 % -----------------------------------
-% ---------- INTRODUCTION -----------
+% - INTRODUCTION (and MOTIVATION?)  -
 \section{Introduction}
 In Norway, the total CO2 emissions from construction machines is 1.5\%. \cite{noraRoadAIReducing}
 This paper aims to reduce emissions from road construction using Multi-Agent Reinforcement Learning
-techniques.
+(MARL) techniques.
 
 The project is based on the RoadAI competition by Norwegian Artificial Intelligence Research
-Consortium (NORA) \cite{noraRoadAIReducing}, 
+Consortium (NORA) \cite{noraRoadAIReducing}. Participants in the competitition get access to four
+different sets of data. The provided data includes GPS data recorded from iPads in dump trucks and
+trucks, detailing timestamps, machine IDs, locations, material type and quantity, and loading/unloading
+locations. This data is organized into trips. Additional metadata about the trips is also available.
+Machine data, known as AEMP, offers information on Skanska-owned machines, including location,
+odometer readings, fuel consumption, and usage hours. Vibration data, though duplicated,
+presents an opportunity for analysis, with records occurring seven times. This data, collected from
+iPads, includes three-dimensional vibration data. Drone data, generated using ArcGIS Site Scan software,
+comprises ortho-mosaic images, point clouds, mesh data, digital terrain models, and digital surface models,
+potentially useful for automated progress reports.
+
+Our main objective is twofold: (1) reducing emissions by optimizing idle time of dumptrucks, and (2)
+optimizing paths which reduce CO2 emissions as much as possible. Objective (2) can be achieved through
+planning paths which reduce acceleration, for example by taking topography into account.
+
+This paper will present an implementation of a customized PettingZoo\footnote{https://pettingzoo.farama.org}
+environment.
+
+
+% -----------------------------------
+% ------------- METHODS -------------
+\section{Methodology}
+
+
+% -----------------------------------
+% ---------- RELATED WORK -----------
+\section{Related works}
+SMACv2 \cite{ellis2022smacv2} evaluates two MARL algorithms for problems using centralized training with
+decentralized execution (CTDE); QMIX and MAPPO. QMIX is a multi-agent adaptation of the Deep Q-Network method.
+MAPPO is a multi-agent adaptation of the Proximal Policy Optimization method. On the SMACv2 testbed, QMIX
+had the best performance out of the two, but MAPPO 
 
 
 % -----------------------------------
