@@ -89,6 +89,8 @@ iPads, includes three-dimensional vibration data. Drone data, generated using Ar
 comprises ortho-mosaic images, point clouds, mesh data, digital terrain models, and digital surface models,
 potentially useful for automated progress reports.
 
+These data sets are available to us as well, and we will use the data sets for training our model.
+
 Our main objective is twofold: (1) reducing emissions by optimizing idle time of dumptrucks, and (2)
 optimizing paths which reduce CO2 emissions as much as possible. Objective (2) can be achieved through
 planning paths which reduce acceleration, for example by taking topography into account.
@@ -105,17 +107,30 @@ environment.
 % -----------------------------------
 % ---------- RELATED WORK -----------
 \section{Related works}
+\subsection{SMACv2}
 SMACv2 \cite{ellis2022smacv2} evaluates two MARL algorithms for problems using centralized training with
-decentralized execution (CTDE); QMIX and MAPPO. QMIX is a multi-agent adaptation of the Deep Q-Network method.
-MAPPO is a multi-agent adaptation of the Proximal Policy Optimization method. On the SMACv2 testbed, QMIX
-had the best performance out of the two, but MAPPO 
+decentralized execution (CTDE); QMIX and MAPPO.
+
+QMIX employs a centralized critic to estimate joint action-value functions, while MAPPO uses a decentralized
+actor-critic framework with a centralized value function.
+
+QMIX outperformed MAPPO on most scenarios, but QMIX is memory-intensive due to its large replay buffer. For
+this reason, QMIX requires more computational power. In addition, the paper notes that MAPPO was still
+increasing its perfromance at the time of termination in several scenarios, which indicates it could end up
+with a better result.
+
+This paper aims to evaluate both the QMIX and MAPPO algorithms.
+
+\noindent
+
+
 
 
 % -----------------------------------
 % ----------- REFERENCES ------------
 % \newpage
 % \nocite{*}        % This includes all references that haven't been explicitly cited
-\bibliography{citations.bib}{}
+\bibliography{citations.bib}
 \bibliographystyle{plain}
 
 \end{document}
