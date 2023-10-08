@@ -15,7 +15,7 @@
 
 % -----------------------------------
 % -------------- TITLE --------------
-\title{RoadAI - Reducing Emissions in Road Construcrtion}
+\title{RoadAI - Reducing Emissions in Road Construction}
 % -----------------------------------
 
 
@@ -65,12 +65,12 @@
 % -----------------------------------
 % - INTRODUCTION (and MOTIVATION?)  -
 \section{Introduction}
-In Norway, the total CO2 emissions from construction machines is 1.5\%.\cite{noraRoadAIReducing}
+In Norway, the total CO2 emissions from construction machines are 1.5\%.\cite{noraRoadAIReducing}
 This paper aims to reduce emissions from road construction using Multi-Agent Reinforcement Learning
 (MARL) techniques.
 
 The project is based on the RoadAI competition held by Norwegian Artificial Intelligence Research
-Consortium (NORA)\cite{noraRoadAIReducing}. Participants in the competitition get access to four
+Consortium (NORA)\cite{noraRoadAIReducing}. Participants in the competition get access to four
 different sets of data. The provided data consists of GPS data recorded from iPads in dump trucks and
 trucks, detailing timestamps, machine IDs, locations, material type and quantity, and loading/unloading
 locations. This data is organized into trips. Additional metadata about the trips is also available.
@@ -82,7 +82,7 @@ potentially useful for automated progress reports.
 
 These data sets are available to us as well, and we will use the data sets for training our model.
 
-Our main objective is twofold: (1) reducing emissions by optimizing idle time of dumptrucks and (2)
+Our main objective is twofold: (1) reducing emissions by optimizing idle time of dump trucks and (2)
 optimizing paths which reduce CO2 emissions as much as possible. Objective (2) can be achieved through
 planning paths which reduce acceleration, for example by taking topography into account.
 
@@ -100,10 +100,10 @@ We are using MARL to train agents on a simulation of road construction and show 
 We choose to simulate road construction through a custom designed PettingZoo environment.
 In this environment every object is represented as a particle in a grid. 
 The agents of the simulation, construction trucks are able to move cardinally in this grid with the goal of hauling construction materials from excavators to the unfinished road. 
-Every agent gets assigned a reward for each action they take with positive rewards for productive moves, and negative rewards for unproductive ones (idleing, or unneccesary moving). 
+Every agent gets assigned a reward for each action they take with positive rewards for productive moves, and negative rewards for unproductive ones (idling, or unnecessary moving). 
 
 While simulating the trucks we collect the rewards which the reinforcement learning algorithms uses to train.
-Using the average rewards we can estimate the algorithms perfomance. After simulating 10 episodes of 10,000 timesteps we have a firm grasp over if an algorithm performed well.
+Using the average rewards we can estimate the algorithms performance. After simulating 10 episodes of 10,000 time steps we have a firm grasp over if an algorithm performed well.
 
 To train our agents we use state of the art MARL algorithms such as multi agent proximal policy  optimization (MAPPO) and QMIX.
 \\
@@ -121,7 +121,7 @@ actor-critic framework with a centralized value function.
 
 QMIX outperformed MAPPO on most scenarios, but QMIX is memory-intensive due to its large replay buffer. For
 this reason, QMIX requires more computational power. In addition, the paper notes that MAPPO was still
-increasing its perfromance at the time of termination in several scenarios, which indicates it could end up
+increasing its performance at the time of termination in several scenarios, which indicates it could end up
 with a better result.
 
 This paper aims to evaluate both the QMIX and MAPPO algorithms.
@@ -129,7 +129,7 @@ This paper aims to evaluate both the QMIX and MAPPO algorithms.
 
 Flatlands\cite{laurent2021flatland} was a competition where contestants to design a MARL algorithm for 
 train scheduling. This is similar to the approach we seek to use to solve RoadAI. 
-In the compeition MAPPO performed well and is a pointer for what we could use in our own MARL implementation.
+In the competition MAPPO performed well and is a pointer for what we could use in our own MARL implementation.
 
 \noindent
 
