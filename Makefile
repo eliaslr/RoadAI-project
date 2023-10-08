@@ -4,11 +4,9 @@ pdf: compileplan compilepaper
 compileplan:
 	pdflatex -shell-escape -pdf project-plan.tex
 
-compilepaper: clean
-	pdflatex -shell-escape project-paper
+compilepaper:
 	bibtex project-paper
-	pdflatex project-paper
-	pdflatex project-paper
+	pdflatex project-paper.tex
 
 clean:
 	rm -f *.aux
