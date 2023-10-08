@@ -23,7 +23,7 @@ class RoadEnv(gym.Env):
         self.excavators = []
         # View distance of trucks
         self.view_dist = 4
-        self.algo = PPO(self, 0.005, 0.5)
+        self.algo = PPO(self, 0.005, 0.1)
 
 
     # Based on the example given in custom env tutorial from petting zoo
@@ -124,6 +124,7 @@ class RoadEnv(gym.Env):
 
     # Evaluates one episode of play
     def eval_episode(self, train=True, render_mode="console"):
+        self.reset()
         self.generate_map()
         self.avg_rewards = {}
         for agent in self.agents:
@@ -157,7 +158,7 @@ class RoadEnv(gym.Env):
             else:
                 self.step()
             if self.curr_step % 1000 == 0:
-                print(self.curr_step)
+                print(f"step: {self.curr_step}")
                 print(np.mean(list(self.avg_rewards.values())))
             self.render(render_mode=render_mode)
             if render_mode == "pygame":
