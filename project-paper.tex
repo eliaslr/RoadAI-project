@@ -3,58 +3,49 @@
 % The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
 \usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
-\usepackage{algorithmic}
 \usepackage{graphicx}
 \usepackage{textcomp}
+\usepackage{url}
 \usepackage{xcolor}
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 \begin{document}
 
-
-
-
 % -----------------------------------
 % -------------- TITLE --------------
-\title{RoadAI - Reducing Emissions in Road Construcrtion
-\thanks{Identify applicable funding agency here. If none, delete this.}
-}
+\title{RoadAI - Reducing Emissions in Road Construcrtion}
 % -----------------------------------
 
 
 % -----------------------------------
 % ------------- AUTHORS -------------
 \author{
-  \IEEEauthorblockN{1\textsuperscript{st} Given Name Surname}
+  \IEEEauthorblockN{Viktor Ringvold Hasle}
   \IEEEauthorblockA{\textit{Dept. of Informatics} \\
   \textit{University of Oslo}\\
   Oslo, Norway \\
-  email}
+  viktorrh@ifi.uio.no}
   \and
-  \IEEEauthorblockN{2\textsuperscript{nd} Given Name Surname}
+  \IEEEauthorblockN{Ada Hatland}
   \IEEEauthorblockA{\textit{Dept. of Informatics} \\
   \textit{University of Oslo}\\
   Oslo, Norway \\
-  email}
+  adaha@ifi.uio.no
+  }
   \and
-  \IEEEauthorblockN{3\textsuperscript{rd} Given Name Surname}
+  \IEEEauthorblockN{Elias Lynum Ringkjøb}
   \IEEEauthorblockA{\textit{Dept. of Informatics} \\
   \textit{University of Oslo}\\
   Oslo, Norway \\
-  email}
+  eliaslr@ifi.uio.no
+ }
   \and
-  \IEEEauthorblockN{4\textsuperscript{th} Given Name Surname}
+  \IEEEauthorblockN{Ilya Berezin}
   \IEEEauthorblockA{\textit{Dept. og Informatics} \\
   \textit{University of Oslo}\\
   Oslo, Norway \\
-  email}
-  \and
-  \IEEEauthorblockN{5\textsuperscript{th} Given Name Surname}
-  \IEEEauthorblockA{\textit{Dept. og Informatics} \\
-  \textit{University of Oslo}\\
-  Oslo, Norway \\
-  email}
+  ilyab@ifi.uio.no>}
 }
 
 \maketitle
@@ -73,12 +64,12 @@
 % -----------------------------------
 % - INTRODUCTION (and MOTIVATION?)  -
 \section{Introduction}
-In Norway, the total CO2 emissions from construction machines is 1.5\%. \cite{noraRoadAIReducing}
+In Norway, the total CO2 emissions from construction machines is 1.5\%.\cite{noraRoadAIReducing}
 This paper aims to reduce emissions from road construction using Multi-Agent Reinforcement Learning
 (MARL) techniques.
 
 The project is based on the RoadAI competition by Norwegian Artificial Intelligence Research
-Consortium (NORA) \cite{noraRoadAIReducing}. Participants in the competitition get access to four
+Consortium (NORA)\cite{noraRoadAIReducing}. Participants in the competitition get access to four
 different sets of data. The provided data includes GPS data recorded from iPads in dump trucks and
 trucks, detailing timestamps, machine IDs, locations, material type and quantity, and loading/unloading
 locations. This data is organized into trips. Additional metadata about the trips is also available.
@@ -107,7 +98,7 @@ environment.
 % -----------------------------------
 % ---------- RELATED WORK -----------
 \section{Related works}
-SMACv2 \cite{ellis2022smacv2} evaluates two MARL algorithms for problems using centralized training with
+SMACv2\cite{ellis2022smacv2} evaluates two MARL algorithms for problems using centralized training with
 decentralized execution (CTDE); QMIX and MAPPO.
 
 QMIX employs a centralized critic to estimate joint action-value functions, while MAPPO uses a decentralized
