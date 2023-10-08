@@ -45,7 +45,7 @@
   \IEEEauthorblockA{\textit{Dept. og Informatics} \\
   \textit{University of Oslo}\\
   Oslo, Norway \\
-  ilyab@ifi.uio.no>}
+  ilyab@ifi.uio.no}
 }
 
 \maketitle
@@ -94,6 +94,17 @@ environment.
 % ------------- METHODS -------------
 \section{Methodology}
 
+The goal of the Road AI competition was to demonstrate an algorithm which could reduce emissions from road construction.
+We are using MARL to train agents on a simulation of road construction and show how it can be used to solve this problem.
+
+We choose to simulate road construction through a custom designed PettingZoo environment.
+In this environment every object is represented as a particle in a grid. 
+The agents of the simulation, construction trucks are able to move cardinally in this grid with the goal of hauling construction materials from excavators to the unfinished road. 
+Every agent gets assigned a reward for each action they take with positive rewards for productive moves, and negative rewards for unproductive ones (idleing, or unneccesary moving). 
+
+While simulating the trucks we collect the rewards which the reinforcement learning algorithms uses to train.
+Using the average rewards we can estimate the algorithms perfomance. After simulating 10 episodes of 10000 timesteps we have a firm grasp over if an algorithm performed well.
+
 
 % -----------------------------------
 % ---------- RELATED WORK -----------
@@ -110,7 +121,6 @@ increasing its perfromance at the time of termination in several scenarios, whic
 with a better result.
 
 This paper aims to evaluate both the QMIX and MAPPO algorithms.
-
 \noindent
 
 
@@ -118,7 +128,7 @@ This paper aims to evaluate both the QMIX and MAPPO algorithms.
 
 % -----------------------------------
 % ----------- REFERENCES ------------
-% \newpage
+\newpage
 % \nocite{*}        % This includes all references that haven't been explicitly cited
 \bibliography{citations.bib}
 \bibliographystyle{plain}
