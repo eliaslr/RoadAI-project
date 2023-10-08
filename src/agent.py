@@ -94,7 +94,8 @@ class TruckAgent:
                 self.pos_y -= dy
             else:
                 self.out_of_bounds = False
-            if self.env.map[self.pos_y, self.pos_x] == -1  or self.env.map[self.pos_y, self.pos_x] <= -3:
+
+            if self.env.map[self.pos_y, self.pos_x] == -1 or self.env.map[self.pos_y, self.pos_x] <= -3:
                 self.collided = True
             else:
                 self.collided = False
