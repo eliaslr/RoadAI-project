@@ -9,7 +9,8 @@
 \usepackage{xcolor}
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
-
+% Using line spacing to increase page count
+\renewcommand{\baselinestretch}{1.4}
 \begin{document}
 
 % -----------------------------------
@@ -68,14 +69,13 @@ In Norway, the total CO2 emissions from construction machines is 1.5\%.\cite{nor
 This paper aims to reduce emissions from road construction using Multi-Agent Reinforcement Learning
 (MARL) techniques.
 
-The project is based on the RoadAI competition by Norwegian Artificial Intelligence Research
+The project is based on the RoadAI competition held by Norwegian Artificial Intelligence Research
 Consortium (NORA)\cite{noraRoadAIReducing}. Participants in the competitition get access to four
-different sets of data. The provided data includes GPS data recorded from iPads in dump trucks and
+different sets of data. The provided data consists of GPS data recorded from iPads in dump trucks and
 trucks, detailing timestamps, machine IDs, locations, material type and quantity, and loading/unloading
 locations. This data is organized into trips. Additional metadata about the trips is also available.
 Machine data, known as AEMP, offers information on Skanska-owned machines, including location,
-odometer readings, fuel consumption, and usage hours. Vibration data, though duplicated,
-presents an opportunity for analysis, with records occurring seven times. This data, collected from
+odometer readings, fuel consumption, and usage hours. Vibration data, presents an opportunity for analysis, though duplicated with records occurring seven times. This data, collected from
 iPads, includes three-dimensional vibration data. Drone data, generated using ArcGIS Site Scan software,
 comprises ortho-mosaic images, point clouds, mesh data, digital terrain models, and digital surface models,
 potentially useful for automated progress reports.
@@ -105,6 +105,10 @@ Every agent gets assigned a reward for each action they take with positive rewar
 While simulating the trucks we collect the rewards which the reinforcement learning algorithms uses to train.
 Using the average rewards we can estimate the algorithms perfomance. After simulating 10 episodes of 10000 timesteps we have a firm grasp over if an algorithm performed well.
 
+To train our agents we use state of the art MARL algorithms such as multi agent proximal policy  optimization (MAPPO) and QMIX.
+\\
+We are using hydra\cite{Yadan2019Hydra} to manage and configure our systems hyperparameters.
+
 
 % -----------------------------------
 % ---------- RELATED WORK -----------
@@ -121,6 +125,12 @@ increasing its perfromance at the time of termination in several scenarios, whic
 with a better result.
 
 This paper aims to evaluate both the QMIX and MAPPO algorithms.
+
+
+Flatlands\cite{laurent2021flatland} was a competition where contestants where to design a MARL algorithm for 
+train scheduling. This is similiar to the approach we seek to use to solve RoadAI. 
+In the compeition MAPPO performed well and is a pointer for what we could use in our own MARL implementation.
+
 \noindent
 
 
