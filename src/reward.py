@@ -6,15 +6,19 @@ def reward(agent, env):
     previous = agent.prev_agent
 
     # Rewards
-    idle_penalty = -0.01
+    idle_penalty = -0.5
     step_penalty = -0.1
-    collision_pen = 100
-    right_direction = 1
+    collision_pen = -3
+    right_direction = 3
+    out_of_bounds = -1000
 
     filled_emptied = 10
 
     if agent.collided:
-        tot_reward -= 100
+        tot_reward += collision_pen
+
+    if agent.out_of_bounds:
+        tot_reward += out_of_bounds
 
     if previous["pos_x"] == agent.pos_x and previous["pos_y"] == agent.pos_y:
         tot_reward += idle_penalty
