@@ -60,17 +60,18 @@ class PPO:
         # Calc V
         rtgs = self._rtgs(rews)
         V = self._eval(obs)
-        A_k = rtgs - V
-        A_k = (A_k - A_k.mean()) / (A_k.std() + 1e-8)
+        A_k = rtgs - V.detach()
+        A_k = (A_k - A_k.mean()) / (A_k.std() + 1e-10)
         for i in range(len(obs)):
             V = self._eval(obs)
             curr_dist = MultivariateNormal(self.nn_model(obs[i]), self.cov_mat)
             curr_probs = curr_dist.log_prob(curr_dist.sample())
             # pi_theta / pi_theta_old
             prob_ratio = torch.exp(curr_probs - self.probs)
+            clip = torch.clamp(prob_ratio, 1 - self.clip, 1 + self.clip)
             # Surrogate losses
-            act_loss = (-torch.min(prob_ratio * A_k,
-                        (torch.clamp(prob_ratio * A_k, 1 - self.clip, 1 + self.clip) * A_k))).mean()
+            act_loss = (-torch.min(prob_ratio * A_k, clip * A_k)).mean()
+            print(act_loss)
             critic_loss = nn.MSELoss()(V, rtgs)
             critic_loss.requires_grad = True
 

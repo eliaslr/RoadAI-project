@@ -7,7 +7,7 @@ from agent import TruckAgent
 
 WINDOW_H = 600
 WINDOW_W = 600
-MAX_STEPS = 100000
+MAX_STEPS = 10000
 
 
 # Note that we use (y,x) instead of (x, y) in our coordinates
@@ -23,7 +23,7 @@ class RoadEnv(gym.Env):
         self.excavators = []
         # View distance of trucks
         self.view_dist = 4
-        self.algo = PPO(self, 0.005, 0.2)
+        self.algo = PPO(self, 0.005, 0.5)
 
 
     # Based on the example given in custom env tutorial from petting zoo
@@ -88,13 +88,16 @@ class RoadEnv(gym.Env):
                         (self._s_size, self._s_size),
                     )
                     if self.map[i, j] <= -3:
-                        pygame.draw.rect(self._screen, (255, 0, 0), pos)
+                        if self.agents[self.map[i, j] * -1 - 3].out_of_bounds:
+                            pygame.draw.rect(self._screen, (0, 255, 255), pos)
+                        else:
+                            pygame.draw.rect(self._screen, (255, 0, 0), pos)
                         # TODO add rendering for view cones
                         #cone = self.observation_space[self.map[i, j] * -1 - 3]
                         #for sq in cone:
                         #    pos = pygame.Rect((self._margin + sq[1] * self._s_size,
                         #                      self._margin + sq[0] * self._s_size),
-                        #                      (self._s_size, self._s_size))
+                #                      (self._s_size, self._s_size))
                         #    pygame.draw.rect(self._screen, (255, 255, 255, 1), pos)
                     elif self.map[i, j] == -2:
                         pygame.draw.rect(self._screen, (0, 0, 255), pos)
@@ -104,7 +107,7 @@ class RoadEnv(gym.Env):
                         c = min(200, self.map[i, j])
                         pygame.draw.rect(self._screen, (200 - c, 200 - c, 200 - c), pos)
             pygame.display.flip()
-            pygame.time.delay(50)
+            pygame.time.delay(25)
         elif render_mode is None:
             return
 
@@ -116,9 +119,7 @@ class RoadEnv(gym.Env):
         self.curr_ep = 0
         # self.reward_func = reward_func
         self.excavators = []
-
-        self.generate_map()
-
+        self.avg_rewards = {}
         return self.observation_space
 
     # Evaluates one episode of play
@@ -155,7 +156,7 @@ class RoadEnv(gym.Env):
                 self.algo.learn()
             else:
                 self.step()
-            if self.curr_step % 100 == 0:
+            if self.curr_step % 1000 == 0:
                 print(self.curr_step)
                 print(np.mean(list(self.avg_rewards.values())))
             self.render(render_mode=render_mode)
@@ -163,7 +164,7 @@ class RoadEnv(gym.Env):
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         term = True
-        return np.mean(self.avg_rewards.values())
+        return np.mean(list(self.avg_rewards.values()))
 
     # Generates
     def _topograph_feature(self, start_pos, h, w, mag):
