@@ -82,7 +82,7 @@ potentially useful for automated progress reports.
 
 These data sets are available to us as well, and we will use the data sets for training our model.
 
-Our main objective is twofold: (1) reducing emissions by optimizing idle time of dumptrucks, and (2)
+Our main objective is twofold: (1) reducing emissions by optimizing idle time of dumptrucks and (2)
 optimizing paths which reduce CO2 emissions as much as possible. Objective (2) can be achieved through
 planning paths which reduce acceleration, for example by taking topography into account.
 
@@ -94,7 +94,7 @@ environment.
 % ------------- METHODS -------------
 \section{Methodology}
 
-The goal of the Road AI competition was to demonstrate an algorithm which could reduce emissions from road construction.
+The goal of the Road AI competition was to demonstrate an algorithm that could reduce emissions from road construction.
 We are using MARL to train agents on a simulation of road construction and show how it can be used to solve this problem.
 
 We choose to simulate road construction through a custom designed PettingZoo environment.
@@ -103,7 +103,7 @@ The agents of the simulation, construction trucks are able to move cardinally in
 Every agent gets assigned a reward for each action they take with positive rewards for productive moves, and negative rewards for unproductive ones (idleing, or unneccesary moving). 
 
 While simulating the trucks we collect the rewards which the reinforcement learning algorithms uses to train.
-Using the average rewards we can estimate the algorithms perfomance. After simulating 10 episodes of 10000 timesteps we have a firm grasp over if an algorithm performed well.
+Using the average rewards we can estimate the algorithms perfomance. After simulating 10 episodes of 10,000 timesteps we have a firm grasp over if an algorithm performed well.
 
 To train our agents we use state of the art MARL algorithms such as multi agent proximal policy  optimization (MAPPO) and QMIX.
 \\
@@ -127,8 +127,8 @@ with a better result.
 This paper aims to evaluate both the QMIX and MAPPO algorithms.
 
 
-Flatlands\cite{laurent2021flatland} was a competition where contestants where to design a MARL algorithm for 
-train scheduling. This is similiar to the approach we seek to use to solve RoadAI. 
+Flatlands\cite{laurent2021flatland} was a competition where contestants to design a MARL algorithm for 
+train scheduling. This is similar to the approach we seek to use to solve RoadAI. 
 In the compeition MAPPO performed well and is a pointer for what we could use in our own MARL implementation.
 
 \noindent
