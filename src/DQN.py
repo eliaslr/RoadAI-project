@@ -165,17 +165,17 @@ def optimize_model():
 
     non_final_mask = torch.tensor(tuple(map(lambda s: s is not None, batch.next_state)), device=device, dtype = torch.bool)
 
-    non_final_next_states = torch.cat([s for s in batch.next_state if s is not None])
+    non_final_next_states = torch.cat([s for s in batch[2] if s is not None])
 
-    state_batch = torch.cat(batch.state)
-    action_batch = torch.cat(batch.action)
-    reward_batch = torch.cat(batch.reward)
+    state_batch = torch.cat(batch[0])
+    action_batch = torch.cat(batch[1])
+    reward_batch = torch.cat(batch[3])
 
     action_batch = torch.tensor(action_batch, dtype = torch.int64)
-    state_batch = torch.tensor(state_batch, dtype = torch.float32)
+
+    # state_batch = torch.tensor(state_batch, dtype = torch.float32)
     # Compute Q(s_t, a), we compute Q(s_t) then we select action. these are the actions we wouldve
     # taken for each batch state according to policy_net
-
     state_action_values = policy_net(torch.transpose(state_batch,-2,0)).gather(1, action_batch)
 
     next_state_values = torch.zeros(BATCH_SIZE, device = device)
@@ -204,7 +204,7 @@ else:
 
 def main(render):
     for i_episode in range(num_episodes):
-        state = torch.tensor(env.reset(min_h = 70, max_h = 70, min_w = 70, max_w = 70).flatten(), dtype = torch.float32, device = device).unsqueeze(0)
+        state = torch.tensor(env.reset(min_h = 70, max_h = 70, min_w = 70, max_w = 70, curr_ep = env.curr_ep).flatten(), dtype = torch.float32, device = device).unsqueeze(0)
         states = torch.from_numpy(np.array([torch.cat((agent.info,state),1) for agent in env.agents], dtype = np.float32))
 
         for t in count():
@@ -219,7 +219,6 @@ def main(render):
                 next_state = torch.tensor(torch.from_numpy(observation), dtype = torch.float32, device = device).unsqueeze(0)
                 next_states = torch.from_numpy(np.array([torch.cat((agent.info,next_state),1) for agent in env.agents]))
             for i in range(len(actions)):
-                print(states[i])
                 memory.push(states[i], actions[i].view(1,1), next_states[i], reward.view(1,1))
 
             state = next_state

@@ -10,13 +10,13 @@ WINDOW_W = 600
 
 # Note that we use (y,x) instead of (x, y) in our coordinates
 class RoadEnv(ParallelEnv):
-    def __init__(self, reward_func, max_agents = None, n_agents = None):
+    def __init__(self, reward_func, max_agents = None, n_agents = None, curr_ep = 0):
         self._action_spaces = {}
         # self._observation_spaces = {} # The obs space is the entire map
         self.agents = []
         self.holes = {}
         self.n_agents = n_agents
-        self.curr_ep = 0
+        self.curr_ep = curr_ep
         self.reward_func = reward_func
         self.excavators = []
         self.curr_step = 0
@@ -100,11 +100,11 @@ class RoadEnv(ParallelEnv):
         elif render_mode is None:
             return
 
-    def reset(self, seed=None, min_h=50, min_w=50, max_h=100, max_w=100, n_agents = None):
+    def reset(self, seed=None, min_h=50, min_w=50, max_h=100, max_w=100, n_agents = None, curr_ep = 0):
         self._action_spaces = {}
         self.agents = []
         self.holes = {}
-        self.curr_ep = 0
+        self.curr_ep = curr_ep
         # self.reward_func = reward_func
         self.excavators = []
 
@@ -265,12 +265,18 @@ class RoadEnv(ParallelEnv):
             self.agents[i].deep_step(self, actions[i])
             reward += self.reward_func(self.agents[i], self)
         self.curr_step += 1
-        if self.curr_step == 300:
+        if self.curr_step > 1000:
             trunc = True
             self.curr_ep += 1
             self.curr_step = 0
+            print("")
         if render:
             self.render(render_mode = render)
+            if render == "pygame":
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        term = True
         else:
             print(f"Step: {self.curr_step}, Episode: {self.curr_ep}", end = "\r")
+
         return self.map.flatten(), reward/len(self.agents), term, trunc
