@@ -1,10 +1,8 @@
 import numpy as np
-import ray 
-from ray.rllib.algorithms import ppo
 
 
 class TruckAgent:
-    def __init__(self, id, pos_y, pos_x, ground, env, view_height):
+    def __init__(self, id, pos_y, pos_x, ground, env, view_dist):
         self.id = id
         self.pos_x = pos_x
         self.pos_y = pos_y
@@ -19,50 +17,26 @@ class TruckAgent:
         self.env = env
         self.collided = False
         self.out_of_bounds = False
-        self.view_height = view_height
+        self.view_dist = view_dist
         self.dir = 1  # Start pointing North
 
-    # This is a 2d raycasting where phi = pi / 4
-    # The viewcone dims could be changed but you would then we to change
-    # the input dims for the algos
-    def view(self):
-        cone = []
-        if self.dir == 1:
-            for i in range(self.view_height):
-                for j in range(2*i + 1):
-                    if self._in_bounds((self.pos_y - i, self.pos_x - i + j)):
-                        cone.append((self.pos_y - i, self.pos_x - i + j,
-                                     self.env.map[self.pos_y - i, self.pos_x - i + j]))
-                    else:
-                        cone.append((self.pos_y - i, self.pos_x - i + j, 1000))
-        elif self.dir == 2:
-            for i in range(self.view_height):
-                for j in range(2*i + 1):
-                    if self._in_bounds((self.pos_y + i, self.pos_x - i + j)):
-                        cone.append((self.pos_y + i, self.pos_x - i + j,
-                                     self.env.map[self.pos_y + i, self.pos_x - i + j]))
-                    else:
-                        cone.append((self.pos_y + i, self.pos_x - i + j, 1000))
-        elif self.dir == 3:
-            for i in range(self.view_height):
-                for j in range(2*i + 1):
-                    if self._in_bounds((self.pos_y - i + j, self.pos_x + i)):
-                        cone.append((self.pos_y - i + j, self.pos_x + i,
-                                     self.env.map[self.pos_y - i + j, self.pos_x + i]))
-                    else:
-                        cone.append((self.pos_y - i + j, self.pos_x + i, 1000))
-        else:
-            for i in range(self.view_height):
-                for j in range(2*i + 1):
-                    if self._in_bounds((self.pos_y - i + j, self.pos_x - i)):
-                        cone.append((self.pos_y - i + j, self.pos_x - i,
-                                     self.env.map[self.pos_y - i + j, self.pos_x - i]))
-                    else:
-                        cone.append((self.pos_y - i + j, self.pos_x - i, 1000))
-        return cone
+    # For now we have the observation space as square with the truck in the middle
+    def observe(self):
+        obs = np.zeros((2 * self.view_dist + 1) ** 2)
+        for i in range(self.view_dist * 2 + 1):
+            y = self.pos_y - self.view_dist + i
+            for j in range(self.view_dist * 2 + 1):
+                x = self.pos_x - self.view_dist + j
+                if self._inbounds((i, j)):
+                    obs[i, j] = self.env.map[y, x]
+                else:
+                    # Out of bounds positioons are marked as impassable
+                    obs[i, j] = np.inf
 
     def _in_bounds(self, pos):
-        return (0 <= pos[0] < self.env.map.shape[0]) and (0 <= pos[1] < self.env.map.shape[1])
+        return (0 <= pos[0] < self.env.map.shape[0]) and (
+            0 <= pos[1] < self.env.map.shape[1]
+        )
 
     def step(self, action):
         self.prev_agent = {
@@ -95,7 +69,10 @@ class TruckAgent:
             else:
                 self.out_of_bounds = False
 
-            if self.env.map[self.pos_y, self.pos_x] == -1 or self.env.map[self.pos_y, self.pos_x] <= -3:
+            if (
+                self.env.map[self.pos_y, self.pos_x] == -1
+                or self.env.map[self.pos_y, self.pos_x] <= -3
+            ):
                 self.collided = True
             else:
                 self.collided = False
