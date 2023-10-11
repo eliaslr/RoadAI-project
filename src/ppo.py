@@ -7,7 +7,7 @@ import numpy as np
 # TODO add these to hydra
 BATCH_SIZE = 100
 NUM_UPDATES = 10
-MAX_STEPS = 1000
+MAX_STEPS = 100000
 
 
 # TODO add a Cnn layer
@@ -109,7 +109,6 @@ class PPO:
                 V = self._eval(obs)
                 act_loss = self._act_loss(pi, pi_old, A_k)
                 cri_loss = self._cri_loss(V, v_old, rtgs)
-                print(rtgs)
                 print(f"ALOSS:{act_loss.item()} CLOSS:{ cri_loss.item()}")
 
                 self.a_optim.zero_grad()
