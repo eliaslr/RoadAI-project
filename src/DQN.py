@@ -67,7 +67,6 @@ class DQN(nn.Module):
         self.layer2 = nn.Linear(128, 128)
         self.layer3 = nn.Linear(128, n_actions)
 
-
     def forward(self, x):
         x = F.relu(self.layer1(x))
         x = F.relu(self.layer2(x))
@@ -171,8 +170,6 @@ def optimize_model():
     action_batch = torch.cat(batch[1])
     reward_batch = torch.cat(batch[3])
 
-    action_batch = torch.tensor(action_batch, dtype = torch.int64)
-
     # state_batch = torch.tensor(state_batch, dtype = torch.float32)
     # Compute Q(s_t, a), we compute Q(s_t) then we select action. these are the actions we wouldve
     # taken for each batch state according to policy_net
@@ -216,7 +213,7 @@ def main(render):
             if terminated:
                 next_state = None
             else:
-                next_state = torch.tensor(torch.from_numpy(observation), dtype = torch.float32, device = device).unsqueeze(0)
+                next_state = torch.from_numpy(observation).type(torch.float32).unsqueeze(0)
                 next_states = torch.from_numpy(np.array([torch.cat((agent.info,next_state),1) for agent in env.agents]))
             for i in range(len(actions)):
                 memory.push(states[i], actions[i].view(1,1), next_states[i], reward.view(1,1))
