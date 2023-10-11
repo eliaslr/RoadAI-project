@@ -50,11 +50,12 @@ class PPO:
         self.env = env
 
     # Calculates discouted rewards
-    def _rtgs(self, rews):
-        returns = np.zeros(len(rews))
-        returns[0] = rews[0] * self.gamma
-        for i in range(len(rews)):
-            returns[i] = self.gamma * (returns[i - 1] + rews[i])
+    def _rtgs(self, D):
+        returns = []
+        for i in range(len(D)):
+            rews = D[i][3]
+            returns.append(self.gamma * rews)
+        returns = np.array(returns)
         return torch.tensor(returns, dtype=float)
 
     # See arxiv 2103.01955 for implementation details
@@ -69,7 +70,6 @@ class PPO:
 
     # See arxiv 2103.01955 for implementation details
     def _cri_loss(self, V, V_old, rtgs):
-        print(rtgs)
         square = (V - rtgs) ** 2
         clip = (torch.clamp(V, V_old - self.upsilon, V_old + self.upsilon) - rtgs) ** 2
         return torch.max(square, clip).mean()
@@ -89,25 +89,27 @@ class PPO:
                 probs = np.zeros(len(self.env.agents))
                 rews = np.zeros(len(self.env.agents))
                 obs = self.env.observation_spaces
-                V = np.zeros(len(self.env.agents))
                 actions, probs = self.action(obs)
                 V = self._eval(obs)
                 rews = self.env.step(actions)
                 if render_mode is not None:
                     self.env.render(render_mode)
-                rtgs = self._rtgs(rews)
-                A_k = rtgs - V
-                # Normalize advantage
-                A_k = (A_k - A_k.mean()) / (A_k.std() + 1e-10)
-                D.append((obs, actions, probs, V, A_k, rtgs))
+                D.append((obs, actions, probs, rews, V))
                 curr_step += 1
+            V = D[-1][4]
+            rtgs = self._rtgs(D)
+            # Calculate advantage
+            A_k = rtgs - V
+            # Normalize Advantage
+            A_k = (A_k - A_k.mean()) / (A_k.std() + 1e-10)
             for i in range(NUM_UPDATES):
                 rand = np.random.randint(len(D))
-                (obs, actions, pi_old, v_old, A_k, rtgs) = D.pop(rand)
+                (obs, actions, pi_old, rews, v_old) = D.pop(rand)
                 _, pi = self.action(obs)
                 V = self._eval(obs)
                 act_loss = self._act_loss(pi, pi_old, A_k)
                 cri_loss = self._cri_loss(V, v_old, rtgs)
+                print(rtgs)
                 print(f"ALOSS:{act_loss.item()} CLOSS:{ cri_loss.item()}")
 
                 self.a_optim.zero_grad()
