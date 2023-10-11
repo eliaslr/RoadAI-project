@@ -11,45 +11,44 @@ MAX_STEPS = 10000
 
 # Note that we use (y,x) instead of (x, y) in our coordinates
 class RoadEnv(gym.Env):
-    def __init__(self, reward_func, max_agents=None, enable_pygame = True):
-        self.action_space = {}
-        self.agents = []
-        self.observation_spaces = []
-        self.holes = {}
+    def __init__(self, reward_func, max_agents=None, enable_pygame=True):
         self.reward_func = reward_func
-        self.excavators = []
-        self.view_dist = 5
+        self.view_dist = 5  # Parameter for how long each truck can see
+        self.curr_ep = -1
+        self.reset()
+        (H, W) = self.map.shape
         if enable_pygame:
             pygame.init()
             # TODO ADD CONSTANTS IN HYDRA
             self._margin = 25
             self._s_size = (
-                    (WINDOW_H - self._margin) // H
-                    if H > W
-                    else (WINDOW_W - self._margin) // W
-                    )
+                (WINDOW_H - self._margin) // H
+                if H > W
+                else (WINDOW_W - self._margin) // W
+            )
             self._screen = pygame.display.set_mode(
-                    (
-                        self._s_size * W + 2 * self._margin,
-                        self._s_size * H + 2 * self._margin,
-                        )
-                    )
-
+                (
+                    self._s_size * W + 2 * self._margin,
+                    self._s_size * H + 2 * self._margin,
+                )
+            )
 
     # Updates agents states, reward, observations
     # Called from learning algorithm
     def step(self, actions):
+        self.curr_step += 1
+        self.observation_spaces = []
         agent_rewards = np.zeros(len(self.agents))
         for agent in self.agents:
-            self.observation_space[agent.id] = agent.observe()
+            self.observation_spaces.append(agent.observe())
             agent.step(actions[agent.id])
             # Get reward
             reward = self.reward_func(agent, self)
             agent_rewards[agent.id] = reward
             # Running avg
             self.avg_rewards[agent] += (
-                    reward - self.avg_rewards[agent]
-                    ) / self.curr_step
+                reward - self.avg_rewards[agent]
+            ) / self.curr_step
         return agent_rewards
 
     # Renders the environment
@@ -80,12 +79,12 @@ class RoadEnv(gym.Env):
             for i in range(H):
                 for j in range(W):
                     pos = pygame.Rect(
-                            (
-                                self._margin + j * self._s_size,
-                                self._margin + i * self._s_size,
-                                ),
-                            (self._s_size, self._s_size),
-                            )
+                        (
+                            self._margin + j * self._s_size,
+                            self._margin + i * self._s_size,
+                        ),
+                        (self._s_size, self._s_size),
+                    )
                     if self.map[i, j] <= -3:
                         if self.agents[self.map[i, j] * -1 - 3].out_of_bounds:
                             pygame.draw.rect(self._screen, (0, 255, 255), pos)
@@ -103,22 +102,21 @@ class RoadEnv(gym.Env):
         elif render_mode is None:
             return
 
+    # Resets the env and generates new map
+    # Should be called inbetween episodes
     def reset(self):
         self.action_spaces = {}
         self.observation_spaces = []
         self.agents = []
         self.holes = {}
-        # self.reward_func = reward_func
         self.excavators = []
         self.avg_rewards = {}
         self.generate_map()
         self.avg_rewards = {}
         for agent in self.agents:
             self.avg_rewards[agent] = 0
-        (H, W) = self.map.shape
-                self.curr_step = 0
+        self.curr_step = 0
         self.curr_ep += 1
-        return self.observation_space
 
     # Generates topographic "hills" where the hills get larger as you get to the center
     def _topograph_feature(self, start_pos, h, w, mag):
@@ -134,8 +132,8 @@ class RoadEnv(gym.Env):
                     self.map[start_pos[0] + i - 2 * w, start_pos[1]] += rand_val
                 else:
                     self.map[
-                            start_pos[0] + (i - 2 * w) - h, start_pos[1] + w
-                            ] += rand_val
+                        start_pos[0] + (i - 2 * w) - h, start_pos[1] + w
+                    ] += rand_val
             w -= 2
             h -= 2
             start_pos = (start_pos[0] + 1, start_pos[1] + 1)
@@ -161,13 +159,13 @@ class RoadEnv(gym.Env):
         num_of_features = np.random.randint(3, 10)
         for _ in range(num_of_features):
             start_pos = (
-                    np.random.randint(0, 4 * H // 5 - 20),
-                    np.random.randint(0, W - 20),
-                    )
+                np.random.randint(0, 4 * H // 5 - 20),
+                np.random.randint(0, W - 20),
+            )
             size = (
-                    np.random.randint(5, max(20, H - start_pos[0])),
-                    np.random.randint(5, max(20, W - start_pos[1])),
-                    )
+                np.random.randint(5, max(20, H - start_pos[0])),
+                np.random.randint(5, max(20, W - start_pos[1])),
+            )
             mag = 3
             self._topograph_feature(start_pos, size[0], size[1], mag)
 
@@ -179,15 +177,15 @@ class RoadEnv(gym.Env):
             while self.map[start_pos[0], start_pos[1]] >= 10:
                 start_pos = (np.random.randint(0, 4 * H // 5), np.random.randint(0, W))
             self.agents.append(
-                    TruckAgent(
-                        i,
-                        start_pos[0],
-                        start_pos[1],
-                        self.map[start_pos[0], start_pos[1]],
-                        self,
-                        self.view_dist,
-                        )
-                    )
+                TruckAgent(
+                    i,
+                    start_pos[0],
+                    start_pos[1],
+                    self.map[start_pos[0], start_pos[1]],
+                    self,
+                    self.view_dist,
+                )
+            )
             self.map[start_pos[0], start_pos[1]] = -i - 3
         num_excavators = 3
         for _ in range(num_excavators):

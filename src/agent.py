@@ -27,11 +27,12 @@ class TruckAgent:
             y = self.pos_y - self.view_dist + i
             for j in range(self.view_dist * 2 + 1):
                 x = self.pos_x - self.view_dist + j
-                if self._inbounds((i, j)):
-                    obs[i, j] = self.env.map[y, x]
+                if self._in_bounds((y, x)):
+                    obs[i * (self.view_dist * 2 + 1) + j] = self.env.map[y, x]
                 else:
                     # Out of bounds positioons are marked as impassable
-                    obs[i, j] = np.inf
+                    obs[i * (self.view_dist * 2 + 1) + j] = 100000
+        return obs
 
     def _in_bounds(self, pos):
         return (0 <= pos[0] < self.env.map.shape[0]) and (

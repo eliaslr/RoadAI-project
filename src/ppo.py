@@ -5,8 +5,8 @@ from torch.distributions import MultivariateNormal
 import numpy as np
 
 # TODO add these to hydra
-BATCH_SIZE = 10
-NUM_UPDATES = 3
+BATCH_SIZE = 100
+NUM_UPDATES = 10
 MAX_STEPS = 1000
 
 
@@ -23,7 +23,8 @@ class SimpleNN(nn.Module):
 
     def forward(self, X):
         # Convert to tensor
-        X = torch.tensor(X, dtype=torch.float).flatten()
+        if isinstance(X, np.ndarray):
+            X = torch.tensor(X, dtype=torch.float)
         z = nn.functional.relu(self.l1(X))
         for l in self.hl:
             z = nn.functional.relu(l(z))
@@ -32,30 +33,33 @@ class SimpleNN(nn.Module):
 
 class PPO:
     def __init__(self, env, lr, cliprange, gamma=0.95, BATCHSIZE=10):
-        self.gamma = gamma
-        self.clip = cliprange
-        # self.in_dim = env.view_dist**2 * 3
-        self.in_dim = 16
+        self.gamma = gamma  # Discount coeff for rewards
+        self.epsilon = cliprange  # Clip for actor
+        self.upsilon = cliprange  # Clip for critic
+        self.in_dim = (env.view_dist * 2 + 1) ** 2  # Square view
         # Action space is cardinal movement
         self.out_dim = 5
-        self.actor = nn.RNN(self.in_dim, self.out_dim)
+        # TODO test RNN
+        # self.actor = nn.RNN(self.in_dim, self.out_dim)
+        self.actor = SimpleNN(self.in_dim, self.out_dim)
         self.critic = SimpleNN(self.in_dim, 1)
         self.a_optim = Adam(self.actor.parameters(), lr=lr)
         self.c_optim = Adam(self.critic.parameters(), lr=lr)
         self.cov_var = torch.full(size=(self.out_dim,), fill_value=0.5)
         self.cov_mat = torch.diag(self.cov_var)
-        self.num_updates = 3
+        self.env = env
 
     # Calculates discouted rewards
     def _rtgs(self, rews):
         returns = np.zeros(len(rews))
+        returns[0] = rews[0] * self.gamma
         for i in range(len(rews)):
-            returns[i] = self.gamma * np.sum(rews[:i])
+            returns[i] = self.gamma * (returns[i - 1] + rews[i])
         return torch.tensor(returns, dtype=float)
 
     # See arxiv 2103.01955 for implementation details
     def _act_loss(self, pi, pi_old, A_k):
-        surr = torch.exp(pi - pi_old)
+        surr = torch.tensor(np.exp(pi - pi_old))
         surr2 = torch.clamp(surr, 1 - self.epsilon, 1 + self.epsilon)
         # TODO implement entropy loss
         loss = (
@@ -65,14 +69,18 @@ class PPO:
 
     # See arxiv 2103.01955 for implementation details
     def _cri_loss(self, V, V_old, rtgs):
+        print(rtgs)
         square = (V - rtgs) ** 2
         clip = (torch.clamp(V, V_old - self.upsilon, V_old + self.upsilon) - rtgs) ** 2
         return torch.max(square, clip).mean()
 
-    # Training Time Step
-    # TODO Maybe add batch training
+    # Main training loop
+    # For now it only trains one ep
+    # TODO add a function where we only rollout and dont update
     def train(self, render_mode=None):
-        curr_step = 0
+        # Initilial Step
+        self.env.step(np.zeros(len(self.env.agents)))
+        curr_step = 1
         while curr_step < MAX_STEPS:
             D = []
             # Rollout
@@ -95,17 +103,20 @@ class PPO:
                 curr_step += 1
             for i in range(NUM_UPDATES):
                 rand = np.random.randint(len(D))
-                (obs, actions, pi_old, v_old, A_k, rtgs) = D.remove(rand)
+                (obs, actions, pi_old, v_old, A_k, rtgs) = D.pop(rand)
                 _, pi = self.action(obs)
                 V = self._eval(obs)
                 act_loss = self._act_loss(pi, pi_old, A_k)
-                cri_loss = self._cri_loss()
+                cri_loss = self._cri_loss(V, v_old, rtgs)
+                print(f"ALOSS:{act_loss.item()} CLOSS:{ cri_loss.item()}")
 
                 self.a_optim.zero_grad()
+                act_loss.requires_grad = True
                 act_loss.backward()
                 self.a_optim.step()
 
                 self.c_optim.zero_grad()
+                cri_loss.requires_grad = True
                 cri_loss.backward()
                 self.c_optim.step()
 
@@ -113,15 +124,16 @@ class PPO:
         V = np.zeros(len(obs))
         for i in range(len(obs)):
             V[i] = self.critic(obs[i])
-        return V
+        return torch.tensor(V, dtype=float)
 
     def action(self, obs):
         probs = np.zeros(len(obs))
         actions = np.zeros(len(obs))
         for i in range(len(obs)):
-            mu = self.actor(torch.tensor(obs[i]))
+            mu = self.actor(obs[i])
             # Create a distrubution
             dist = MultivariateNormal(mu, self.cov_mat)
-            actions[i] = dist.sample()
-            probs[i] = dist.log_prob(action).detach()
+            action = dist.sample()
+            actions[i] = np.argmax(action.numpy())
+            probs[i] = dist.log_prob(action).detach().numpy()
         return actions, probs

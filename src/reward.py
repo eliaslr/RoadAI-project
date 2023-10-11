@@ -6,11 +6,11 @@ def reward(agent, env):
     previous = agent.prev_agent
 
     # Rewards
-    idle_penalty = 1
-    step_penalty = -0.5
+    idle_penalty = -0.5
+    step_penalty = -0.1
     collision_pen = 0
-    right_direction = 0
-    out_of_bounds = 0
+    right_direction = 1
+    out_of_bounds = -1
 
     filled_emptied = 1
 
