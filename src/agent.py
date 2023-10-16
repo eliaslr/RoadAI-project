@@ -98,14 +98,14 @@ class TruckAgent:
             if 0 < self.pos_y + dy < env.map.shape[0]:
                 self.pos_y += dy
 
-            if env.map[self.pos_y, self.pos_x] == -1 or env.map[self.pos_y, self.pos_x] <= -3:
+            if env.map[self.pos_y, self.pos_x] <= -1:
                 self.collided = True
+                self.pos_x -= dx
+                self.pos_y -= dy
             else:
                 self.collided = False
                 self._ground = env.map[self.pos_y, self.pos_x]
                 env.map[self.pos_y, self.pos_x] = -3 -self.agent_num
-            self._ground = env.map[self.pos_y, self.pos_x]
-            env.map[self.pos_y, self.pos_x] = -3 -self.agent_num
 
         #fill or empty
         adj = [
