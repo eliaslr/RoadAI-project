@@ -59,13 +59,14 @@ class PPO:
 
     # Calculates discouted rewards
     def _rtgs(self, D):
-        returns = []
-        for i in range(len(D)):
-            ret = 0
-            for j in range(i, len(D)):
-                ret += self.gamma * D[i][3]
-            returns.append(ret)
-        returns = np.array(returns)
+        returns = np.zeros((len(D), self.env._num_agents))
+        for i in reversed(range(len(D))):
+            rews = D[i][3]
+            if i == len(D) - 1:
+                returns[i:] = rews
+            else:
+                for j in range(len(rews)):
+                    returns[i, j] = rews[j] + returns[i + 1, j] * self.gamma
         return torch.tensor(returns, dtype=float)
 
     # See arxiv 2103.01955 for implementation details
@@ -87,6 +88,7 @@ class PPO:
     # Main training loop
     # For now it only trains one ep
     # TODO add a function where we only rollout and dont update
+    # TODO add model saving/loading
     def train(self):
         # Initilial Step
         self.env.step(np.zeros(len(self.env.agents)))
