@@ -11,13 +11,14 @@ MAX_STEPS = 10000
 
 # Note that we use (y,x) instead of (x, y) in our coordinates
 class RoadEnv(gym.Env):
-    def __init__(self, reward_func, max_agents=None, enable_pygame=True):
+    def __init__(self, reward_func, max_agents=None, render_mode=None):
         self.reward_func = reward_func
         self.view_dist = 21  # Parameter for how long each truck can see
         self.curr_ep = -1
+        self.render_mode = render_mode
         self.reset()
         (H, W) = self.map.shape
-        if enable_pygame:
+        if render_mode == "pygame":
             pygame.init()
             # TODO ADD CONSTANTS IN HYDRA
             self._margin = 25
@@ -54,7 +55,7 @@ class RoadEnv(gym.Env):
     # Console prints the enviroment in ascii to console
     # Pygame renders a graphical view
     # None skips rendering
-    def render(self, render_mode=None):
+    def render(self):
         (H, W) = self.map.shape
         if render_mode == "console":
             print(f"Episode: {self.curr_ep}, Step: {self.curr_step}")
@@ -109,7 +110,7 @@ class RoadEnv(gym.Env):
         self.excavators = []
         self.avg_rewards = {}
         self.generate_map()
-        self.observation_spaces = [0] * self._num_of_agents
+        self.observation_spaces = [0] * self._num_agents
         self.avg_rewards = []
         self.curr_step = 0
         self.curr_ep += 1
@@ -182,6 +183,7 @@ class RoadEnv(gym.Env):
             while self.map[pos[0], pos[1]] >= 10:
                 pos = (np.random.randint(0, H // 2), np.random.randint(0, W))
             self.map[pos[0], pos[1]] = -1
+
         self._num_agents = np.random.randint(3, 10)
         for i in range(self._num_agents):
             # TODO add option for fixed startpositions/A deposit where the material is hauled from

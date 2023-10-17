@@ -8,7 +8,7 @@ import numpy as np
 
 # TODO add these to hydra
 BATCH_SIZE = 100
-NUM_UPDATES = 5
+NUM_UPDATES = 10
 MAX_STEPS = 100000
 
 
@@ -87,7 +87,7 @@ class PPO:
     # Main training loop
     # For now it only trains one ep
     # TODO add a function where we only rollout and dont update
-    def train(self, render_mode=None):
+    def train(self):
         # Initilial Step
         self.env.step(np.zeros(len(self.env.agents)))
         curr_step = 1
@@ -102,8 +102,6 @@ class PPO:
                 actions, probs = self.action(obs)
                 V = self._eval(obs)
                 rews = self.env.step(actions)
-                if render_mode is not None:
-                    self.env.render(render_mode)
                 D.append((obs, actions, probs, rews, V))
                 curr_step += 1
             V = D[-1][4]
@@ -114,6 +112,8 @@ class PPO:
             A_k = (A_k - A_k.mean()) / (A_k.std() + 1e-10)
             # Update actor critic based on L
             for i in range(NUM_UPDATES):
+                self.a_optim.zero_grad()
+                self.c_optim.zero_grad()
                 rand = np.random.randint(len(D))
                 (obs, actions, pi_old, rews, v_old) = D.pop(rand)
                 _, pi = self.action(obs)
@@ -121,12 +121,10 @@ class PPO:
                 act_loss = self._act_loss(pi, pi_old, A_k)
                 cri_loss = self._cri_loss(V, v_old, rtgs)
 
-                self.a_optim.zero_grad()
                 act_loss.requires_grad = True
                 act_loss.backward()
                 self.a_optim.step()
 
-                self.c_optim.zero_grad()
                 cri_loss.requires_grad = True
                 cri_loss.backward()
                 self.c_optim.step()
@@ -148,5 +146,4 @@ class PPO:
             probs[i] = dist.log_prob(action).detach().numpy()
             # print(action)
             actions[i] = np.argmax(action.detach().numpy())
-            print(mu)
         return actions, probs
