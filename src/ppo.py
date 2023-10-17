@@ -1,12 +1,14 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.optim import Adam
 from torch.distributions import MultivariateNormal
 import numpy as np
 
+
 # TODO add these to hydra
 BATCH_SIZE = 100
-NUM_UPDATES = 10
+NUM_UPDATES = 5
 MAX_STEPS = 100000
 
 
@@ -15,20 +17,25 @@ MAX_STEPS = 100000
 class SimpleNN(nn.Module):
     def __init__(self, input_dim, output_dim, num_hidden_l=1):
         super(SimpleNN, self).__init__()
-        self.hl = []
-        self.l1 = nn.Linear(input_dim, 64)
-        for _ in range(num_hidden_l):
-            self.hl.append(nn.Linear(64, 64))
-        self.l3 = nn.Linear(64, output_dim)
+        self.c1 = nn.Conv2d(1, 16, kernel_size=3, padding=1)
+        self.c2 = nn.Conv2d(16, 32, kernel_size=3, padding=1)
+        self.l1 = nn.Linear(32 * input_dim * input_dim, 128)
+        self.l2 = nn.Linear(128, output_dim)
 
     def forward(self, X):
         # Convert to tensor
         if isinstance(X, np.ndarray):
             X = torch.tensor(X, dtype=torch.float)
-        z = nn.functional.relu(self.l1(X))
-        for l in self.hl:
-            z = nn.functional.relu(l(z))
-        return self.l3(z)
+            X = X.unsqueeze(0)
+        z = F.relu(self.c1(X))
+        # z = F.max_pool2d(z, 2)
+        z = F.relu(self.c2(z))
+        # z = F.max_pool2d(z, 2)
+        z = z.view(z.size(0), -1)
+        z = F.relu(self.l1(z))
+        z = self.l2(z)
+        s = nn.Softmax(dim=1)(z)
+        return s
 
 
 class PPO:
@@ -36,13 +43,14 @@ class PPO:
         self.gamma = gamma  # Discount coeff for rewards
         self.epsilon = cliprange  # Clip for actor
         self.upsilon = cliprange  # Clip for critic
-        self.in_dim = (env.view_dist * 2 + 1) ** 2  # Square view
+        self.in_dim = env.view_dist * 2 + 1  # Square view
         # Action space is cardinal movement
         self.out_dim = 5
         # TODO test RNN
         # self.actor = nn.RNN(self.in_dim, self.out_dim)
         self.actor = SimpleNN(self.in_dim, self.out_dim)
         self.critic = SimpleNN(self.in_dim, 1)
+        # self.critic = nn.RNN(self.in_dim, 1)
         self.a_optim = Adam(self.actor.parameters(), lr=lr)
         self.c_optim = Adam(self.critic.parameters(), lr=lr)
         self.cov_var = torch.full(size=(self.out_dim,), fill_value=0.5)
@@ -53,8 +61,10 @@ class PPO:
     def _rtgs(self, D):
         returns = []
         for i in range(len(D)):
-            rews = D[i][3]
-            returns.append(self.gamma * rews)
+            ret = 0
+            for j in range(i, len(D)):
+                ret += self.gamma * D[i][3]
+            returns.append(ret)
         returns = np.array(returns)
         return torch.tensor(returns, dtype=float)
 
@@ -64,7 +74,7 @@ class PPO:
         surr2 = torch.clamp(surr, 1 - self.epsilon, 1 + self.epsilon)
         # TODO implement entropy loss
         loss = (
-            -torch.min(surr, surr2)
+            -torch.min(surr * A_k, surr2 * A_k)
         ).mean()  # + self.entropy_coeff * self._entropy_loss()
         return loss
 
@@ -102,6 +112,7 @@ class PPO:
             A_k = rtgs - V
             # Normalize Advantage
             A_k = (A_k - A_k.mean()) / (A_k.std() + 1e-10)
+            # Update actor critic based on L
             for i in range(NUM_UPDATES):
                 rand = np.random.randint(len(D))
                 (obs, actions, pi_old, rews, v_old) = D.pop(rand)
@@ -109,7 +120,6 @@ class PPO:
                 V = self._eval(obs)
                 act_loss = self._act_loss(pi, pi_old, A_k)
                 cri_loss = self._cri_loss(V, v_old, rtgs)
-                print(f"ALOSS:{act_loss.item()} CLOSS:{ cri_loss.item()}")
 
                 self.a_optim.zero_grad()
                 act_loss.requires_grad = True
@@ -135,6 +145,8 @@ class PPO:
             # Create a distrubution
             dist = MultivariateNormal(mu, self.cov_mat)
             action = dist.sample()
-            actions[i] = np.argmax(action.numpy())
             probs[i] = dist.log_prob(action).detach().numpy()
+            # print(action)
+            actions[i] = np.argmax(action.detach().numpy())
+            print(mu)
         return actions, probs

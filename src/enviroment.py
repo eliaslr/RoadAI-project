@@ -13,7 +13,7 @@ MAX_STEPS = 10000
 class RoadEnv(gym.Env):
     def __init__(self, reward_func, max_agents=None, enable_pygame=True):
         self.reward_func = reward_func
-        self.view_dist = 5  # Parameter for how long each truck can see
+        self.view_dist = 21  # Parameter for how long each truck can see
         self.curr_ep = -1
         self.reset()
         (H, W) = self.map.shape
@@ -37,18 +37,16 @@ class RoadEnv(gym.Env):
     # Called from learning algorithm
     def step(self, actions):
         self.curr_step += 1
-        self.observation_spaces = []
         agent_rewards = np.zeros(len(self.agents))
         for agent in self.agents:
-            self.observation_spaces.append(agent.observe())
+            self.observation_spaces[agent.id] = agent.observe()
             agent.step(actions[agent.id])
             # Get reward
             reward = self.reward_func(agent, self)
             agent_rewards[agent.id] = reward
-            # Running avg
-            self.avg_rewards[agent] += (
-                reward - self.avg_rewards[agent]
-            ) / self.curr_step
+        self.avg_rewards.append(np.mean(agent_rewards))
+        if self.curr_step % 1000 == 0:
+            print(self.avg_rewards[self.curr_step - 1])
         return agent_rewards
 
     # Renders the environment
@@ -106,15 +104,13 @@ class RoadEnv(gym.Env):
     # Should be called inbetween episodes
     def reset(self):
         self.action_spaces = {}
-        self.observation_spaces = []
         self.agents = []
         self.holes = {}
         self.excavators = []
         self.avg_rewards = {}
         self.generate_map()
-        self.avg_rewards = {}
-        for agent in self.agents:
-            self.avg_rewards[agent] = 0
+        self.observation_spaces = [0] * self._num_of_agents
+        self.avg_rewards = []
         self.curr_step = 0
         self.curr_ep += 1
 
@@ -169,6 +165,23 @@ class RoadEnv(gym.Env):
             mag = 3
             self._topograph_feature(start_pos, size[0], size[1], mag)
 
+        num_excavators = 3
+        for _ in range(num_excavators):
+            # Excavators always start at the top of the map
+            pos = (np.random.randint(0, H // 2), np.random.randint(0, W))
+            # Make sure we start off in a flat space
+
+            """
+                QUESTION
+                should the excavators move frequently enough for that to happen during an episode or is it fine to just store their position?
+            """
+            # Assume that excavators are stationary
+            # We need this for reward function
+            self.excavators.append(pos)
+            # Make sure we start off in a flat space
+            while self.map[pos[0], pos[1]] >= 10:
+                pos = (np.random.randint(0, H // 2), np.random.randint(0, W))
+            self.map[pos[0], pos[1]] = -1
         self._num_agents = np.random.randint(3, 10)
         for i in range(self._num_agents):
             # TODO add option for fixed startpositions/A deposit where the material is hauled from
@@ -187,23 +200,6 @@ class RoadEnv(gym.Env):
                 )
             )
             self.map[start_pos[0], start_pos[1]] = -i - 3
-        num_excavators = 3
-        for _ in range(num_excavators):
-            # Excavators always start at the top of the map
-            pos = (np.random.randint(0, H // 2), np.random.randint(0, W))
-            # Make sure we start off in a flat space
-
-            """
-                QUESTION
-                should the excavators move frequently enough for that to happen during an episode or is it fine to just store their position?
-            """
-            # Assume that excavators are stationary
-            # We need this for reward function
-            self.excavators.append(pos)
-            # Make sure we start off in a flat space
-            while self.map[pos[0], pos[1]] >= 10:
-                pos = (np.random.randint(0, H // 2), np.random.randint(0, W))
-            self.map[pos[0], pos[1]] = -1
 
         mass_per_hole = 1000  # Number of kilograms of road mass per square
         for i in range(9 * H // 10, H):
