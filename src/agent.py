@@ -22,17 +22,17 @@ class TruckAgent:
 
     # For now we have the observation space as square with the truck in the middle
     def observe(self):
-        obs = np.zeros((2 * self.view_dist + 1) ** 2)
+        obs = []
         for i in range(self.view_dist * 2 + 1):
             y = self.pos_y - self.view_dist + i
             for j in range(self.view_dist * 2 + 1):
                 x = self.pos_x - self.view_dist + j
                 if self._in_bounds((y, x)):
-                    obs[i * (self.view_dist * 2 + 1) + j] = self.env.map[y, x]
+                    obs.append(self.env.map[y, x])
                 else:
                     # Out of bounds positioons are marked as impassable
-                    obs[i * (self.view_dist * 2 + 1) + j] = 100000
-        return obs
+                    obs.append(100000)
+        return np.array(obs).reshape(1, self.view_dist * 2 + 1, self.view_dist * 2 + 1)
 
     def _in_bounds(self, pos):
         return (0 <= pos[0] < self.env.map.shape[0]) and (

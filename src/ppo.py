@@ -94,20 +94,10 @@ class PPO:
         self.env.step(np.zeros(len(self.env.agents)))
         curr_step = 1
         while curr_step < MAX_STEPS:
-            D = []
-            # Rollout
-            for i in range(BATCH_SIZE):
-                actions = np.zeros(len(self.env.agents))
-                probs = np.zeros(len(self.env.agents))
-                rews = np.zeros(len(self.env.agents))
-                obs = self.env.observation_spaces
-                actions, probs = self.action(obs)
-                V = self._eval(obs)
-                rews = self.env.step(actions)
-                D.append((obs, actions, probs, rews, V))
-                curr_step += 1
-            V = D[-1][4]
-            rtgs = self._rtgs(D)
+            batch = self._rollout()
+            curr_step += len(batch)
+            V = batch[-1][4]
+            rtgs = self._rtgs(batch)
             # Calculate advantage
             A_k = rtgs - V
             # Normalize Advantage
@@ -116,8 +106,8 @@ class PPO:
             for i in range(NUM_UPDATES):
                 self.a_optim.zero_grad()
                 self.c_optim.zero_grad()
-                rand = np.random.randint(len(D))
-                (obs, actions, pi_old, rews, v_old) = D.pop(rand)
+                rand = np.random.randint(len(batch))
+                (obs, actions, pi_old, rews, v_old) = batch.pop(rand)
                 _, pi = self.action(obs)
                 V = self._eval(obs)
                 act_loss = self._act_loss(pi, pi_old, A_k)
@@ -130,6 +120,16 @@ class PPO:
                 cri_loss.requires_grad = True
                 cri_loss.backward()
                 self.c_optim.step()
+
+    def _rollout(self):
+        batch = []
+        for i in range(BATCH_SIZE):
+            obs = self.env.observation_spaces
+            actions, probs = self.action(obs)
+            V = self._eval(obs)
+            rews = self.env.step(actions)
+            batch.append((obs, actions, probs, rews, V))
+        return batch
 
     def _eval(self, obs):
         V = np.zeros(len(obs))
@@ -146,6 +146,5 @@ class PPO:
             dist = MultivariateNormal(mu, self.cov_mat)
             action = dist.sample()
             probs[i] = dist.log_prob(action).detach().numpy()
-            # print(action)
             actions[i] = np.argmax(action.detach().numpy())
         return actions, probs
