@@ -24,7 +24,7 @@ class SimpleNN(nn.Module):
 
     def forward(self, X):
         # Convert to tensor
-        if isinstance(X, np.ndarray):
+        if not torch.is_tensor(X):
             X = torch.tensor(X, dtype=torch.float)
             X = X.unsqueeze(0)
         z = F.relu(self.c1(X))
@@ -58,15 +58,15 @@ class PPO:
         self.env = env
 
     # Calculates discouted rewards
-    def _rtgs(self, D):
-        returns = np.zeros((len(D), self.env._num_agents))
-        for i in reversed(range(len(D))):
-            rews = D[i][3]
-            if i == len(D) - 1:
-                returns[i:] = rews
+    def _rtgs(self, rews):
+        returns = np.zeros((len(rews), self.env._num_agents))
+        for i in reversed(range(len(rews))):
+            rew = rews[i]
+            if i == len(rews) - 1:
+                returns[i:] = rews[i]
             else:
-                for j in range(len(rews)):
-                    returns[i, j] = rews[j] + returns[i + 1, j] * self.gamma
+                for j in range(len(rews[i])):
+                    returns[i, j] = rews[i][j] + returns[i + 1, j] * self.gamma
         return torch.tensor(returns, dtype=float)
 
     # See arxiv 2103.01955 for implementation details
@@ -83,7 +83,7 @@ class PPO:
     def _cri_loss(self, V, rtgs):
         square = (V - rtgs) ** 2
         # clip = (torch.clamp(V, V_old - self.upsilon, V_old + self.upsilon) - rtgs) ** 2
-        return square.reduce_mean()
+        return square.mean()
 
     # Main training loop
     # For now it only trains one ep
@@ -94,47 +94,51 @@ class PPO:
         self.env.step(np.zeros(len(self.env.agents)))
         curr_step = 1
         while curr_step < MAX_STEPS:
-            batch = self._rollout()
-            curr_step += len(batch)
-            V = batch[-1][4]
-            rtgs = self._rtgs(batch)
+            b_obs, b_acts, b_probs, b_rews = self._rollout()
+            curr_step += len(b_obs)
+            V = self._eval(b_obs)
+            rtgs = self._rtgs(b_rews)
             # Calculate advantage
             A_k = rtgs - V
             # Normalize Advantage
             A_k = (A_k - A_k.mean()) / (A_k.std() + 1e-10)
             # Update actor critic based on L
             for i in range(NUM_UPDATES):
-                self.a_optim.zero_grad()
-                self.c_optim.zero_grad()
-                rand = np.random.randint(len(batch))
-                (obs, actions, pi_old, rews) = batch.pop(rand)
-                print(pi_old)
-                _, pi = self.action(obs)
-                V = self._eval(obs)
+                rand = np.random.randint(len(b_obs))
+                pi_old = b_probs.pop(rand)
+                _, pi = self.action(b_obs.pop(i))
                 act_loss = self._act_loss(pi, pi_old, A_k)
                 cri_loss = self._cri_loss(V, rtgs)
 
+                self.a_optim.zero_grad()
                 act_loss.requires_grad = True
                 act_loss.backward()
                 self.a_optim.step()
 
+                self.c_optim.zero_grad()
                 cri_loss.requires_grad = True
                 cri_loss.backward()
                 self.c_optim.step()
 
     def _rollout(self):
-        batch = []
+        batch_obs = []
+        batch_actions = []
+        batch_probs = []
+        batch_rews = []
         for i in range(BATCH_SIZE):
-            obs = self.env.observation_spaces
-            actions, probs = self.action(obs)
+            batch_obs.append(self.env.observation_spaces)
+            actions, probs = self.action(self.env.observation_spaces)
             rews = self.env.step(actions)
-            batch.append((obs, actions, probs, rews))
-        return batch
+            batch_actions.append(actions)
+            batch_probs.append(probs)
+            batch_rews.append(rews)
+        return (batch_obs, batch_actions, batch_probs, batch_rews)
 
-    def _eval(self, obs):
-        V = np.zeros(len(obs))
-        for i in range(len(obs)):
-            V[i] = self.critic(obs[i])
+    def _eval(self, b_obs):
+        V = np.zeros((len(b_obs), self.env._num_agents))
+        for i in range(len(b_obs)):
+            for j in range(self.env._num_agents):
+                V[i, j] = self.critic(b_obs[i][j])
         return torch.tensor(V, dtype=float)
 
     def action(self, obs):
