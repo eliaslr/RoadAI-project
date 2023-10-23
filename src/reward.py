@@ -6,13 +6,13 @@ def reward(agent, env):
     previous = agent.prev_agent
 
     # Rewards
-    idle_penalty = -0.5
+    idle_penalty = -0.1
     step_penalty = -0.1
-    collision_pen = 0
-    right_direction = 1
-    out_of_bounds = -1
+    collision_pen = -1
+    right_direction = 10
+    out_of_bounds = -100
 
-    filled_emptied = 1
+    filled_emptied = 100
 
     if agent.collided:
         tot_reward += collision_pen
@@ -52,6 +52,6 @@ def reward(agent, env):
     if np.min(distances) < np.min(prev_dist):
         tot_reward += right_direction
     elif np.min(distances) > np.min(prev_dist):
-        tot_reward += -right_direction
+        tot_reward += -right_direction / 10
 
     return tot_reward

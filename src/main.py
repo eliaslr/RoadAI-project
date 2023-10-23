@@ -2,6 +2,7 @@ from enviroment import RoadEnv
 from ppo import PPO
 
 import reward
+import test_reward
 import matplotlib.pyplot as plt
 import argparse
 
@@ -11,7 +12,7 @@ import argparse
 def main(render):
     # ray.init()
     env = RoadEnv(reward.reward, render_mode=render)
-    ppo = PPO(env, 0.0001, 0.2)
+    ppo = PPO(env, 0.001, 0.2)
     rewards = []
     NUM_OF_TRAINING_EPS = 1
     # Train for X eps

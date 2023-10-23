@@ -80,10 +80,10 @@ class PPO:
         return loss
 
     # See arxiv 2103.01955 for implementation details
-    def _cri_loss(self, V, V_old, rtgs):
+    def _cri_loss(self, V, rtgs):
         square = (V - rtgs) ** 2
-        clip = (torch.clamp(V, V_old - self.upsilon, V_old + self.upsilon) - rtgs) ** 2
-        return torch.max(square, clip).mean()
+        # clip = (torch.clamp(V, V_old - self.upsilon, V_old + self.upsilon) - rtgs) ** 2
+        return square.reduce_mean()
 
     # Main training loop
     # For now it only trains one ep
@@ -107,11 +107,12 @@ class PPO:
                 self.a_optim.zero_grad()
                 self.c_optim.zero_grad()
                 rand = np.random.randint(len(batch))
-                (obs, actions, pi_old, rews, v_old) = batch.pop(rand)
+                (obs, actions, pi_old, rews) = batch.pop(rand)
+                print(pi_old)
                 _, pi = self.action(obs)
                 V = self._eval(obs)
                 act_loss = self._act_loss(pi, pi_old, A_k)
-                cri_loss = self._cri_loss(V, v_old, rtgs)
+                cri_loss = self._cri_loss(V, rtgs)
 
                 act_loss.requires_grad = True
                 act_loss.backward()
@@ -126,9 +127,8 @@ class PPO:
         for i in range(BATCH_SIZE):
             obs = self.env.observation_spaces
             actions, probs = self.action(obs)
-            V = self._eval(obs)
             rews = self.env.step(actions)
-            batch.append((obs, actions, probs, rews, V))
+            batch.append((obs, actions, probs, rews))
         return batch
 
     def _eval(self, obs):
