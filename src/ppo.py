@@ -3,13 +3,16 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim import Adam
 from torch.distributions import MultivariateNormal
+import matplotlib.pyplot as plt
 import numpy as np
-
+import time
 
 # TODO add these to hydra
-BATCH_SIZE = 100
+BATCH_SIZE = 1000
 NUM_UPDATES = 10
-MAX_STEPS = 100000
+MAX_EPS = 100
+MAX_STEPS = 1_000_000
+SAVE_RATE = 5  # Save model every 5 episodes
 
 
 # TODO add a Cnn layer
@@ -27,6 +30,7 @@ class SimpleNN(nn.Module):
         if not torch.is_tensor(X):
             X = torch.tensor(X, dtype=torch.float)
             X = X.unsqueeze(0)
+            X = X.unsqueeze(0)
         z = F.relu(self.c1(X))
         # z = F.max_pool2d(z, 2)
         z = F.relu(self.c2(z))
@@ -39,29 +43,29 @@ class SimpleNN(nn.Module):
 
 
 class PPO:
-    def __init__(self, env, lr, cliprange, gamma=0.95, BATCHSIZE=10):
+    def __init__(self, env, lr, cliprange, model_path, load_model=True, gamma=0.95):
         self.gamma = gamma  # Discount coeff for rewards
         self.epsilon = cliprange  # Clip for actor
         self.upsilon = cliprange  # Clip for critic
         self.in_dim = env.view_dist * 2 + 1  # Square view
         # Action space is cardinal movement
         self.out_dim = 5
-        # TODO test RNN
-        # self.actor = nn.RNN(self.in_dim, self.out_dim)
         self.actor = SimpleNN(self.in_dim, self.out_dim)
         self.critic = SimpleNN(self.in_dim, 1)
-        # self.critic = nn.RNN(self.in_dim, 1)
+        if load_model:
+            self.actor.load_state_dict(torch.load(model_path + "actor"))
+            self.critic.load_state_dict(torch.load(model_path + "critic"))
         self.a_optim = Adam(self.actor.parameters(), lr=lr)
         self.c_optim = Adam(self.critic.parameters(), lr=lr)
         self.cov_var = torch.full(size=(self.out_dim,), fill_value=0.5)
         self.cov_mat = torch.diag(self.cov_var)
         self.env = env
+        self.model_path = model_path
 
     # Calculates discouted rewards
     def _rtgs(self, rews):
         returns = np.zeros((len(rews), self.env._num_agents))
         for i in reversed(range(len(rews))):
-            rew = rews[i]
             if i == len(rews) - 1:
                 returns[i:] = rews[i]
             else:
@@ -91,10 +95,17 @@ class PPO:
     # TODO add model saving/loading
     def train(self):
         # Initilial Step
-        self.env.step(np.zeros(len(self.env.agents)))
         curr_step = 1
-        while curr_step < MAX_STEPS:
+        curr_ep = 1
+        while curr_step < MAX_STEPS and curr_ep < MAX_EPS:
+            start = time.time()
+            self.env.reset()
+            self.env.step(np.zeros(len(self.env.agents)))
             b_obs, b_acts, b_probs, b_rews = self._rollout()
+            end = time.time()
+            print(f"Finished episode {curr_ep} in {end - start} seconds")
+            start = time.time()
+            curr_ep += 1
             curr_step += len(b_obs)
             V = self._eval(b_obs)
             rtgs = self._rtgs(b_rews)
@@ -119,6 +130,17 @@ class PPO:
                 cri_loss.requires_grad = True
                 cri_loss.backward()
                 self.c_optim.step()
+            end = time.time()
+            print(f"Finished Updating the networks in {end-start}")
+            if curr_ep % SAVE_RATE == 0:
+                print(f"Saving model in {self.model_path}")
+                torch.save(self.actor.state_dict(), self.model_path + "actor")
+                torch.save(self.critic.state_dict(), self.model_path + "critic")
+                self._plot_rewards(curr_ep)
+
+    def _plot_rewards(self, curr_ep):
+        plt.plot(np.arange(len(self.env.avg_rewards)), self.env.avg_rewards)
+        plt.savefig(f"{curr_ep}_rew.png")
 
     def _rollout(self):
         batch_obs = []

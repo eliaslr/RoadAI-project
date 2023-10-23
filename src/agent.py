@@ -18,21 +18,20 @@ class TruckAgent:
         self.collided = False
         self.out_of_bounds = False
         self.view_dist = view_dist
+        self.obs = np.zeros((view_dist * 2 + 1, view_dist * 2 + 1))
         self.dir = 1  # Start pointing North
 
     # For now we have the observation space as square with the truck in the middle
     def observe(self):
-        obs = []
         for i in range(self.view_dist * 2 + 1):
             y = self.pos_y - self.view_dist + i
             for j in range(self.view_dist * 2 + 1):
                 x = self.pos_x - self.view_dist + j
                 if self._in_bounds((y, x)):
-                    obs.append(self.env.map[y, x])
+                    self.obs[i, j] = self.env.map[y, x]
                 else:
-                    # Out of bounds positioons are marked as impassable
-                    obs.append(100000)
-        return np.array(obs).reshape(1, self.view_dist * 2 + 1, self.view_dist * 2 + 1)
+                    self.obs[i, j] = 1000000
+        return self.obs
 
     def _in_bounds(self, pos):
         return (0 <= pos[0] < self.env.map.shape[0]) and (
@@ -69,12 +68,10 @@ class TruckAgent:
                 self.pos_y -= dy
             else:
                 self.out_of_bounds = False
-
-            if (
-                self.env.map[self.pos_y, self.pos_x] == -1
-                or self.env.map[self.pos_y, self.pos_x] <= -3
-            ):
+            if self.env.map[self.pos_y, self.pos_x] <= -3:
                 self.collided = True
+                self.pos_x -= dx
+                self.pos_y -= dy
             else:
                 self.collided = False
                 self._ground = self.env.map[self.pos_y, self.pos_x]

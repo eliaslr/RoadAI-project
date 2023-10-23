@@ -13,8 +13,9 @@ MAX_STEPS = 10000
 class RoadEnv(gym.Env):
     def __init__(self, reward_func, max_agents=None, render_mode=None):
         self.reward_func = reward_func
-        self.view_dist = 21  # Parameter for how long each truck can see
+        self.view_dist = 50  # Parameter for how long each truck can see
         self.curr_ep = -1
+        self.avg_rewards = []
         self.render_mode = render_mode
         self.reset()
         (H, W) = self.map.shape
@@ -46,8 +47,7 @@ class RoadEnv(gym.Env):
             reward = self.reward_func(agent, self)
             agent_rewards[agent.id] = reward
         self.avg_rewards.append(np.mean(agent_rewards))
-        if self.curr_step % 1000 == 0:
-            print(self.avg_rewards[self.curr_step - 1])
+        self.render()
         return agent_rewards
 
     # Renders the environment
@@ -57,7 +57,7 @@ class RoadEnv(gym.Env):
     # None skips rendering
     def render(self):
         (H, W) = self.map.shape
-        if render_mode == "console":
+        if self.render_mode == "console":
             print(f"Episode: {self.curr_ep}, Step: {self.curr_step}")
             print("-" * W)
             for i in range(H):
@@ -73,7 +73,7 @@ class RoadEnv(gym.Env):
                     else:
                         print("#", end="")
                 print("")
-        elif render_mode == "pygame":
+        elif self.render_mode == "pygame":
             self._screen.fill((0, 0, 0), rect=None)
             for i in range(H):
                 for j in range(W):
@@ -87,6 +87,8 @@ class RoadEnv(gym.Env):
                     if self.map[i, j] <= -3:
                         if self.agents[self.map[i, j] * -1 - 3].out_of_bounds:
                             pygame.draw.rect(self._screen, (0, 255, 255), pos)
+                        elif self.agents[self.map[i, j] * -1 - 3].filled:
+                            pygame.draw.rect(self._screen, (0, 200, 150), pos)
                         else:
                             pygame.draw.rect(self._screen, (255, 0, 0), pos)
                     elif self.map[i, j] == -2:
@@ -97,8 +99,8 @@ class RoadEnv(gym.Env):
                         c = min(200, self.map[i, j])
                         pygame.draw.rect(self._screen, (200 - c, 200 - c, 200 - c), pos)
             pygame.display.flip()
-            pygame.time.delay(25)
-        elif render_mode is None:
+            # pygame.time.delay(25)
+        elif self.render_mode is None:
             return
 
     # Resets the env and generates new map
@@ -108,10 +110,8 @@ class RoadEnv(gym.Env):
         self.agents = []
         self.holes = {}
         self.excavators = []
-        self.avg_rewards = {}
         self.generate_map()
         self.observation_spaces = [0] * self._num_agents
-        self.avg_rewards = []
         self.curr_step = 0
         self.curr_ep += 1
 
@@ -170,13 +170,6 @@ class RoadEnv(gym.Env):
         for _ in range(num_excavators):
             # Excavators always start at the top of the map
             pos = (np.random.randint(0, H // 2), np.random.randint(0, W))
-            # Make sure we start off in a flat space
-
-            """
-                QUESTION
-                should the excavators move frequently enough for that to happen during an episode or is it fine to just store their position?
-            """
-            # Assume that excavators are stationary
             # We need this for reward function
             self.excavators.append(pos)
             # Make sure we start off in a flat space
