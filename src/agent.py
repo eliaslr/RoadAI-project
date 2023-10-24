@@ -3,6 +3,7 @@ import torch
 
 class TruckAgent:
     def __init__(self, pos_y, pos_x, ground, holes, agent_num):
+        device = torch.device("cpu" if torch.cuda.is_available() else "cpu")
         self.pos_x = pos_x
         self.pos_y = pos_y
         # We have to keep track of whats under the truck when we replace tiles on the map
@@ -16,7 +17,7 @@ class TruckAgent:
         self.holes = holes
         self.collided = False
         self.agent_num = agent_num
-        self.info = torch.tensor([agent_num, self.filled]).unsqueeze(0)
+        self.info = torch.tensor([agent_num, self.filled], device = device).unsqueeze(0)
 
     def _in_bounds(self, pos, env):
         return (0 < pos[0] < env.map.shape[0]) and (0 < pos[1] < env.map.shape[1])
@@ -126,4 +127,4 @@ class TruckAgent:
                 self.info[0,1] = 0.
                 self.holes[pos] -= self.capacity
                 if self.holes[pos] <= 0:
-                    self.map[pos[0], pos[1]] = 1
+                    env.map[pos[0], pos[1]] = 1

@@ -1,7 +1,3 @@
-"""
-i had nothing to do so i attempted dqn
-
-"""
 import numpy as np
 
 import gymnasium as gym
@@ -34,7 +30,7 @@ if is_ipython:
 plt.ion()
 
 # to use gpu if available
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu" if torch.cuda.is_available() else "cpu")
 
 Transition = namedtuple('Transition', {"state","action","next_state","reward"})
 
@@ -203,10 +199,18 @@ def main(render):
     for i_episode in range(num_episodes):
         state = torch.tensor(env.reset(min_h = 70, max_h = 70, min_w = 70, max_w = 70, curr_ep = env.curr_ep).flatten(), dtype = torch.float32, device = device).unsqueeze(0)
         states = torch.from_numpy(np.array([torch.cat((agent.info,state),1) for agent in env.agents], dtype = np.float32))
-
+        avg_rew = 0
+        avg_i = 0
         for t in count():
             actions = select_action(states)
             observation, reward, terminated, truncated = env.step_deep(actions, render)
+            avg_rew += reward
+            avg_i += 1
+            if avg_i >= 100:
+                avg_i = 0
+                avg_rew = avg_rew/100
+                print(avg_rew)
+                avg_rew = 0
             reward = torch.tensor([reward], device = device)
             done = terminated or truncated
 
