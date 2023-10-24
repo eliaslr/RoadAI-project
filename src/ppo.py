@@ -15,20 +15,22 @@ MAX_EPS = 100
 MAX_STEPS = 1_000_000
 SAVE_RATE = 5  # Save model every 5 episodes
 
+
 # TODO add a Cnn layer
 # A simple NN is enough for PPO
 class SimpleNN(nn.Module):
-    def __init__(self, input_dim, output_dim, num_hidden_l=1):
+    def __init__(self, input_dim, output_dim, num_hidden_l=1, device = "cpu"):
         super(SimpleNN, self).__init__()
         self.c1 = nn.Conv2d(1, 16, kernel_size=3, padding=1)
         self.c2 = nn.Conv2d(16, 32, kernel_size=3, padding=1)
         self.l1 = nn.Linear(32 * input_dim * input_dim, 128)
         self.l2 = nn.Linear(128, output_dim)
+        self.device = device
 
     def forward(self, X):
         # Convert to tensor
         if not torch.is_tensor(X):
-            X = torch.tensor(X, dtype=torch.float)
+            X = torch.tensor(X, dtype=torch.float, device = self.device)
             X = X.unsqueeze(0)
             X = X.unsqueeze(0)
         z = F.relu(self.c1(X))
@@ -43,22 +45,25 @@ class SimpleNN(nn.Module):
 
 
 class PPO:
-    def __init__(self, env, lr, cliprange, model_path, load_model=True, gamma=0.95):
+    def __init__(self, env, lr, cliprange, model_path, load_model=True, gamma=0.95, device = "cpu"):
+
+        print(f"device: {device}")
+        self.device = device
         self.gamma = gamma  # Discount coeff for rewards
         self.epsilon = cliprange  # Clip for actor
         self.upsilon = cliprange  # Clip for critic
         self.in_dim = env.view_dist * 2 + 1  # Square view
         # Action space is cardinal movement
         self.out_dim = 5
-        self.actor = SimpleNN(self.in_dim, self.out_dim)
-        self.critic = SimpleNN(self.in_dim, 1)
+        self.actor = SimpleNN(self.in_dim, self.out_dim, device = device).to(device)
+        self.critic = SimpleNN(self.in_dim, 1, device = device).to(device)
         if load_model and os.path.isfile(model_path + "actor"):
             self.actor.load_state_dict(torch.load(model_path + "actor"))
             self.critic.load_state_dict(torch.load(model_path + "critic"))
         self.a_optim = Adam(self.actor.parameters(), lr=lr)
         self.c_optim = Adam(self.critic.parameters(), lr=lr)
-        self.cov_var = torch.full(size=(self.out_dim,), fill_value=0.5)
-        self.cov_mat = torch.diag(self.cov_var)
+        self.cov_var = torch.full(size=(self.out_dim,), fill_value=0.5).to(device)
+        self.cov_mat = torch.diag(self.cov_var).to(device)
         self.env = env
         self.model_path = model_path
 
@@ -75,7 +80,7 @@ class PPO:
 
     # See arxiv 2103.01955 for implementation details
     def _act_loss(self, pi, pi_old, A_k):
-        surr = torch.tensor(np.exp(pi - pi_old))
+        surr = torch.exp(pi - pi_old)
         surr2 = torch.clamp(surr, 1 - self.epsilon, 1 + self.epsilon)
         # TODO implement entropy loss
         loss = (
@@ -95,6 +100,7 @@ class PPO:
     # TODO add model saving/loading
     def train(self):
         # Initilial Step
+        torch.set_default_device(self.device)
         curr_step = 1
         curr_ep = 1
         while curr_step < MAX_STEPS and curr_ep < MAX_EPS:
@@ -147,6 +153,7 @@ class PPO:
         batch_actions = []
         batch_probs = []
         batch_rews = []
+        observs = torch.from_numpy(np.array(self.env.observation_spaces)).to(self.device)
         for i in range(BATCH_SIZE):
             batch_obs.append(self.env.observation_spaces)
             actions, probs = self.action(self.env.observation_spaces)
@@ -161,7 +168,7 @@ class PPO:
         for i in range(len(b_obs)):
             for j in range(self.env._num_agents):
                 V[i, j] = self.critic(b_obs[i][j])
-        return torch.tensor(V, dtype=float)
+        return torch.from_numpy(V).to(self.device, torch.float32)
 
     def action(self, obs):
         probs = np.zeros(len(obs))
@@ -171,6 +178,8 @@ class PPO:
             # Create a distrubution
             dist = MultivariateNormal(mu, self.cov_mat)
             action = dist.sample()
-            probs[i] = dist.log_prob(action).detach().numpy()
-            actions[i] = np.argmax(action.detach().numpy())
+            probs[i] = dist.log_prob(action).detach().to("cpu").numpy()
+            actions[i] = np.argmax(action.detach().to("cpu").numpy())
+        actions = torch.from_numpy(np.array(actions)).to(device = self.device)
+        probs = torch.from_numpy(np.array(probs)).to(device = self.device)
         return actions, probs
