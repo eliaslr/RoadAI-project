@@ -3,6 +3,7 @@ import pygame
 import gymnasium as gym
 from gymnasium import spaces
 from agent import TruckAgent
+import torch
 
 WINDOW_H = 600
 WINDOW_W = 600
@@ -13,7 +14,7 @@ MAX_STEPS = 10000
 class RoadEnv(gym.Env):
     def __init__(self, reward_func, max_agents=None, render_mode=None):
         self.reward_func = reward_func
-        self.view_dist = 50  # Parameter for how long each truck can see
+        self.view_dist = 50  # Parameter for how far each truck can see
         self.curr_ep = -1
         self.avg_rewards = []
         self.render_mode = render_mode
@@ -37,15 +38,18 @@ class RoadEnv(gym.Env):
 
     # Updates agents states, reward, observations
     # Called from learning algorithm
-    def step(self, actions):
+    def step(self, actions, rand_act = False):
         self.curr_step += 1
         agent_rewards = np.zeros(len(self.agents))
         for agent in self.agents:
-            self.observation_spaces[agent.id] = agent.observe()
-            agent.step(actions[agent.id])
+            self.observation_spaces[agent.id-agent.filled*50] = agent.observe()
+            if not rand_act:
+                agent.step(actions[agent.id-agent.filled*50])
+            else:
+                agent.step(np.random.randint(5))
             # Get reward
             reward = self.reward_func(agent, self)
-            agent_rewards[agent.id] = reward
+            agent_rewards[agent.id-agent.filled*50] = reward
         self.avg_rewards.append(np.mean(agent_rewards))
         self.render()
         return agent_rewards

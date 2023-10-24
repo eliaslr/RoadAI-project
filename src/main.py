@@ -1,5 +1,6 @@
 from enviroment import RoadEnv
 from ppo import PPO
+import torch
 
 import reward
 import matplotlib.pyplot as plt
@@ -10,7 +11,9 @@ import argparse
 
 def main(render):
     env = RoadEnv(reward.reward, render_mode=render)
-    ppo = PPO(env, 0.001, 0.5, "models/ppo/")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    ppo = PPO(env, lr_a = 0.001, lr_c = 0.001, epsilon_start = 0.6, epsilon_decay = 0.03, cliprange = 0.2, model_path = "models/ppo/", device = device)
     ppo.train()
     # Show an episode to see how the system performs
     # rewards.append(env.eval_episode(render_mode="pygame", train=True))
