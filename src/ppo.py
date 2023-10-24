@@ -9,17 +9,17 @@ import time
 
 # TODO add these to hydra
 BATCH_SIZE = 1000
-NUM_UPDATES = 10
-MAX_EPS = 100
+NUM_UPDATES = 3
+MAX_EPS = 200
 MAX_STEPS = 1_000_000
 SAVE_RATE = 5  # Save model every 5 episodes
 
 
 # TODO add a Cnn layer
 # A simple NN is enough for PPO
-class SimpleNN(nn.Module):
-    def __init__(self, input_dim, output_dim, num_hidden_l=1):
-        super(SimpleNN, self).__init__()
+class ActorNetwork(nn.Module):
+    def __init__(self, input_dim, output_dim):
+        super(ActorNetwork, self).__init__()
         self.c1 = nn.Conv2d(1, 16, kernel_size=3, padding=1)
         self.c2 = nn.Conv2d(16, 32, kernel_size=3, padding=1)
         self.l1 = nn.Linear(32 * input_dim * input_dim, 128)
@@ -42,16 +42,41 @@ class SimpleNN(nn.Module):
         return s
 
 
+class CriticNetwork(nn.Module):
+    def __init__(self, input_dim, output_dim):
+        super(CriticNetwork, self).__init__()
+        self.c1 = nn.Conv2d(1, 16, kernel_size=3, padding=1)
+        self.c2 = nn.Conv2d(16, 32, kernel_size=3, padding=1)
+        self.l1 = nn.Linear(32 * input_dim * input_dim, 128)
+        self.l2 = nn.Linear(128, output_dim)
+
+    def forward(self, X):
+        # Convert to tensor
+        if not torch.is_tensor(X):
+            X = torch.tensor(X, dtype=torch.float)
+            X = X.unsqueeze(0)
+            X = X.unsqueeze(0)
+        z = F.relu(self.c1(X))
+        # z = F.max_pool2d(z, 2)
+        z = F.relu(self.c2(z))
+        # z = F.max_pool2d(z, 2)
+        z = z.view(z.size(0), -1)
+        z = F.relu(self.l1(z))
+        z = self.l2(z)
+        return z
+
+
 class PPO:
-    def __init__(self, env, lr, cliprange, model_path, load_model=True, gamma=0.95):
+    def __init__(self, env, lr, cliprange, model_path, load_model=False, gamma=0.95):
         self.gamma = gamma  # Discount coeff for rewards
         self.epsilon = cliprange  # Clip for actor
-        self.upsilon = cliprange  # Clip for critic
+        # Saw one paper using clip Loss for critic aswell
+        # self.upsilon = cliprange  # Clip for critic
         self.in_dim = env.view_dist * 2 + 1  # Square view
         # Action space is cardinal movement
         self.out_dim = 5
-        self.actor = SimpleNN(self.in_dim, self.out_dim)
-        self.critic = SimpleNN(self.in_dim, 1)
+        self.actor = ActorNetwork(self.in_dim, self.out_dim)
+        self.critic = CriticNetwork(self.in_dim, 1)
         if load_model:
             self.actor.load_state_dict(torch.load(model_path + "actor"))
             self.critic.load_state_dict(torch.load(model_path + "critic"))
@@ -90,13 +115,13 @@ class PPO:
         return square.mean()
 
     # Main training loop
-    # For now it only trains one ep
     # TODO add a function where we only rollout and dont update
-    # TODO add model saving/loading
     def train(self):
         # Initilial Step
         curr_step = 1
         curr_ep = 1
+        best_mean = 0
+        loss = []
         while curr_step < MAX_STEPS and curr_ep < MAX_EPS:
             start = time.time()
             self.env.reset()
@@ -115,11 +140,14 @@ class PPO:
             A_k = (A_k - A_k.mean()) / (A_k.std() + 1e-10)
             # Update actor critic based on L
             for i in range(NUM_UPDATES):
-                rand = np.random.randint(len(b_obs))
-                pi_old = b_probs.pop(rand)
-                _, pi = self.action(b_obs.pop(i))
-                act_loss = self._act_loss(pi, pi_old, A_k)
+                pi = np.zeros((len(b_obs), self.env._num_agents))
+                for i in range(BATCH_SIZE):
+                    _, pi[i:] = self.action(b_obs[i])
+                V = self._eval(b_obs)
+                print(V)
+                act_loss = self._act_loss(pi, b_probs, A_k)
                 cri_loss = self._cri_loss(V, rtgs)
+                print(act_loss.item(), cri_loss.item())
 
                 self.a_optim.zero_grad()
                 act_loss.requires_grad = True
@@ -131,28 +159,33 @@ class PPO:
                 cri_loss.backward()
                 self.c_optim.step()
             end = time.time()
-            print(f"Finished Updating the networks in {end-start}")
-            if curr_ep % SAVE_RATE == 0:
-                print(f"Saving model in {self.model_path}")
+            print(
+                f"Finished Updating the networks in {end-start}, {self.env.avg_rewards[-1]}"
+            )
+            if self.env.avg_rewards[-1] > best_mean:
+                best_mean = self.env.avg_rewards[-1]
+                print(f"Saving new best model in {self.model_path}")
                 torch.save(self.actor.state_dict(), self.model_path + "actor")
                 torch.save(self.critic.state_dict(), self.model_path + "critic")
-                self._plot_rewards(curr_ep)
+        self._plot_rewards(curr_ep, loss)
 
-    def _plot_rewards(self, curr_ep):
+    def _plot_rewards(self, curr_ep, loss):
         plt.plot(np.arange(len(self.env.avg_rewards)), self.env.avg_rewards)
         plt.savefig(f"{curr_ep}_rew.png")
+        plt.plot(np.arange((curr_ep - 1) * NUM_UPDATES), loss)
+        plt.savefig(f"{curr_ep}_loss.png")
 
     def _rollout(self):
         batch_obs = []
-        batch_actions = []
-        batch_probs = []
+        batch_actions = np.zeros((BATCH_SIZE, self.env._num_agents))
+        batch_probs = np.zeros((BATCH_SIZE, self.env._num_agents))
         batch_rews = []
         for i in range(BATCH_SIZE):
             batch_obs.append(self.env.observation_spaces)
             actions, probs = self.action(self.env.observation_spaces)
             rews = self.env.step(actions)
-            batch_actions.append(actions)
-            batch_probs.append(probs)
+            batch_actions[i:] = actions
+            batch_probs[i:] = probs
             batch_rews.append(rews)
         return (batch_obs, batch_actions, batch_probs, batch_rews)
 
