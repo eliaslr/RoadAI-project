@@ -9,9 +9,8 @@ import argparse
 
 
 def main(render):
-    # ray.init()
     env = RoadEnv(reward.reward, render_mode=render)
-    ppo = PPO(env, 0.001, 0.2, "models/ppo/")
+    ppo = PPO(env, 0.001, 0.5, "models/ppo/")
     ppo.train()
     # Show an episode to see how the system performs
     # rewards.append(env.eval_episode(render_mode="pygame", train=True))

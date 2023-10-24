@@ -81,7 +81,7 @@ class PPO:
             self.actor.load_state_dict(torch.load(model_path + "actor"))
             self.critic.load_state_dict(torch.load(model_path + "critic"))
         self.a_optim = Adam(self.actor.parameters(), lr=lr)
-        self.c_optim = Adam(self.critic.parameters(), lr=lr)
+        self.c_optim = Adam(self.critic.parameters(), lr=0.01)
         self.cov_var = torch.full(size=(self.out_dim,), fill_value=0.5)
         self.cov_mat = torch.diag(self.cov_var)
         self.env = env
@@ -143,8 +143,7 @@ class PPO:
                 pi = np.zeros((len(b_obs), self.env._num_agents))
                 for i in range(BATCH_SIZE):
                     _, pi[i:] = self.action(b_obs[i])
-                V = self._eval(b_obs)
-                print(V)
+                # V = self._eval(b_obs)
                 act_loss = self._act_loss(pi, b_probs, A_k)
                 cri_loss = self._cri_loss(V, rtgs)
                 print(act_loss.item(), cri_loss.item())
@@ -159,9 +158,7 @@ class PPO:
                 cri_loss.backward()
                 self.c_optim.step()
             end = time.time()
-            print(
-                f"Finished Updating the networks in {end-start}, {self.env.avg_rewards[-1]}"
-            )
+            print(f"Finished Updating the networks in {end-start}, {rtgs.mean()}")
             if self.env.avg_rewards[-1] > best_mean:
                 best_mean = self.env.avg_rewards[-1]
                 print(f"Saving new best model in {self.model_path}")
