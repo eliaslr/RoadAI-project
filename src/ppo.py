@@ -6,6 +6,7 @@ from torch.distributions import MultivariateNormal
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+import os
 
 # TODO add these to hydra
 BATCH_SIZE = 1000
@@ -13,7 +14,6 @@ NUM_UPDATES = 10
 MAX_EPS = 100
 MAX_STEPS = 1_000_000
 SAVE_RATE = 5  # Save model every 5 episodes
-
 
 # TODO add a Cnn layer
 # A simple NN is enough for PPO
@@ -52,7 +52,7 @@ class PPO:
         self.out_dim = 5
         self.actor = SimpleNN(self.in_dim, self.out_dim)
         self.critic = SimpleNN(self.in_dim, 1)
-        if load_model:
+        if load_model and os.path.isfile(model_path + "actor"):
             self.actor.load_state_dict(torch.load(model_path + "actor"))
             self.critic.load_state_dict(torch.load(model_path + "critic"))
         self.a_optim = Adam(self.actor.parameters(), lr=lr)
