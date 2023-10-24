@@ -19,8 +19,24 @@ def main(render):
     # ppo.train(render_mode=render)
     # rewards.append(env.eval_episode(render_mode="pygame", train=True))
     # Show an episode to see how the system performs
-
     # Show Metrics
+
+import optuna
+def objective(trial):
+    render = parse_args()
+
+    lr = trial.suggest_float('lr', 0, 1)
+    cr = trial.suggest_float("cliprange", 0, 1)
+    g  = trial.suggest_float("gamma", 0, 1)
+
+    env = RoadEnv(reward.reward, render_mode=render)
+    ppo = PPO(env,
+              lr = lr,
+              cliprange = cr,
+              model_path = "models/ppo/",
+              load_model=True,
+              gamma=g)
+    return ppo.env.avg_rewards
 
 
 def parse_args():
@@ -37,5 +53,8 @@ def parse_args():
 
 
 if __name__ == "__main__":
-    args = parse_args()
-    main(args.render)
+    study = optuna.create_study()
+    study.optimize(objective, n_trials = 10)
+
+    study.best_params
+    # main(args.render)
