@@ -45,17 +45,18 @@ class SimpleNN(nn.Module):
 
 
 class CriticNetwork(nn.Module):
-    def __init__(self, input_dim, output_dim):
+    def __init__(self, input_dim, output_dim, device):
         super(CriticNetwork, self).__init__()
         self.c1 = nn.Conv2d(1, 16, kernel_size=3, padding=1)
         self.c2 = nn.Conv2d(16, 32, kernel_size=3, padding=1)
         self.l1 = nn.Linear(32 * input_dim * input_dim, 128)
         self.l2 = nn.Linear(128, output_dim)
+        self.device = device
 
     def forward(self, X):
         # Convert to tensor
         if not torch.is_tensor(X):
-            X = torch.tensor(X, dtype=torch.float)
+            X = torch.tensor(X, dtype=torch.float, device = self.device)
             X = X.unsqueeze(0)
             X = X.unsqueeze(0)
         z = F.relu(self.c1(X))
@@ -81,7 +82,7 @@ class PPO:
         # Action space is cardinal movement
         self.out_dim = 5
         self.actor = SimpleNN(self.in_dim, self.out_dim, device = device).to(device)
-        self.critic = SimpleNN(self.in_dim, 1, device = device).to(device)
+        self.critic = CriticNetwork(self.in_dim, 1, device = device).to(device)
         if load_model and os.path.isfile(model_path + "actor"):
             self.actor.load_state_dict(torch.load(model_path + "actor"))
             self.critic.load_state_dict(torch.load(model_path + "critic"))
@@ -122,11 +123,11 @@ class PPO:
     # Main training loop
     # TODO add a function where we only rollout and dont update
     def train(self):
-        # Initilial Step
         torch.set_default_device(self.device)
+        # Initilial Step
         curr_step = 1
         curr_ep = 1
-        best_mean = 0
+        best_mean = -np.inf
         loss = []
         while curr_step < MAX_STEPS and curr_ep < MAX_EPS:
             start = time.time()
@@ -145,7 +146,7 @@ class PPO:
             # Normalize Advantage
             A_k = (A_k - A_k.mean()) / (A_k.std() + 1e-10)
             # Update actor critic based on L
-            for i in range(NUM_UPDATES):
+            for _ in range(NUM_UPDATES):
                 pi = np.zeros((len(b_obs), self.env._num_agents))
                 for i in range(BATCH_SIZE):
                     pi[i:] = self.action(b_obs[i])[1].to("cpu")
@@ -169,8 +170,8 @@ class PPO:
             if self.env.avg_rewards[-1] > best_mean:
                 best_mean = self.env.avg_rewards[-1]
                 print(f"Saving new best model in {self.model_path}")
-                if not os.path.isdir(self.model_path.partition("/")[0]):
-                    os.mkdir(self.model_path.partition("/")[0])
+                if not os.path.isdir(self.model_path):
+                    os.mkdir(self.model_path)
                 torch.save(self.actor.state_dict(), self.model_path + "actor")
                 torch.save(self.critic.state_dict(), self.model_path + "critic")
         self._plot_rewards(curr_ep, loss)
