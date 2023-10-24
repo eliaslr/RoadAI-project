@@ -70,8 +70,7 @@ class CriticNetwork(nn.Module):
 
 
 class PPO:
-    def __init__(self, env, lr, cliprange, model_path, load_model=True, gamma=0.95, device = "cpu"):
-
+    def __init__(self, env, cliprange, model_path, lr_a = 0.001, lr_c = 0.001, epsilon_start = 0, epsilon_decay = 0, load_model=True, gamma=0.95, device = "cpu"):
         print(f"device: {device}")
         self.device = device
         self.gamma = gamma  # Discount coeff for rewards
@@ -86,12 +85,14 @@ class PPO:
         if load_model and os.path.isfile(model_path + "actor"):
             self.actor.load_state_dict(torch.load(model_path + "actor"))
             self.critic.load_state_dict(torch.load(model_path + "critic"))
-        self.a_optim = Adam(self.actor.parameters(), lr=lr)
-        self.c_optim = Adam(self.critic.parameters(), lr=lr)
+        self.a_optim = Adam(self.actor.parameters(), lr=lr_a)
+        self.c_optim = Adam(self.critic.parameters(), lr=lr_c)
         self.cov_var = torch.full(size=(self.out_dim,), fill_value=0.5).to(device)
         self.cov_mat = torch.diag(self.cov_var).to(device)
         self.env = env
         self.model_path = model_path
+        self.epsilon_greedy = epsilon_start
+        self.epsilon_decay = epsilon_decay
 
     # Calculates discouted rewards
     def _rtgs(self, rews):
@@ -132,12 +133,16 @@ class PPO:
         while curr_step < MAX_STEPS and curr_ep < MAX_EPS:
             start = time.time()
             self.env.reset()
-            self.env.step(np.zeros(len(self.env.agents)))
+            if np.random.rand()<self.epsilon_greedy:
+                self.env.step(np.zeros(len(self.env.agents)), rand_act = True)
+            else:
+                self.env.step(np.zeros(len(self.env.agents)))
             b_obs, b_acts, b_probs, b_rews = self._rollout()
             end = time.time()
             print(f"Finished episode {curr_ep} in {end - start} seconds")
             start = time.time()
             curr_ep += 1
+            self.epsilon_greedy -= self.epsilon_decay
             curr_step += len(b_obs)
             V = self._eval(b_obs)
             rtgs = self._rtgs(b_rews)
