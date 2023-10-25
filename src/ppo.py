@@ -76,8 +76,6 @@ class PPO:
         model_path,
         lr_a=0.001,
         lr_c=0.001,
-        epsilon_start=0,
-        epsilon_decay=0,
         load_model=False,
         gamma=0.95,
         device="cpu",
@@ -101,8 +99,6 @@ class PPO:
         self.cov_mat = torch.diag(self.cov_var).to(device)
         self.env = env
         self.model_path = model_path
-        self.epsilon_greedy = epsilon_start
-        self.epsilon_decay = epsilon_decay
 
     # Calculates discouted rewards
     def _rtgs(self, rews):
@@ -148,7 +144,6 @@ class PPO:
             print(f"Finished episode {curr_ep} in {end - start} seconds")
             start = time.time()
             curr_ep += 1
-            self.epsilon_greedy -= self.epsilon_decay
             curr_step += len(b_obs)
             V = self._eval(b_obs)
             rtgs = self._rtgs(b_rews)

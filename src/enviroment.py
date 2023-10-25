@@ -38,15 +38,12 @@ class RoadEnv(gym.Env):
 
     # Updates agents states, reward, observations
     # Called from learning algorithm
-    def step(self, actions, rand_act = False):
+    def step(self, actions):
         self.curr_step += 1
         agent_rewards = np.zeros(len(self.agents))
         for agent in self.agents:
             self.observation_spaces[agent.id-agent.filled*50] = agent.observe()
-            if not rand_act:
-                agent.step(actions[agent.id-agent.filled*50])
-            else:
-                agent.step(np.random.randint(5))
+            agent.step(actions[agent.id-agent.filled*50])
             # Get reward
             reward = self.reward_func(agent, self)
             agent_rewards[agent.id-agent.filled*50] = reward
