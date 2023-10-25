@@ -11,14 +11,14 @@ import os
 # TODO add these to hydra
 BATCH_SIZE = 1000
 NUM_UPDATES = 3
-MAX_EPS = 200
+MAX_EPS = 20
 MAX_STEPS = 1_000_000
 SAVE_RATE = 5  # Save model every 5 episodes
 
 
 # A simple NN is enough for PPO
-class AcotrNetwork(nn.Module):
-    def __init__(self, input_dim, output_dim, num_hidden_l=1, device = "cpu"):
+class ActorNetwork(nn.Module):
+    def __init__(self, input_dim, output_dim, num_hidden_l=1, device="cpu"):
         super(ActorNetwork, self).__init__()
         self.c1 = nn.Conv2d(1, 16, kernel_size=3, padding=1)
         self.c2 = nn.Conv2d(16, 32, kernel_size=3, padding=1)
@@ -29,7 +29,7 @@ class AcotrNetwork(nn.Module):
     def forward(self, X):
         # Convert to tensor
         if not torch.is_tensor(X):
-            X = torch.tensor(X, dtype=torch.float, device = self.device)
+            X = torch.tensor(X, dtype=torch.float, device=self.device)
             X = X.unsqueeze(0)
             X = X.unsqueeze(0)
         z = F.relu(self.c1(X))
@@ -55,7 +55,7 @@ class CriticNetwork(nn.Module):
     def forward(self, X):
         # Convert to tensor
         if not torch.is_tensor(X):
-            X = torch.tensor(X, dtype=torch.float, device = self.device)
+            X = torch.tensor(X, dtype=torch.float, device=self.device)
             X = X.unsqueeze(0)
             X = X.unsqueeze(0)
         z = F.relu(self.c1(X))
@@ -69,7 +69,19 @@ class CriticNetwork(nn.Module):
 
 
 class PPO:
-    def __init__(self, env, cliprange, model_path, lr_a = 0.001, lr_c = 0.001, epsilon_start = 0, epsilon_decay = 0, load_model=True, gamma=0.95, device = "cpu"):
+    def __init__(
+        self,
+        env,
+        cliprange,
+        model_path,
+        lr_a=0.001,
+        lr_c=0.001,
+        epsilon_start=0,
+        epsilon_decay=0,
+        load_model=True,
+        gamma=0.95,
+        device="cpu",
+    ):
         print(f"device: {device}")
         self.device = device
         self.gamma = gamma  # Discount coeff for rewards
@@ -79,15 +91,15 @@ class PPO:
         self.in_dim = env.view_dist * 2 + 1  # Square view
         # Action space is cardinal movement
         self.out_dim = 5
-        self.actor = ActorNetwork(self.in_dim, self.out_dim, device = device).to(device)
-        self.critic = CriticNetwork(self.in_dim, 1, device = device).to(device)
+        self.actor = ActorNetwork(self.in_dim, self.out_dim, device=device).to(device)
+        self.critic = CriticNetwork(self.in_dim, 1, device=device).to(device)
         if load_model and os.path.isfile(model_path + "actor"):
             self.actor.load_state_dict(torch.load(model_path + "actor"))
             self.critic.load_state_dict(torch.load(model_path + "critic"))
         self.a_optim = Adam(self.actor.parameters(), lr=lr_a)
         self.c_optim = Adam(self.critic.parameters(), lr=lr_c)
-        self.cov_var = torch.full(size=(self.out_dim,), fill_value=0.5).to(device)
-        self.cov_mat = torch.diag(self.cov_var).to(device)
+        self.cov_var = torch.full(size=(self.out_dim,), fill_value=0.5)
+        self.cov_mat = torch.diag(self.cov_var)
         self.env = env
         self.model_path = model_path
         self.epsilon_greedy = epsilon_start
@@ -106,7 +118,7 @@ class PPO:
 
     # See arxiv 2103.01955 for implementation details
     def _act_loss(self, pi, pi_old, A_k):
-        surr = torch.exp(pi - pi_old)
+        surr = torch.tensor(np.exp(pi - pi_old))
         surr2 = torch.clamp(surr, 1 - self.epsilon, 1 + self.epsilon)
         # TODO implement entropy loss
         loss = (
@@ -121,7 +133,6 @@ class PPO:
         return square.mean()
 
     # Main training loop
-    # TODO add a function where we only rollout and dont update
     def train(self):
         torch.set_default_device(self.device)
         # Initilial Step
@@ -132,8 +143,8 @@ class PPO:
         while curr_step < MAX_STEPS and curr_ep < MAX_EPS:
             start = time.time()
             self.env.reset()
-            if np.random.rand()<self.epsilon_greedy:
-                self.env.step(np.zeros(len(self.env.agents)), rand_act = True)
+            if np.random.rand() < self.epsilon_greedy:
+                self.env.step(np.zeros(len(self.env.agents)), rand_act=True)
             else:
                 self.env.step(np.zeros(len(self.env.agents)))
             b_obs, b_acts, b_probs, b_rews = self._rollout()
@@ -155,8 +166,9 @@ class PPO:
                 for i in range(BATCH_SIZE):
                     _, pi[i:] = self.action(b_obs[i])
                 # V = self._eval(b_obs)
-                act_loss = self._act_loss(torch.from_numpy(pi).to(self.device), b_probs, A_k)
+                act_loss = self._act_loss(pi, b_probs, A_k)
                 cri_loss = self._cri_loss(V, rtgs)
+                loss.append(act_loss.item())
 
                 self.a_optim.zero_grad()
                 act_loss.requires_grad = True
@@ -174,14 +186,17 @@ class PPO:
                 print(f"Saving new best model in {self.model_path}")
                 if not os.path.isdir(self.model_path):
                     os.mkdir(self.model_path)
-                torch.save(self.actor.state_dict(), self.model_path + "actor")
-                torch.save(self.critic.state_dict(), self.model_path + "critic")
-        self._plot_rewards(curr_ep, loss)
+                # torch.save(self.actor.state_dict(), self.model_path + "actor")
+                # torch.save(self.critic.state_dict(), self.model_path + "critic")
+
+            if curr_ep % SAVE_RATE == 0:
+                self._plot_rewards(curr_ep, loss)
+        return best_mean
 
     def _plot_rewards(self, curr_ep, loss):
         plt.plot(np.arange(len(self.env.avg_rewards)), self.env.avg_rewards)
         plt.savefig(f"{curr_ep}_rew.png")
-        plt.plot(np.arange((curr_ep - 1) * NUM_UPDATES), loss)
+        plt.plot(np.arange(len(loss)), loss)
         plt.savefig(f"{curr_ep}_loss.png")
 
     def _rollout(self):
@@ -209,12 +224,10 @@ class PPO:
         probs = np.zeros(len(obs))
         actions = np.zeros(len(obs))
         for i in range(len(obs)):
-            mu = self.actor(obs[i])
+            mu = self.actor(obs[i]).to(device="cpu")
             # Create a distrubution
             dist = MultivariateNormal(mu, self.cov_mat)
             action = dist.sample()
             probs[i] = dist.log_prob(action).detach().numpy()
             actions[i] = np.argmax(action.detach().numpy())
-        actions = torch.from_numpy(np.array(actions)).to(device = self.device)
-        probs = torch.from_numpy(np.array(probs)).to(device = self.device)
         return actions, probs

@@ -3,18 +3,49 @@ from ppo import PPO
 import torch
 
 import reward
-import matplotlib.pyplot as plt
 import argparse
+import optuna
 
-# import hydra
+
+def tune(trial):
+    env = RoadEnv(reward.reward, render_mode=None)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    lr_a = trial.suggest_float("lr_a", 0.00001, 0.01)
+    lr_c = trial.suggest_float("lr_c", 0.00001, 0.01)
+    cliprange = trial.suggest_float("cliprange", 0.1, 0.5)
+    gamma = trial.suggest_float("gamma", 0.8, 0.95)
+    ppo = PPO(
+        env,
+        lr_a=lr_a,
+        lr_c=lr_c,
+        cliprange=cliprange,
+        gamma=gamma,
+        model_path="models/ppo/",
+        device=device,
+    )
+    avg_ret = ppo.train()
+    return avg_ret
 
 
 def main(render):
+    """
     env = RoadEnv(reward.reward, render_mode=render)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    ppo = PPO(env, lr_a = 0.001, lr_c = 0.001, epsilon_start = 0.6, epsilon_decay = 0.03, cliprange = 0.2, model_path = "models/ppo/", device = device)
+    ppo = PPO(
+        env,
+        lr_a=0.001,
+        lr_c=0.001,
+        epsilon_start=0.6,
+        epsilon_decay=0.03,
+        cliprange=0.2,
+        model_path="models/ppo/",
+        device=device,
+    )
     ppo.train()
+    """
+    study = optuna.create_study(direction="maximize")
+    study.optimize(tune, n_trials=10)
+
     # Show an episode to see how the system performs
     # rewards.append(env.eval_episode(render_mode="pygame", train=True))
     # Show an episode to see how the system performs
