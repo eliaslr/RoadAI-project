@@ -5,6 +5,7 @@ import torch
 import reward
 import argparse
 import optuna
+from optuna_dashboard import run_server
 
 
 def tune(trial):
@@ -43,8 +44,10 @@ def main(render):
     )
     ppo.train()
     """
-    study = optuna.create_study(direction="maximize")
+    storage = optuna.storages.InMemoryStorage()
+    study = optuna.create_study(direction="maximize", storage=storage)
     study.optimize(tune, n_trials=10)
+    run_server(storage)
 
     # Show an episode to see how the system performs
     # rewards.append(env.eval_episode(render_mode="pygame", train=True))

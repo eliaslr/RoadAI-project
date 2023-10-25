@@ -9,7 +9,7 @@ import time
 import os
 
 # TODO add these to hydra
-BATCH_SIZE = 1000
+BATCH_SIZE = 500
 NUM_UPDATES = 3
 MAX_EPS = 20
 MAX_STEPS = 1_000_000
@@ -78,15 +78,14 @@ class PPO:
         lr_c=0.001,
         epsilon_start=0,
         epsilon_decay=0,
-        load_model=True,
+        load_model=False,
         gamma=0.95,
         device="cpu",
     ):
-        print(f"device: {device}")
         self.device = device
         self.gamma = gamma  # Discount coeff for rewards
         self.epsilon = cliprange  # Clip for actor
-        # Saw one paper using clip Loss for critic aswell
+        # :e Saw one paper using clip Loss for critic aswell
         # self.upsilon = cliprange  # Clip for critic
         self.in_dim = env.view_dist * 2 + 1  # Square view
         # Action space is cardinal movement
@@ -99,7 +98,7 @@ class PPO:
         self.a_optim = Adam(self.actor.parameters(), lr=lr_a)
         self.c_optim = Adam(self.critic.parameters(), lr=lr_c)
         self.cov_var = torch.full(size=(self.out_dim,), fill_value=0.5)
-        self.cov_mat = torch.diag(self.cov_var)
+        self.cov_mat = torch.diag(self.cov_var).to(device)
         self.env = env
         self.model_path = model_path
         self.epsilon_greedy = epsilon_start
@@ -118,7 +117,7 @@ class PPO:
 
     # See arxiv 2103.01955 for implementation details
     def _act_loss(self, pi, pi_old, A_k):
-        surr = torch.tensor(np.exp(pi - pi_old))
+        surr = torch.exp(pi - pi_old)
         surr2 = torch.clamp(surr, 1 - self.epsilon, 1 + self.epsilon)
         # TODO implement entropy loss
         loss = (
@@ -143,10 +142,7 @@ class PPO:
         while curr_step < MAX_STEPS and curr_ep < MAX_EPS:
             start = time.time()
             self.env.reset()
-            if np.random.rand() < self.epsilon_greedy:
-                self.env.step(np.zeros(len(self.env.agents)), rand_act=True)
-            else:
-                self.env.step(np.zeros(len(self.env.agents)))
+            self.env.step(np.zeros(len(self.env.agents)))
             b_obs, b_acts, b_probs, b_rews = self._rollout()
             end = time.time()
             print(f"Finished episode {curr_ep} in {end - start} seconds")
@@ -162,10 +158,10 @@ class PPO:
             A_k = (A_k - A_k.mean()) / (A_k.std() + 1e-10)
             # Update actor critic based on L
             for _ in range(NUM_UPDATES):
-                pi = np.zeros((len(b_obs), self.env._num_agents))
+                pi = torch.zeros((len(b_obs), self.env._num_agents))
                 for i in range(BATCH_SIZE):
-                    _, pi[i:] = self.action(b_obs[i])
-                # V = self._eval(b_obs)
+                    _, pi[i] = self.action(b_obs[i])
+                V = self._eval(b_obs)
                 act_loss = self._act_loss(pi, b_probs, A_k)
                 cri_loss = self._cri_loss(V, rtgs)
                 loss.append(act_loss.item())
@@ -191,25 +187,23 @@ class PPO:
 
             if curr_ep % SAVE_RATE == 0:
                 self._plot_rewards(curr_ep, loss)
-        return best_mean
+        return np.mean(self.env.avg_rewards)
 
     def _plot_rewards(self, curr_ep, loss):
         plt.plot(np.arange(len(self.env.avg_rewards)), self.env.avg_rewards)
         plt.savefig(f"{curr_ep}_rew.png")
-        plt.plot(np.arange(len(loss)), loss)
-        plt.savefig(f"{curr_ep}_loss.png")
 
     def _rollout(self):
         batch_obs = []
         batch_actions = np.zeros((BATCH_SIZE, self.env._num_agents))
-        batch_probs = np.zeros((BATCH_SIZE, self.env._num_agents))
+        batch_probs = torch.zeros((BATCH_SIZE, self.env._num_agents))
         batch_rews = []
         for i in range(BATCH_SIZE):
             batch_obs.append(self.env.observation_spaces)
             actions, probs = self.action(self.env.observation_spaces)
             rews = self.env.step(actions)
-            batch_actions[i:] = actions
-            batch_probs[i:] = probs
+            batch_actions[i] = actions[0]
+            batch_probs[i] = probs[0]
             batch_rews.append(rews)
         return (batch_obs, batch_actions, batch_probs, batch_rews)
 
@@ -221,13 +215,13 @@ class PPO:
         return torch.from_numpy(V).to(self.device, torch.float32)
 
     def action(self, obs):
-        probs = np.zeros(len(obs))
+        probs = torch.zeros([1, len(obs)])
         actions = np.zeros(len(obs))
         for i in range(len(obs)):
-            mu = self.actor(obs[i]).to(device="cpu")
+            mu = self.actor(obs[i])
             # Create a distrubution
             dist = MultivariateNormal(mu, self.cov_mat)
             action = dist.sample()
-            probs[i] = dist.log_prob(action).detach().numpy()
-            actions[i] = np.argmax(action.detach().numpy())
+            probs[0][i] = dist.log_prob(action).detach()
+            actions[i] = torch.argmax(action.detach()).item()
         return actions, probs
