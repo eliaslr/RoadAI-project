@@ -12,7 +12,7 @@ import os
 # TODO add these to hydra
 BATCH_SIZE = 500
 NUM_UPDATES = 3
-MAX_EPS = 20
+MAX_EPS = 100
 MAX_STEPS = 1_000_000
 SAVE_RATE = 5  # Save model every 5 episodes
 
@@ -136,7 +136,7 @@ class PPO:
         curr_ep = 1
         best_mean = -np.inf
         loss = []
-        while curr_step < MAX_STEPS and curr_ep < MAX_EPS:
+        while curr_step <= MAX_STEPS and curr_ep <= MAX_EPS:
             start = time.time()
             self.env.reset()
             self.env.step(np.zeros(len(self.env.agents)))
@@ -183,7 +183,8 @@ class PPO:
 
             if curr_ep % SAVE_RATE == 0:
                 self._plot_rewards(curr_ep, loss)
-        return np.mean(self.env.avg_rewards)
+        ret = np.mean(self.env.avg_rewards)
+        return ret
 
     def _plot_rewards(self, curr_ep, loss):
         plt.plot(np.arange(len(self.env.avg_rewards)), self.env.avg_rewards)

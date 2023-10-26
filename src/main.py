@@ -22,7 +22,7 @@ def tune(trial):
         cliprange=cliprange,
         gamma=gamma,
         model_path="models/ppo/",
-        device=device,
+        device=device
     )
     avg_ret = ppo.train()
     return avg_ret
@@ -46,7 +46,7 @@ def main(render):
     """
     storage = optuna.storages.InMemoryStorage()
     study = optuna.create_study(direction="maximize", storage=storage)
-    study.optimize(tune, n_trials=10)
+    study.optimize(tune, n_trials=1000)
     run_server(storage)
 
     # Show an episode to see how the system performs
@@ -57,22 +57,22 @@ def main(render):
     # Show an episode to see how the system performs
     # Show Metrics
 
-import optuna
-def objective(trial):
-    render = parse_args()
+# import optuna
+# def objective(trial):
+#     render = parse_args()
 
-    lr = trial.suggest_float('lr', 0, 1)
-    cr = trial.suggest_float("cliprange", 0, 1)
-    g  = trial.suggest_float("gamma", 0, 1)
+#     lr = trial.suggest_float('lr', 0, 1)
+#     cr = trial.suggest_float("cliprange", 0, 1)
+#     g  = trial.suggest_float("gamma", 0, 1)
 
-    env = RoadEnv(reward.reward, render_mode=render)
-    ppo = PPO(env,
-              lr = lr,
-              cliprange = cr,
-              model_path = "models/ppo/",
-              load_model=True,
-              gamma=g)
-    return ppo.env.avg_rewards
+#     env = RoadEnv(reward.reward, render_mode=render)
+#     ppo = PPO(env,
+#               lr = lr,
+#               cliprange = cr,
+#               model_path = "models/ppo/",
+#               load_model=True,
+#               gamma=g)
+#     return ppo.env.avg_rewards
 
 
 def parse_args():
@@ -89,8 +89,9 @@ def parse_args():
 
 
 if __name__ == "__main__":
-    study = optuna.create_study()
-    study.optimize(objective, n_trials = 10)
+    # study = optuna.create_study()
+    # study.optimize(objective, n_trials = 10)
 
-    study.best_params
-    # main(args.render)
+    # study.best_params
+    args = parse_args()
+    main(args.render)
