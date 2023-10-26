@@ -90,9 +90,14 @@ class TruckAgent:
                 continue
             if self.env.map[pos[0], pos[1]] == -3:
                 self.filled = True
+                if not self.prev_agent["filled"]:
+                    self.id += 50
                 break
             elif self.env.map[pos[0], pos[1]] == -2 and self.filled:
                 self.filled = False
+                if self.prev_agent["filled"]:
+                    self.id -= 50
                 self.env.holes[pos] -= self.capacity
                 if self.env.holes[pos] <= 0:
                     self.env.map[pos[0], pos[1]] = 1
+                break

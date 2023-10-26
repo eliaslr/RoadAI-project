@@ -7,29 +7,30 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 import os
+import os
 
 # TODO add these to hydra
-BATCH_SIZE = 1000
+BATCH_SIZE = 500
 NUM_UPDATES = 3
-MAX_EPS = 200
+MAX_EPS = 20
 MAX_STEPS = 1_000_000
 SAVE_RATE = 5  # Save model every 5 episodes
 
 
-# TODO add a Cnn layer
 # A simple NN is enough for PPO
 class ActorNetwork(nn.Module):
-    def __init__(self, input_dim, output_dim):
+    def __init__(self, input_dim, output_dim, num_hidden_l=1, device="cpu"):
         super(ActorNetwork, self).__init__()
         self.c1 = nn.Conv2d(1, 16, kernel_size=3, padding=1)
         self.c2 = nn.Conv2d(16, 32, kernel_size=3, padding=1)
         self.l1 = nn.Linear(32 * input_dim * input_dim, 128)
         self.l2 = nn.Linear(128, output_dim)
+        self.device = device
 
     def forward(self, X):
         # Convert to tensor
         if not torch.is_tensor(X):
-            X = torch.tensor(X, dtype=torch.float)
+            X = torch.tensor(X, dtype=torch.float, device=self.device)
             X = X.unsqueeze(0)
             X = X.unsqueeze(0)
         z = F.relu(self.c1(X))
@@ -44,17 +45,18 @@ class ActorNetwork(nn.Module):
 
 
 class CriticNetwork(nn.Module):
-    def __init__(self, input_dim, output_dim):
+    def __init__(self, input_dim, output_dim, device):
         super(CriticNetwork, self).__init__()
         self.c1 = nn.Conv2d(1, 16, kernel_size=3, padding=1)
         self.c2 = nn.Conv2d(16, 32, kernel_size=3, padding=1)
         self.l1 = nn.Linear(32 * input_dim * input_dim, 128)
         self.l2 = nn.Linear(128, output_dim)
+        self.device = device
 
     def forward(self, X):
         # Convert to tensor
         if not torch.is_tensor(X):
-            X = torch.tensor(X, dtype=torch.float)
+            X = torch.tensor(X, dtype=torch.float, device=self.device)
             X = X.unsqueeze(0)
             X = X.unsqueeze(0)
         z = F.relu(self.c1(X))
@@ -68,23 +70,34 @@ class CriticNetwork(nn.Module):
 
 
 class PPO:
-    def __init__(self, env, lr, cliprange, model_path, load_model=False, gamma=0.95):
+    def __init__(
+        self,
+        env,
+        cliprange,
+        model_path,
+        lr_a=0.001,
+        lr_c=0.001,
+        load_model=False,
+        gamma=0.95,
+        device="cpu",
+    ):
+        self.device = device
         self.gamma = gamma  # Discount coeff for rewards
         self.epsilon = cliprange  # Clip for actor
-        # Saw one paper using clip Loss for critic aswell
+        # :e Saw one paper using clip Loss for critic aswell
         # self.upsilon = cliprange  # Clip for critic
         self.in_dim = env.view_dist * 2 + 1  # Square view
         # Action space is cardinal movement
         self.out_dim = 5
-        self.actor = ActorNetwork(self.in_dim, self.out_dim)
-        self.critic = CriticNetwork(self.in_dim, 1)
+        self.actor = ActorNetwork(self.in_dim, self.out_dim, device=device).to(device)
+        self.critic = CriticNetwork(self.in_dim, 1, device=device).to(device)
         if load_model and os.path.isfile(model_path + "actor"):
             self.actor.load_state_dict(torch.load(model_path + "actor"))
             self.critic.load_state_dict(torch.load(model_path + "critic"))
-        self.a_optim = Adam(self.actor.parameters(), lr=lr)
-        self.c_optim = Adam(self.critic.parameters(), lr=lr)
+        self.a_optim = Adam(self.actor.parameters(), lr=lr_a)
+        self.c_optim = Adam(self.critic.parameters(), lr=lr_c)
         self.cov_var = torch.full(size=(self.out_dim,), fill_value=0.5)
-        self.cov_mat = torch.diag(self.cov_var)
+        self.cov_mat = torch.diag(self.cov_var).to(device)
         self.env = env
         self.model_path = model_path
 
@@ -101,7 +114,7 @@ class PPO:
 
     # See arxiv 2103.01955 for implementation details
     def _act_loss(self, pi, pi_old, A_k):
-        surr = torch.tensor(np.exp(pi - pi_old))
+        surr = torch.exp(pi - pi_old)
         surr2 = torch.clamp(surr, 1 - self.epsilon, 1 + self.epsilon)
         # TODO implement entropy loss
         loss = (
@@ -116,12 +129,12 @@ class PPO:
         return square.mean()
 
     # Main training loop
-    # TODO add a function where we only rollout and dont update
     def train(self):
+        torch.set_default_device(self.device)
         # Initilial Step
         curr_step = 1
         curr_ep = 1
-        best_mean = 0
+        best_mean = -np.inf
         loss = []
         while curr_step < MAX_STEPS and curr_ep < MAX_EPS:
             start = time.time()
@@ -140,15 +153,14 @@ class PPO:
             # Normalize Advantage
             A_k = (A_k - A_k.mean()) / (A_k.std() + 1e-10)
             # Update actor critic based on L
-            for i in range(NUM_UPDATES):
-                pi = np.zeros((len(b_obs), self.env._num_agents))
+            for _ in range(NUM_UPDATES):
+                pi = torch.zeros((len(b_obs), self.env._num_agents))
                 for i in range(BATCH_SIZE):
-                    _, pi[i:] = self.action(b_obs[i])
+                    _, pi[i] = self.action(b_obs[i])
                 V = self._eval(b_obs)
-                print(V)
                 act_loss = self._act_loss(pi, b_probs, A_k)
                 cri_loss = self._cri_loss(V, rtgs)
-                print(act_loss.item(), cri_loss.item())
+                loss.append(act_loss.item())
 
                 self.a_optim.zero_grad()
                 act_loss.requires_grad = True
@@ -160,33 +172,34 @@ class PPO:
                 cri_loss.backward()
                 self.c_optim.step()
             end = time.time()
-            print(
-                f"Finished Updating the networks in {end-start}, {self.env.avg_rewards[-1]}"
-            )
+            print(f"Finished Updating the networks in {end-start}, {rtgs.mean()}")
             if self.env.avg_rewards[-1] > best_mean:
                 best_mean = self.env.avg_rewards[-1]
                 print(f"Saving new best model in {self.model_path}")
-                torch.save(self.actor.state_dict(), self.model_path + "actor")
-                torch.save(self.critic.state_dict(), self.model_path + "critic")
-        self._plot_rewards(curr_ep, loss)
+                if not os.path.isdir(self.model_path):
+                    os.mkdir(self.model_path)
+                # torch.save(self.actor.state_dict(), self.model_path + "actor")
+                # torch.save(self.critic.state_dict(), self.model_path + "critic")
+
+            if curr_ep % SAVE_RATE == 0:
+                self._plot_rewards(curr_ep, loss)
+        return np.mean(self.env.avg_rewards)
 
     def _plot_rewards(self, curr_ep, loss):
         plt.plot(np.arange(len(self.env.avg_rewards)), self.env.avg_rewards)
         plt.savefig(f"{curr_ep}_rew.png")
-        plt.plot(np.arange((curr_ep - 1) * NUM_UPDATES), loss)
-        plt.savefig(f"{curr_ep}_loss.png")
 
     def _rollout(self):
         batch_obs = []
         batch_actions = np.zeros((BATCH_SIZE, self.env._num_agents))
-        batch_probs = np.zeros((BATCH_SIZE, self.env._num_agents))
+        batch_probs = torch.zeros((BATCH_SIZE, self.env._num_agents))
         batch_rews = []
         for i in range(BATCH_SIZE):
             batch_obs.append(self.env.observation_spaces)
             actions, probs = self.action(self.env.observation_spaces)
             rews = self.env.step(actions)
-            batch_actions[i:] = actions
-            batch_probs[i:] = probs
+            batch_actions[i] = actions[0]
+            batch_probs[i] = probs[0]
             batch_rews.append(rews)
         return (batch_obs, batch_actions, batch_probs, batch_rews)
 
@@ -195,16 +208,16 @@ class PPO:
         for i in range(len(b_obs)):
             for j in range(self.env._num_agents):
                 V[i, j] = self.critic(b_obs[i][j])
-        return torch.tensor(V, dtype=float)
+        return torch.from_numpy(V).to(self.device, torch.float32)
 
     def action(self, obs):
-        probs = np.zeros(len(obs))
+        probs = torch.zeros([1, len(obs)])
         actions = np.zeros(len(obs))
         for i in range(len(obs)):
             mu = self.actor(obs[i])
             # Create a distrubution
             dist = MultivariateNormal(mu, self.cov_mat)
             action = dist.sample()
-            probs[i] = dist.log_prob(action).detach().numpy()
-            actions[i] = np.argmax(action.detach().numpy())
+            probs[0][i] = dist.log_prob(action).detach()
+            actions[i] = torch.argmax(action.detach()).item()
         return actions, probs
