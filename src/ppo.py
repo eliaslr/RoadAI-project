@@ -6,6 +6,7 @@ from torch.distributions import MultivariateNormal
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+import os
 
 # TODO add these to hydra
 BATCH_SIZE = 1000
@@ -77,7 +78,7 @@ class PPO:
         self.out_dim = 5
         self.actor = ActorNetwork(self.in_dim, self.out_dim)
         self.critic = CriticNetwork(self.in_dim, 1)
-        if load_model:
+        if load_model and os.path.isfile(model_path + "actor"):
             self.actor.load_state_dict(torch.load(model_path + "actor"))
             self.critic.load_state_dict(torch.load(model_path + "critic"))
         self.a_optim = Adam(self.actor.parameters(), lr=lr)
