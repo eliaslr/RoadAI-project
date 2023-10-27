@@ -44,7 +44,7 @@ def main(render):
     """
     storage = optuna.storages.InMemoryStorage()
     study = optuna.create_study(direction="maximize", storage=storage)
-    study.optimize(tune, n_trials=30)
+    study.optimize(tune, n_trials=1000)
     run_server(storage)
     # Show an episode to see how the system performs
     # rewards.append(env.eval_episode(render_mode="pygame", train=True))
@@ -53,8 +53,8 @@ def main(render):
     # rewards.append(env.eval_episode(render_mode="pygame", train=True))
     # Show an episode to see how the system performs
 
+
     """
-    # Show Metrics
 
 
 def parse_args():
@@ -71,5 +71,9 @@ def parse_args():
 
 
 if __name__ == "__main__":
+    # study = optuna.create_study()
+    # study.optimize(objective, n_trials = 10)
+
+    # study.best_params
     args = parse_args()
     main(args.render)

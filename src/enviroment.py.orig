@@ -16,42 +16,12 @@ class RoadEnv(ParallelEnv):
         self.holes = []
         self.curr_ep = 0
         self.reward_func = reward_func
-<<<<<<< HEAD
-
-    # Based on the example given in custom env tutorial from petting zoo
-    # Returns rewards and termination status
-||||||| 011ecd8
-
-    #Based on the example given in custom env tutorial from petting zoo
-    #Returns rewards and termination status
-=======
         self.excavators = []
     #Based on the example given in custom env tutorial from petting zoo
     #Returns rewards and termination status
->>>>>>> 4a2a90df982fc4a23663db50e9c250fe9f700eb8
     def step(self):
         rewards = []
         for agent in self.agents:
-<<<<<<< HEAD
-            # TODO update action/obs space for each agent
-            # Cardinal movement for each truck
-            self._action_spaces[agent] = gym.spaces.Tuple(
-                (gym.spaces.Discrete(3, start=-1), gym.spaces.Discrete(3, start=-1))
-            )
-            agent.step(self.map, self._action_spaces[agent])
-            # reward = self.reward_func(agent, self.map)
-            # agent.update(reward)
-            # Add metrics of avg reward
-||||||| 011ecd8
-        #TODO update action/obs space for each agent
-            #Cardinal movement for each truck
-            self._action_spaces[agent] = gym.spaces.Tuple((gym.spaces.Discrete(3, start = -1),
-                                                gym.spaces.Discrete(3, start = -1)))
-            agent.step(self.map, self._action_spaces[agent])
-            #reward = self.reward_func(agent, self.map)
-            #agent.update(reward)
-            # Add metrics of avg reward 
-=======
         #TODO update action/obs space for each agent
             #Cardinal movement for each truck
             self._action_spaces[agent] = gym.spaces.Tuple((gym.spaces.Discrete(3, start = -1),
@@ -61,19 +31,8 @@ class RoadEnv(ParallelEnv):
 
             #agent.update(reward)
             # Add metrics of avg reward
->>>>>>> 4a2a90df982fc4a23663db50e9c250fe9f700eb8
         return None, False
 
-<<<<<<< HEAD
-    # Renders the environment accepts 3 modes
-    # Console prints the enviroment in ascii to console
-    # Pygame renders a graphical view
-    # None skips rendering
-||||||| 011ecd8
-    
-=======
-
->>>>>>> 4a2a90df982fc4a23663db50e9c250fe9f700eb8
     def render(self, render_mode="console"):
         (H, W) = self.map.shape
         if render_mode == "console":
@@ -97,7 +56,6 @@ class RoadEnv(ParallelEnv):
             self._screen.fill((0, 0, 0), rect=None)
             for i in range(H):
                 for j in range(W):
-<<<<<<< HEAD
                     pos = pygame.Rect(
                         (
                             self._margin + j * self._s_size,
@@ -106,15 +64,6 @@ class RoadEnv(ParallelEnv):
                         (self._s_size, self._s_size),
                     )
                     if self.map[i, j] == -1:
-||||||| 011ecd8
-                    pos = pygame.Rect((self._margin + j * self._s_size, 
-                                       self._margin + i * self._s_size), (self._s_size, self._s_size))
-                    if self.map[i,j] == -1:
-=======
-                    pos = pygame.Rect((self._margin + j * self._s_size,
-                                       self._margin + i * self._s_size), (self._s_size, self._s_size))
-                    if self.map[i,j] == -1:
->>>>>>> 4a2a90df982fc4a23663db50e9c250fe9f700eb8
                         pygame.draw.rect(self._screen, (255, 0, 0), pos)
                     elif self.map[i, j] == -2:
                         pygame.draw.rect(self._screen, (0, 0, 255), pos)
@@ -129,12 +78,6 @@ class RoadEnv(ParallelEnv):
             return
 
     def reset(self):
-<<<<<<< HEAD
-        pass
-||||||| 011ecd8
-        pass
-    
-=======
         self._action_spaces = {}
         self.agents = []
         self.holes = []
@@ -146,7 +89,6 @@ class RoadEnv(ParallelEnv):
 
         return self.map
 
->>>>>>> 4a2a90df982fc4a23663db50e9c250fe9f700eb8
 
     # Evaluates one episode of play
     def eval_episode(self, render_mode="console"):

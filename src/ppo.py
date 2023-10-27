@@ -77,8 +77,6 @@ class PPO:
         model_path,
         lr_a=0.001,
         lr_c=0.001,
-        epsilon_start=0,
-        epsilon_decay=0,
         load_model=True,
         gamma=0.95,
         device="cpu",
@@ -102,8 +100,6 @@ class PPO:
         self.cov_mat = torch.diag(self.cov_var).to(device)
         self.env = env
         self.model_path = model_path
-        self.epsilon_greedy = epsilon_start
-        self.epsilon_decay = epsilon_decay
 
     # Calculates discouted rewards
     def _rtgs(self, rews):
@@ -156,6 +152,7 @@ class PPO:
             print(f"Finished episode {curr_ep} in {end - start} seconds")
             start = time.time()
             curr_ep += 1
+
             rtgs = self._rtgs(b_rews)
             curr_step += len(b_obs)
             V, _ = self._eval(b_obs, b_acts)
@@ -194,7 +191,7 @@ class PPO:
                 torch.save(self.actor.state_dict(), self.model_path + "actor")
                 torch.save(self.critic.state_dict(), self.model_path + "critic")
         self._plot_rewards(avg_rewards, a_loss, c_loss)
-        return np.mean(avg_rewards)
+        return np.mean(self.env.avg_rewards)
 
     def _plot_rewards(self, avg_rewards, a_loss, c_loss):
         _, axs = plt.subplots(1, 3, layout="constrained")
