@@ -13,8 +13,8 @@ def tune(trial):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     lr_a = trial.suggest_float("lr_a", 0.00001, 0.01)
     lr_c = trial.suggest_float("lr_c", 0.00001, 0.01)
-    cliprange = trial.suggest_float("cliprange", 0.1, 0.5)
-    gamma = trial.suggest_float("gamma", 0.8, 0.95)
+    cliprange = trial.suggest_float("cliprange", 0.1, 0.7)
+    gamma = trial.suggest_float("gamma", 0.5, 0.95)
     ppo = PPO(
         env,
         lr_a=lr_a,
@@ -29,15 +29,13 @@ def tune(trial):
 
 
 def main(render):
-    """
     env = RoadEnv(reward.reward, render_mode=render)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     ppo = PPO(
         env,
         lr_a=0.001,
         lr_c=0.001,
-        epsilon_start=0.6,
-        epsilon_decay=0.03,
+        gamma=0.85,
         cliprange=0.2,
         model_path="models/ppo/",
         device=device,
@@ -46,9 +44,8 @@ def main(render):
     """
     storage = optuna.storages.InMemoryStorage()
     study = optuna.create_study(direction="maximize", storage=storage)
-    study.optimize(tune, n_trials=10)
+    study.optimize(tune, n_trials=30)
     run_server(storage)
-
     # Show an episode to see how the system performs
     # rewards.append(env.eval_episode(render_mode="pygame", train=True))
     # Show an episode to see how the system performs
@@ -56,6 +53,7 @@ def main(render):
     # rewards.append(env.eval_episode(render_mode="pygame", train=True))
     # Show an episode to see how the system performs
 
+    """
     # Show Metrics
 
 

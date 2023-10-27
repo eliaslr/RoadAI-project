@@ -18,19 +18,32 @@ class TruckAgent:
         self.collided = False
         self.out_of_bounds = False
         self.view_dist = view_dist
-        self.obs = np.zeros((view_dist * 2 + 1, view_dist * 2 + 1))
+        self.obs = np.zeros(9)
         self.dir = 1  # Start pointing North
 
     # For now we have the observation space as square with the truck in the middle
     def observe(self):
-        for i in range(self.view_dist * 2 + 1):
-            y = self.pos_y - self.view_dist + i
-            for j in range(self.view_dist * 2 + 1):
-                x = self.pos_x - self.view_dist + j
-                if self._in_bounds((y, x)):
-                    self.obs[i, j] = self.env.map[y, x]
-                else:
-                    self.obs[i, j] = 1000000
+        adj = [
+            (self.pos_y + 1, self.pos_x),
+            (self.pos_y - 1, self.pos_x),
+            (self.pos_y, self.pos_x + 1),
+            (self.pos_y, self.pos_x - 1),
+        ]
+        self.obs[0] = int(self.filled)
+        self.obs[1] = self.pos_y
+        self.obs[2] = self.pos_x
+        for i, pos in enumerate(adj):
+            if self._in_bounds(pos):
+                self.obs[i + 3] = self.env.map[pos[0], pos[1]]
+            else:
+                self.obs[i + 3] = 100000
+        closest = np.inf
+        for i, pos in enumerate(self.env.excavators):
+            dist = abs(pos[0] - self.pos_y) + abs(pos[1] - self.pos_x)
+            if dist < closest:
+                closest = dist
+                self.obs[7] = pos[0]
+                self.obs[8] = pos[1]
         return self.obs
 
     def _in_bounds(self, pos):
@@ -88,15 +101,11 @@ class TruckAgent:
         for pos in adj:
             if not self._in_bounds(pos):
                 continue
-            if self.env.map[pos[0], pos[1]] == -3:
+            if self.env.map[pos[0], pos[1]] == -1:
                 self.filled = True
-                if not self.prev_agent["filled"]:
-                    self.id += 50
                 break
             elif self.env.map[pos[0], pos[1]] == -2 and self.filled:
                 self.filled = False
-                if self.prev_agent["filled"]:
-                    self.id -= 50
                 self.env.holes[pos] -= self.capacity
                 if self.env.holes[pos] <= 0:
                     self.env.map[pos[0], pos[1]] = 1

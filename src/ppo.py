@@ -9,62 +9,63 @@ import time
 import os
 
 # TODO add these to hydra
-BATCH_SIZE = 500
-NUM_UPDATES = 3
-MAX_EPS = 20
+BATCH_SIZE = 1000
+NUM_UPDATES = 5
+MAX_EPS = 600
 MAX_STEPS = 1_000_000
-SAVE_RATE = 5  # Save model every 5 episodes
+SAVE_RATE = 100  # Save model every 25 episodes
+ACTION_REPEAT = 1
 
 
 # A simple NN is enough for PPO
 class ActorNetwork(nn.Module):
-    def __init__(self, input_dim, output_dim, num_hidden_l=1, device="cpu"):
+    def __init__(self, input_dim, output_dim, device):
         super(ActorNetwork, self).__init__()
-        self.c1 = nn.Conv2d(1, 16, kernel_size=3, padding=1)
-        self.c2 = nn.Conv2d(16, 32, kernel_size=3, padding=1)
-        self.l1 = nn.Linear(32 * input_dim * input_dim, 128)
-        self.l2 = nn.Linear(128, output_dim)
+        # self.c1 = nn.Conv2d(1, 16, kernel_size=3, padding=1)
+        # self.c2 = nn.Conv2d(16, 32, kernel_size=3, padding=1)
+        self.l1 = nn.Linear(input_dim, 64)
+        self.l2 = nn.Linear(64, 64)
+        self.l3 = nn.Linear(64, output_dim)
         self.device = device
 
     def forward(self, X):
         # Convert to tensor
         if not torch.is_tensor(X):
             X = torch.tensor(X, dtype=torch.float, device=self.device)
-            X = X.unsqueeze(0)
-            X = X.unsqueeze(0)
-        z = F.relu(self.c1(X))
-        # z = F.max_pool2d(z, 2)
-        z = F.relu(self.c2(z))
-        # z = F.max_pool2d(z, 2)
-        z = z.view(z.size(0), -1)
-        z = F.relu(self.l1(z))
-        z = self.l2(z)
-        s = nn.Softmax(dim=1)(z)
+        #    X = X.unsqueeze(0)
+        #    X = X.unsqueeze(0)
+        # z = F.relu(self.c1(X))
+        # z = F.relu(self.c2(z))
+        # z = z.view(z.size(0), -1)
+        z = F.relu(self.l1(X))
+        z = F.relu(self.l2(z))
+        z = self.l3(z)
+        s = nn.Softmax(dim=0)(z)
         return s
 
 
 class CriticNetwork(nn.Module):
     def __init__(self, input_dim, output_dim, device):
         super(CriticNetwork, self).__init__()
-        self.c1 = nn.Conv2d(1, 16, kernel_size=3, padding=1)
-        self.c2 = nn.Conv2d(16, 32, kernel_size=3, padding=1)
-        self.l1 = nn.Linear(32 * input_dim * input_dim, 128)
-        self.l2 = nn.Linear(128, output_dim)
+        # self.c1 = nn.Conv2d(1, 16, kernel_size=3, padding=1)
+        # self.c2 = nn.Conv2d(16, 32, kernel_size=3, padding=1)
+        self.l1 = nn.Linear(input_dim, 64)
+        self.l2 = nn.Linear(64, 64)
+        self.l3 = nn.Linear(64, output_dim)
         self.device = device
 
     def forward(self, X):
         # Convert to tensor
         if not torch.is_tensor(X):
             X = torch.tensor(X, dtype=torch.float, device=self.device)
-            X = X.unsqueeze(0)
-            X = X.unsqueeze(0)
-        z = F.relu(self.c1(X))
-        # z = F.max_pool2d(z, 2)
-        z = F.relu(self.c2(z))
-        # z = F.max_pool2d(z, 2)
-        z = z.view(z.size(0), -1)
-        z = F.relu(self.l1(z))
-        z = self.l2(z)
+        #    X = X.unsqueeze(0)
+        #    X = X.unsqueeze(0)
+        # z = F.relu(self.c1(X))
+        # z = F.relu(self.c2(z))
+        # z = z.view(z.size(0), -1)
+        z = F.relu(self.l1(X))
+        z = F.relu(self.l2(z))
+        z = self.l3(z)
         return z
 
 
@@ -78,7 +79,7 @@ class PPO:
         lr_c=0.001,
         epsilon_start=0,
         epsilon_decay=0,
-        load_model=False,
+        load_model=True,
         gamma=0.95,
         device="cpu",
     ):
@@ -87,7 +88,7 @@ class PPO:
         self.epsilon = cliprange  # Clip for actor
         # :e Saw one paper using clip Loss for critic aswell
         # self.upsilon = cliprange  # Clip for critic
-        self.in_dim = env.view_dist * 2 + 1  # Square view
+        self.in_dim = 9  # Square view
         # Action space is cardinal movement
         self.out_dim = 5
         self.actor = ActorNetwork(self.in_dim, self.out_dim, device=device).to(device)
@@ -106,13 +107,16 @@ class PPO:
 
     # Calculates discouted rewards
     def _rtgs(self, rews):
-        returns = np.zeros((len(rews), self.env._num_agents))
+        agents = self.env._num_agents
+        returns = np.zeros(len(rews) * self.env._num_agents)
         for i in reversed(range(len(rews))):
             if i == len(rews) - 1:
-                returns[i:] = rews[i]
+                returns[i * agents : (i + 1) * agents] = rews[i]
             else:
-                for j in range(len(rews[i])):
-                    returns[i, j] = rews[i][j] + returns[i + 1, j] * self.gamma
+                for j in range(agents):
+                    returns[i * agents + j] = (
+                        rews[i][j] + returns[(i + 1) * agents + j] * self.gamma
+                    )
         return torch.tensor(returns, dtype=float)
 
     # See arxiv 2103.01955 for implementation details
@@ -134,94 +138,115 @@ class PPO:
     # Main training loop
     def train(self):
         torch.set_default_device(self.device)
+        torch.cuda.empty_cache()
         # Initilial Step
         curr_step = 1
         curr_ep = 1
         best_mean = -np.inf
-        loss = []
+        a_loss = []
+        c_loss = []
+        avg_rewards = []
         while curr_step < MAX_STEPS and curr_ep < MAX_EPS:
             start = time.time()
             self.env.reset()
             self.env.step(np.zeros(len(self.env.agents)))
             b_obs, b_acts, b_probs, b_rews = self._rollout()
+            avg_rewards.append(np.mean(b_rews))
             end = time.time()
             print(f"Finished episode {curr_ep} in {end - start} seconds")
             start = time.time()
             curr_ep += 1
-            self.epsilon_greedy -= self.epsilon_decay
-            curr_step += len(b_obs)
-            V = self._eval(b_obs)
             rtgs = self._rtgs(b_rews)
+            curr_step += len(b_obs)
+            V, _ = self._eval(b_obs, b_acts)
             # Calculate advantage
             A_k = rtgs - V
             # Normalize Advantage
             A_k = (A_k - A_k.mean()) / (A_k.std() + 1e-10)
             # Update actor critic based on L
             for _ in range(NUM_UPDATES):
-                pi = torch.zeros((len(b_obs), self.env._num_agents))
-                for i in range(BATCH_SIZE):
-                    _, pi[i] = self.action(b_obs[i])
-                V = self._eval(b_obs)
+                V, pi = self._eval(b_obs, b_acts)
                 act_loss = self._act_loss(pi, b_probs, A_k)
                 cri_loss = self._cri_loss(V, rtgs)
-                loss.append(act_loss.item())
+
+                a_loss.append(act_loss.item())
+                c_loss.append(cri_loss.item())
 
                 self.a_optim.zero_grad()
-                act_loss.requires_grad = True
-                act_loss.backward()
+                act_loss.backward(retain_graph=True)
                 self.a_optim.step()
 
                 self.c_optim.zero_grad()
-                cri_loss.requires_grad = True
                 cri_loss.backward()
                 self.c_optim.step()
             end = time.time()
             print(f"Finished Updating the networks in {end-start}, {rtgs.mean()}")
-            if self.env.avg_rewards[-1] > best_mean:
-                best_mean = self.env.avg_rewards[-1]
+            if avg_rewards[-1] > best_mean:
+                best_mean = avg_rewards[-1]
                 print(f"Saving new best model in {self.model_path}")
                 if not os.path.isdir(self.model_path):
                     os.mkdir(self.model_path)
-                # torch.save(self.actor.state_dict(), self.model_path + "actor")
-                # torch.save(self.critic.state_dict(), self.model_path + "critic")
+                torch.save(self.actor.state_dict(), self.model_path + "actor")
+                torch.save(self.critic.state_dict(), self.model_path + "critic")
 
             if curr_ep % SAVE_RATE == 0:
-                self._plot_rewards(curr_ep, loss)
-        return np.mean(self.env.avg_rewards)
+                # self._plot_rewards(avg_rewards, a_loss, c_loss)
+                torch.save(self.actor.state_dict(), self.model_path + "actor")
+                torch.save(self.critic.state_dict(), self.model_path + "critic")
+        self._plot_rewards(avg_rewards, a_loss, c_loss)
+        return np.mean(avg_rewards)
 
-    def _plot_rewards(self, curr_ep, loss):
-        plt.plot(np.arange(len(self.env.avg_rewards)), self.env.avg_rewards)
-        plt.savefig(f"{curr_ep}_rew.png")
+    def _plot_rewards(self, avg_rewards, a_loss, c_loss):
+        _, axs = plt.subplots(1, 3, layout="constrained")
+        axs[0].set(title="ActorLoss")
+        axs[1].set(title="CriticLoss")
+        axs[2].set(title="MeanReward")
+        axs[0].plot(np.arange(len(a_loss)), a_loss)
+        axs[1].plot(np.arange(len(c_loss)), c_loss)
+        axs[2].plot(np.arange(len(avg_rewards)), avg_rewards)
+
+        plt.savefig(f"graphs/{len(avg_rewards)}.png")
+
+        plt.show()
 
     def _rollout(self):
         batch_obs = []
-        batch_actions = np.zeros((BATCH_SIZE, self.env._num_agents))
+        batch_actions = torch.zeros((BATCH_SIZE, self.env._num_agents, self.out_dim))
         batch_probs = torch.zeros((BATCH_SIZE, self.env._num_agents))
         batch_rews = []
         for i in range(BATCH_SIZE):
             batch_obs.append(self.env.observation_spaces)
             actions, probs = self.action(self.env.observation_spaces)
-            rews = self.env.step(actions)
-            batch_actions[i] = actions[0]
-            batch_probs[i] = probs[0]
+            # for _ in range(ACTION_REPEAT):
+            # Fuck this is ugly
+            action = list(map(lambda x: torch.argmax(x).item(), actions))
+            rews = self.env.step(action)
+            for j in range(self.env._num_agents):
+                batch_actions[i][j] = actions[j]
+            batch_probs[i] = probs
             batch_rews.append(rews)
+        batch_probs = torch.flatten(batch_probs)
         return (batch_obs, batch_actions, batch_probs, batch_rews)
 
-    def _eval(self, b_obs):
-        V = np.zeros((len(b_obs), self.env._num_agents))
+    def _eval(self, b_obs, b_acts):
+        V = torch.zeros(len(b_obs) * self.env._num_agents)
+        pi = torch.zeros(len(b_obs) * self.env._num_agents)
         for i in range(len(b_obs)):
             for j in range(self.env._num_agents):
-                V[i, j] = self.critic(b_obs[i][j])
-        return torch.from_numpy(V).to(self.device, torch.float32)
+                V[i * self.env._num_agents + j] = self.critic(b_obs[i][j])
+                mu = self.actor(b_obs[i][j])
+                dist = MultivariateNormal(mu, self.cov_mat)
+                pi[i * self.env._num_agents + j] = dist.log_prob(b_acts[i][j])
+        return V, pi
 
     def action(self, obs):
-        probs = torch.zeros([1, len(obs)])
-        actions = np.zeros(len(obs))
+        probs = torch.zeros(len(obs))
+        actions = []
         for i in range(len(obs)):
             mu = self.actor(obs[i])
             # Create a distrubution
             dist = MultivariateNormal(mu, self.cov_mat)
             action = dist.sample()
-            probs[0][i] = dist.log_prob(action).detach()
-            actions[i] = torch.argmax(action.detach()).item()
+            probs[i] = dist.log_prob(action).detach()
+            actions.append(action.detach())
         return actions, probs

@@ -3,54 +3,50 @@ import pygame
 import gymnasium as gym
 from gymnasium import spaces
 from agent import TruckAgent
-import torch
 
 WINDOW_H = 600
 WINDOW_W = 600
-MAX_STEPS = 10000
 
 
 # Note that we use (y,x) instead of (x, y) in our coordinates
 class RoadEnv(gym.Env):
     def __init__(self, reward_func, max_agents=None, render_mode=None):
         self.reward_func = reward_func
-        self.view_dist = 50  # Parameter for how far each truck can see
+        self.view_dist = 15  # Parameter for how far each truck can see
         self.curr_ep = -1
-        self.avg_rewards = []
         self.render_mode = render_mode
-        self.reset()
-        (H, W) = self.map.shape
         if render_mode == "pygame":
             pygame.init()
             # TODO ADD CONSTANTS IN HYDRA
             self._margin = 25
-            self._s_size = (
-                (WINDOW_H - self._margin) // H
-                if H > W
-                else (WINDOW_W - self._margin) // W
+        self.reset()
+
+    def _reset_screen(self):
+        (H, W) = self.map.shape
+        self._s_size = (
+            (WINDOW_H - self._margin) // H if H > W else (WINDOW_W - self._margin) // W
+        )
+        self._screen = pygame.display.set_mode(
+            (
+                self._s_size * W + 2 * self._margin,
+                self._s_size * H + 2 * self._margin,
             )
-            self._screen = pygame.display.set_mode(
-                (
-                    self._s_size * W + 2 * self._margin,
-                    self._s_size * H + 2 * self._margin,
-                )
-            )
+        )
 
     # Updates agents states, reward, observations
     # Called from learning algorithm
-    def step(self, actions, rand_act = False):
+    def step(self, actions, rand_act=False):
         self.curr_step += 1
         agent_rewards = np.zeros(len(self.agents))
         for agent in self.agents:
-            self.observation_spaces[agent.id-agent.filled*50] = agent.observe()
+            self.observation_spaces[agent.id] = agent.observe()
             if not rand_act:
-                agent.step(actions[agent.id-agent.filled*50])
+                agent.step(actions[agent.id])
             else:
                 agent.step(np.random.randint(5))
             # Get reward
             reward = self.reward_func(agent, self)
-            agent_rewards[agent.id-agent.filled*50] = reward
-        self.avg_rewards.append(np.mean(agent_rewards))
+            agent_rewards[agent.id] = reward
         self.render()
         return agent_rewards
 
@@ -115,6 +111,8 @@ class RoadEnv(gym.Env):
         self.holes = {}
         self.excavators = []
         self.generate_map()
+        if self.render_mode:
+            self._reset_screen()
         self.observation_spaces = [0] * self._num_agents
         self.curr_step = 0
         self.curr_ep += 1
@@ -148,7 +146,7 @@ class RoadEnv(gym.Env):
             h -= 1
 
     # Generates the grid and populates it with agents
-    def generate_map(self, seed=None, min_h=50, min_w=50, max_h=100, max_w=100):
+    def generate_map(self, seed=None, min_h=50, min_w=50, max_h=75, max_w=75):
         if seed is not None:
             np.random.seed(seed)
 
@@ -167,10 +165,10 @@ class RoadEnv(gym.Env):
                 np.random.randint(5, max(20, H - start_pos[0])),
                 np.random.randint(5, max(20, W - start_pos[1])),
             )
-            mag = 3
+            mag = 2
             self._topograph_feature(start_pos, size[0], size[1], mag)
 
-        num_excavators = 3
+        num_excavators = 10
         for _ in range(num_excavators):
             # Excavators always start at the top of the map
             pos = (np.random.randint(0, H // 2), np.random.randint(0, W))
@@ -178,16 +176,19 @@ class RoadEnv(gym.Env):
             self.excavators.append(pos)
             # Make sure we start off in a flat space
             while self.map[pos[0], pos[1]] >= 10:
-                pos = (np.random.randint(0, H // 2), np.random.randint(0, W))
+                pos = (
+                    np.random.randint(H // 4, H // 2),
+                    np.random.randint(W // 4, 3 * W // 4),
+                )
             self.map[pos[0], pos[1]] = -1
 
         self._num_agents = np.random.randint(3, 10)
         for i in range(self._num_agents):
             # TODO add option for fixed startpositions/A deposit where the material is hauled from
-            start_pos = (np.random.randint(0, 4 * H // 5), np.random.randint(0, W))
+            start_pos = (np.random.randint(1, 4 * H // 5), np.random.randint(1, W))
             # Make sure we start off in a flat space
             while self.map[start_pos[0], start_pos[1]] >= 10:
-                start_pos = (np.random.randint(0, 4 * H // 5), np.random.randint(0, W))
+                start_pos = (np.random.randint(1, 4 * H // 5), np.random.randint(1, W))
             self.agents.append(
                 TruckAgent(
                     i,
