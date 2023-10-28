@@ -1,46 +1,67 @@
 from enviroment import RoadEnv
-from ppo import PPO
-import torch
-
+from stable_baselines3 import PPO
+from stable_baselines3 import DQN
+from stable_baselines3.common import env_checker
 import reward
 import argparse
 import optuna
 from optuna_dashboard import run_server
+import matplotlib.pyplot as plt
+import numpy as np
+
+MAX_STEPS = 1_000_000
 
 
-def tune(trial):
+def tune_PPO(trial):
     env = RoadEnv(reward.reward, render_mode=None)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    lr_a = trial.suggest_float("lr_a", 0.00001, 0.01)
-    lr_c = trial.suggest_float("lr_c", 0.00001, 0.01)
+    lr = trial.suggest_float("lr", 0.00001, 0.01)
     cliprange = trial.suggest_float("cliprange", 0.1, 0.7)
     gamma = trial.suggest_float("gamma", 0.5, 0.95)
-    ppo = PPO(
-        env,
-        lr_a=lr_a,
-        lr_c=lr_c,
-        cliprange=cliprange,
-        gamma=gamma,
-        model_path="models/ppo/",
-        device=device,
-    )
-    avg_ret = ppo.train()
+    model = PPO(
+        "MultiInputPolicy", env, clip_range=cliprange, learning_rate=lr, gamma=gamma
+    ).learn(total_timesteps=1000000)
+    avg_ret = mean(env.avg_returns)
     return avg_ret
 
 
+def train_ppo(load_model=False):
+    env = RoadEnv(reward.reward, render_mode=None)
+    if load_model:
+        ppo = PPO.load("models/baselines-ppo")
+    else:
+        ppo = PPO("MultiInputPolicy", env, verbose=1)
+    ppo = ppo.learn(total_timesteps=MAX_STEPS)
+    ppo.save("models/baselines-ppo")
+    return env.avg_rewards
+
+
+def train_dqn(load_model=False):
+    env = RoadEnv(reward.reward, render_mode=None)
+    if load_model:
+        dqn = DQN.load("models/baselines-dqn")
+    else:
+        dqn = DQN("MultiInputPolicy", env, verbose=1)
+    dqn = dqn.learn(total_timesteps=MAX_STEPS)
+    dqn.save("models/baselines-ppo")
+    return env.avg_rewards
+
+
 def main(render):
-    env = RoadEnv(reward.reward, render_mode=render)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    ppo = PPO(
-        env,
-        lr_a=0.001,
-        lr_c=0.001,
-        gamma=0.85,
-        cliprange=0.2,
-        model_path="models/ppo/",
-        device=device,
-    )
-    ppo.train()
+    # Parallel environments
+    # vec_env = make_vec_env(env, n_envs=4)
+
+    # TODO hyperparameter tune
+
+    ppo_rews = train_ppo()
+    dqn_rews = train_dqn()
+
+    plt.title("DQN vs PPO episode rewards")
+    plt.plot(np.arange(len(ppo_rews)), ppo_rews, label="PPO")
+    plt.plot(np.arange(len(dqn_rews)), dqn_rews, label="DQN")
+    plt.legend()
+    plt.show()
+
     """
     storage = optuna.storages.InMemoryStorage()
     study = optuna.create_study(direction="maximize", storage=storage)

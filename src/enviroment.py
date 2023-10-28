@@ -6,6 +6,7 @@ from agent import TruckAgent
 
 WINDOW_H = 600
 WINDOW_W = 600
+MAX_STEPS = 5000  # Episode length
 
 
 # Note that we use (y,x) instead of (x, y) in our coordinates
@@ -14,7 +15,18 @@ class RoadEnv(gym.Env):
         self.reward_func = reward_func
         self.view_dist = 15  # Parameter for how far each truck can see
         self.curr_ep = -1
+        self.avg_rewards = []  # Avg rewards for every episode
         self.render_mode = render_mode
+        self.observation_space = spaces.Dict(
+            {
+                "filled": spaces.Discrete(2),
+                "pos": spaces.Box(0, 1000, shape=(2,), dtype=int),
+                "adj": spaces.Box(-10, 1000, shape=(4,), dtype=int),
+                "target": spaces.Box(0, 1000, shape=(2,), dtype=int),
+            }
+        )
+
+        self.action_space = spaces.Discrete(5)
         if render_mode == "pygame":
             pygame.init()
             # TODO ADD CONSTANTS IN HYDRA
@@ -36,17 +48,28 @@ class RoadEnv(gym.Env):
     # Updates agents states, reward, observations
     # Called from learning algorithm
 
-    def step(self, actions):
+    def step(self, action):
         self.curr_step += 1
-        agent_rewards = np.zeros(len(self.agents))
-        for agent in self.agents:
-            self.observation_spaces[agent.id] = agent.observe()
-            agent.step(actions[agent.id])
-            # Get reward
-            reward = self.reward_func(agent, self)
-            agent_rewards[agent.id] = reward
+        agent = self.agents[self.curr_step % self._num_agents]
+        agent.step(action)
+        obs = agent.observe()
+        # Get reward
+        rew = self.reward_func(agent, self)
+        self.avg_reward = (
+            self.avg_reward * (self.curr_step - 1) + rew
+        ) / self.curr_step
+        term = False
+        if self.curr_step > MAX_STEPS:
+            term = True
+            self.avg_rewards.append(self.avg_reward)
         self.render()
-        return agent_rewards
+        return (
+            obs,
+            rew,
+            term,
+            False,
+            {},
+        )
 
     # Renders the environment
     # Accepts 3 modes:
@@ -101,19 +124,21 @@ class RoadEnv(gym.Env):
         elif self.render_mode is None:
             return
 
-    # Resets the env and generates new map
+        # Resets the env and generates new map
+
     # Should be called inbetween episodes
-    def reset(self):
-        self.action_spaces = {}
+    def reset(self, seed=None):
         self.agents = []
         self.holes = {}
         self.excavators = []
-        self.generate_map()
+        self.avg_reward = 0
+        self.generate_map(seed=seed)
         if self.render_mode:
             self._reset_screen()
-        self.observation_spaces = [0] * self._num_agents
         self.curr_step = 0
         self.curr_ep += 1
+        obs, _, _, _, _ = self.step(0)
+        return obs, {}
 
     # Generates topographic "hills" where the hills get larger as you get to the center
     def _topograph_feature(self, start_pos, h, w, mag):

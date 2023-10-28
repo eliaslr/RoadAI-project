@@ -1,4 +1,5 @@
 import numpy as np
+import gymnasium as gym
 
 
 class TruckAgent:
@@ -18,33 +19,39 @@ class TruckAgent:
         self.collided = False
         self.out_of_bounds = False
         self.view_dist = view_dist
-        self.obs = np.zeros(9)
         self.dir = 1  # Start pointing North
 
     # For now we have the observation space as square with the truck in the middle
     def observe(self):
-        adj = [
+        adj_pos = [
             (self.pos_y + 1, self.pos_x),
             (self.pos_y - 1, self.pos_x),
             (self.pos_y, self.pos_x + 1),
             (self.pos_y, self.pos_x - 1),
         ]
-        self.obs[0] = int(self.filled)
-        self.obs[1] = self.pos_y
-        self.obs[2] = self.pos_x
-        for i, pos in enumerate(adj):
-            if self._in_bounds(pos):
-                self.obs[i + 3] = self.env.map[pos[0], pos[1]]
-            else:
-                self.obs[i + 3] = 100000
         closest = np.inf
+        target = [0, 0]
         for i, pos in enumerate(self.env.excavators):
             dist = abs(pos[0] - self.pos_y) + abs(pos[1] - self.pos_x)
             if dist < closest:
                 closest = dist
-                self.obs[7] = pos[0]
-                self.obs[8] = pos[1]
-        return self.obs
+                target[0] = pos[0]
+                target[1] = pos[1]
+
+        adj = []
+        for pos in adj_pos:
+            if self._in_bounds(pos):
+                adj.append(self.env.map[pos[0], pos[1]])
+            else:
+                adj.append(1000)
+
+        obs = {
+            "filled": int(self.filled),
+            "pos": np.array([self.pos_y, self.pos_x]),
+            "adj": np.array(adj),
+            "target": np.array(target),
+        }
+        return obs
 
     def _in_bounds(self, pos):
         return (0 <= pos[0] < self.env.map.shape[0]) and (
