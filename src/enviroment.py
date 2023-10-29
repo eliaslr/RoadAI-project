@@ -6,7 +6,7 @@ from agent import TruckAgent
 
 WINDOW_H = 600
 WINDOW_W = 600
-MAX_STEPS = 5000  # Episode length
+MAX_STEPS = 2000  # Episode length
 
 
 # Note that we use (y,x) instead of (x, y) in our coordinates
@@ -49,10 +49,11 @@ class RoadEnv(gym.Env):
     # Called from learning algorithm
 
     def step(self, action):
-        self.curr_step += 1
         agent = self.agents[self.curr_step % self._num_agents]
+        self.curr_step += 1
+        next_agent = self.agents[self.curr_step % self._num_agents]
         agent.step(action)
-        obs = agent.observe()
+        obs = next_agent.observe()
         # Get reward
         rew = self.reward_func(agent, self)
         self.avg_reward = (

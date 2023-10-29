@@ -8,20 +8,20 @@ import optuna
 from optuna_dashboard import run_server
 import matplotlib.pyplot as plt
 import numpy as np
+import pickle
 
-MAX_STEPS = 1_000_000
+MAX_STEPS = 500_000
 
 
 def tune_PPO(trial):
     env = RoadEnv(reward.reward, render_mode=None)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     lr = trial.suggest_float("lr", 0.00001, 0.01)
     cliprange = trial.suggest_float("cliprange", 0.1, 0.7)
     gamma = trial.suggest_float("gamma", 0.5, 0.95)
     model = PPO(
         "MultiInputPolicy", env, clip_range=cliprange, learning_rate=lr, gamma=gamma
-    ).learn(total_timesteps=1000000)
-    avg_ret = mean(env.avg_returns)
+    ).learn(total_timesteps=1_000_000)
+    avg_ret = np.mean(env.avg_rewards)
     return avg_ret
 
 
@@ -30,7 +30,9 @@ def train_ppo(load_model=False):
     if load_model:
         ppo = PPO.load("models/baselines-ppo")
     else:
-        ppo = PPO("MultiInputPolicy", env, verbose=1)
+        ppo = PPO(
+            "MultiInputPolicy", env, learning_rate=0.0001, clip_range=0.22, gamma=0.71
+        )
     ppo = ppo.learn(total_timesteps=MAX_STEPS)
     ppo.save("models/baselines-ppo")
     return env.avg_rewards
@@ -41,10 +43,20 @@ def train_dqn(load_model=False):
     if load_model:
         dqn = DQN.load("models/baselines-dqn")
     else:
-        dqn = DQN("MultiInputPolicy", env, verbose=1)
+        dqn = DQN("MultiInputPolicy", env)
     dqn = dqn.learn(total_timesteps=MAX_STEPS)
-    dqn.save("models/baselines-ppo")
+    dqn.save("models/baselines-dqn")
     return env.avg_rewards
+
+
+def show_models():
+    env = RoadEnv(reward.reward, render_mode="pygame")
+    model = PPO.load("models/baselines-ppo")
+    # model = DQN.load("models/baselines-dqn")
+    obs, _ = env.reset()
+    while True:
+        action, _states = model.predict(obs)
+        obs, rewards, _, _, _ = env.step(action)
 
 
 def main(render):
@@ -54,18 +66,26 @@ def main(render):
     # TODO hyperparameter tune
 
     ppo_rews = train_ppo()
+    with open("results/ppo500.pkl", "wb") as file:
+        pickle.dump(ppo_rews, file)
+    # with open("results/ppo5000.pkl", "rb") as file:
+    #   ppo_rews = pickle.load(file)
     dqn_rews = train_dqn()
 
-    plt.title("DQN vs PPO episode rewards")
+    with open("results/dqn500.pkl", "wb") as file:
+        pickle.dump(dqn_rews, file)
+
+    plt.title("PPOvsDQN 500 episode rewards")
     plt.plot(np.arange(len(ppo_rews)), ppo_rews, label="PPO")
     plt.plot(np.arange(len(dqn_rews)), dqn_rews, label="DQN")
     plt.legend()
-    plt.show()
+    plt.savefig("graphs/PPOvsDQN1000.png")
+    # show_models()
 
     """
     storage = optuna.storages.InMemoryStorage()
     study = optuna.create_study(direction="maximize", storage=storage)
-    study.optimize(tune, n_trials=1000)
+    study.optimize(tune_PPO, n_trials=30)
     run_server(storage)
     # Show an episode to see how the system performs
     # rewards.append(env.eval_episode(render_mode="pygame", train=True))
@@ -73,8 +93,6 @@ def main(render):
     # ppo.train(render_mode=render)
     # rewards.append(env.eval_episode(render_mode="pygame", train=True))
     # Show an episode to see how the system performs
-
-
     """
 
 
