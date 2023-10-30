@@ -10,7 +10,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pickle
 
-MAX_STEPS = 500_000
+MAX_EPS = 250
+MAX_STEPS = MAX_EPS * 5000
 
 
 def tune_PPO(trial):
@@ -31,7 +32,7 @@ def train_ppo(load_model=False):
         ppo = PPO.load("models/baselines-ppo")
     else:
         ppo = PPO(
-            "MultiInputPolicy", env, learning_rate=0.0001, clip_range=0.22, gamma=0.71
+            "MultiInputPolicy", env, learning_rate=0.0001, clip_range=0.20, gamma=0.90
         )
     ppo = ppo.learn(total_timesteps=MAX_STEPS)
     ppo.save("models/baselines-ppo")
@@ -59,27 +60,33 @@ def show_models():
         obs, rewards, _, _, _ = env.step(action)
 
 
-def main(render):
-    # Parallel environments
-    # vec_env = make_vec_env(env, n_envs=4)
-
-    # TODO hyperparameter tune
-
-    ppo_rews = train_ppo()
-    with open("results/ppo500.pkl", "wb") as file:
-        pickle.dump(ppo_rews, file)
-    # with open("results/ppo5000.pkl", "rb") as file:
-    #   ppo_rews = pickle.load(file)
-    dqn_rews = train_dqn()
-
-    with open("results/dqn500.pkl", "wb") as file:
-        pickle.dump(dqn_rews, file)
-
-    plt.title("PPOvsDQN 500 episode rewards")
+def make_plot(ppo_rews, dqn_rews):
+    plt.title(f"PPOvsDQN {MAX_EPS} episode rewards")
+    plt.xlabel("Number of episodes")
+    plt.ylabel("Average episodic reward")
     plt.plot(np.arange(len(ppo_rews)), ppo_rews, label="PPO")
     plt.plot(np.arange(len(dqn_rews)), dqn_rews, label="DQN")
     plt.legend()
-    plt.savefig("graphs/PPOvsDQN1000.png")
+    plt.savefig(f"graphs/PPOvsDQN{MAX_EPS}.png")
+    plt.show()
+
+
+def main(render):
+    """
+    ppo_rews = train_ppo()
+    with open(f"results/ppo{MAX_EPS}.pkl", "wb") as file:
+        pickle.dump(ppo_rews, file)
+    """
+    with open("results/ppo1000.pkl", "rb") as file:
+        ppo_rews = pickle.load(file)
+    with open("results/dqn1000.pkl", "rb") as file:
+        dqn_rews = pickle.load(file)
+    """
+    dqn_rews = train_dqn()
+    with open(f"results/dqn{MAX_EPS}.pkl", "wb") as file:
+        pickle.dump(dqn_rews, file)
+    """
+    # make_plot(ppo_rews, dqn_rews)
     # show_models()
 
     """

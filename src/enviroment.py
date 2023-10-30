@@ -6,7 +6,7 @@ from agent import TruckAgent
 
 WINDOW_H = 600
 WINDOW_W = 600
-MAX_STEPS = 2000  # Episode length
+MAX_STEPS = 5000  # Episode length
 
 
 # Note that we use (y,x) instead of (x, y) in our coordinates
@@ -138,6 +138,8 @@ class RoadEnv(gym.Env):
             self._reset_screen()
         self.curr_step = 0
         self.curr_ep += 1
+        if self.curr_ep % 100 == 0:
+            print(f"Done Training {self.curr_ep} Episodes")
         obs, _, _, _, _ = self.step(0)
         return obs, {}
 
@@ -189,21 +191,18 @@ class RoadEnv(gym.Env):
                 np.random.randint(5, max(20, H - start_pos[0])),
                 np.random.randint(5, max(20, W - start_pos[1])),
             )
-            mag = 2
+            mag = 3
             self._topograph_feature(start_pos, size[0], size[1], mag)
 
-        num_excavators = 10
+        num_excavators = np.random.randint(3, 10)
         for _ in range(num_excavators):
             # Excavators always start at the top of the map
-            pos = (np.random.randint(0, H // 2), np.random.randint(0, W))
+            pos = (np.random.randint(1, H // 2), np.random.randint(1, W))
             # We need this for reward function
-            self.excavators.append(pos)
             # Make sure we start off in a flat space
             while self.map[pos[0], pos[1]] >= 10:
-                pos = (
-                    np.random.randint(H // 4, H // 2),
-                    np.random.randint(W // 4, 3 * W // 4),
-                )
+                pos = (np.random.randint(1, H // 2), np.random.randint(1, W))
+            self.excavators.append(pos)
             self.map[pos[0], pos[1]] = -1
 
         self._num_agents = np.random.randint(3, 10)
