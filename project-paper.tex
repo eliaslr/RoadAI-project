@@ -112,17 +112,22 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 	Every agent gets assigned a reward for each action they take with positive rewards for productive moves, and negative rewards for unproductive ones (idling, or unnecessary moving).
 
 	While simulating the trucks we collect the rewards which the reinforcement learning algorithms uses to train.
-	Using the average episodic rewards we can estimate the algorithms performance.
+	Using the average episodic rewards we can estimate the algorithms performance over the training, and compare them to eachother.
+	\begin{figure}
+		\includegraphics[width=0.9\columnwidth]{graphs/example_env.png}
+		\caption{Example randomly generated environment}
+	\end{figure}
+	While this environment is very simplified in contrast to real life, it easy to randomly generate.
 
 	\subsection{MAPPO}
 	We used the Stable-baselines implementation of the PPO algorithm to train our agents.
-	PPO works by gradient ascent to find the optimal policy, and has been shown to produce good results in similiar cooperative environments % INSERT SITATION HERE
+	PPO works by gradient ascent to find the optimal policy, and has been shown to produce good results in similiar cooperative environments. % INSERT SITATION HERE
 
 
 	\subsection{Multiagent DQN}
 
 	\subsection{Training Procedure}
-	Each algorithm was trained for 250 episiodes of a fixed length of 5000 steps.
+	Each algorithm was trained for 250 episiodes of a fixed length of 5000 steps. In total the training was 1250000 timesteps and took about 2 hours on a gpu.
 
 	\subsection{Evaluation}
 	Post-training, we evaluated our models based on following metrics:
@@ -130,6 +135,13 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 		\item Mean episodic reward
 		\item Number of road pieces built per step
 	\end{enumerate}
+
+	\begin{figure}[h!]
+		\includegraphics[width=\columnwidth]{graphs/PPOvsDQN250.png}
+		\caption{Mean Episodic rewards}
+	\end{figure}
+
+	As you could see from the graphs the algorithms performed quite similiarly.
 
 	\subsection{Hyperparameter Optimization}
 	We used the optuna library to hyperparameter optimize our the PPO algorithm. Optuna uses a baynesian search to find the best parameters for us. This way we could make sure that our results
