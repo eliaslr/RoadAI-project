@@ -19,7 +19,6 @@ def reward(agent, env):
 
     if agent.collided:
         tot_reward += collision_pen
-
     if agent.out_of_bounds:
         tot_reward += out_of_bounds
     elif previous["pos_x"] == agent.pos_x and previous["pos_y"] == agent.pos_y:
@@ -63,3 +62,4 @@ def reward(agent, env):
     elif np.min(distances) > np.min(prev_dist):
         tot_reward += wrong_direction
     return tot_reward
+

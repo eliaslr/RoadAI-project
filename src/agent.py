@@ -2,9 +2,12 @@ import numpy as np
 import gymnasium as gym
 
 
+import torch
+
 class TruckAgent:
     def __init__(self, id, pos_y, pos_x, ground, env, view_dist):
         self.id = id
+    def __init__(self, pos_y, pos_x, ground, holes):
         self.pos_x = pos_x
         self.pos_y = pos_y
         # We have to keep track of whats under the truck when we replace tiles on the map
@@ -20,6 +23,8 @@ class TruckAgent:
         self.out_of_bounds = False
         self.view_dist = view_dist
         self.dir = 1  # Start pointing North
+        self.agent_num = agent_num
+        self.info = torch.tensor([agent_num, self.filled]).unsqueeze(0)
 
     # For now we have the observation space as square with the truck in the middle
     def observe(self):
@@ -37,13 +42,8 @@ class TruckAgent:
                 closest = dist
                 target[0] = pos[0]
                 target[1] = pos[1]
-
-        adj = []
-        for pos in adj_pos:
-            if self._in_bounds(pos):
-                adj.append(self.env.map[pos[0], pos[1]])
-            else:
-                adj.append(1000)
+    def _in_bounds(self, pos, env):
+        return (0 < pos[0] < env.map.shape[0]) and (0 < pos[1] < env.map.shape[1])
 
         obs = {
             "filled": int(self.filled),
@@ -97,7 +97,7 @@ class TruckAgent:
                 self._ground = self.env.map[self.pos_y, self.pos_x]
                 self.env.map[self.pos_y, self.pos_x] = -self.id - 3
 
-        # fill if were by an excavators
+        # fill if were by an
         adj = [
             (self.pos_y + 1, self.pos_x),
             (self.pos_y - 1, self.pos_x),
@@ -108,12 +108,19 @@ class TruckAgent:
         for pos in adj:
             if not self._in_bounds(pos):
                 continue
-            if self.env.map[pos[0], pos[1]] == -1:
+            if map[pos[0], pos[1]] == -1:
                 self.filled = True
                 break
             elif self.env.map[pos[0], pos[1]] == -2 and self.filled:
+                break
+            elif map[pos[0], pos[1]] == -2 and self.filled:
+
+            elif map[pos[0], pos[1]] == -2 and self.filled:
                 self.filled = False
                 self.env.holes[pos] -= self.capacity
                 if self.env.holes[pos] <= 0:
                     self.env.map[pos[0], pos[1]] = 1
                 break
+                self.holes[pos] -= self.capacity
+                if self.holes[pos] <= 0:
+                    map[pos[0], pos[1]] = 1

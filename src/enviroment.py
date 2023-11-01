@@ -10,10 +10,13 @@ MAX_STEPS = 5000  # Episode length
 
 
 # Note that we use (y,x) instead of (x, y) in our coordinates
+
+
 class RoadEnv(gym.Env):
     def __init__(self, reward_func, max_agents=None, render_mode=None):
+        self.agents = []
+        self.holes = {}
         self.reward_func = reward_func
-        self.view_dist = 15  # Parameter for how far each truck can see
         self.curr_ep = -1
         self.avg_rewards = []  # Avg rewards for every episode
         self.render_mode = render_mode
@@ -44,10 +47,10 @@ class RoadEnv(gym.Env):
                 self._s_size * H + 2 * self._margin,
             )
         )
+        self.excavators = []
 
     # Updates agents states, reward, observations
     # Called from learning algorithm
-
     def step(self, action):
         agent = self.agents[self.curr_step % self._num_agents]
         self.curr_step += 1
@@ -113,10 +116,6 @@ class RoadEnv(gym.Env):
                             pygame.draw.rect(self._screen, (0, 200, 150), pos)
                         else:
                             pygame.draw.rect(self._screen, (255, 0, 0), pos)
-                    elif self.map[i, j] == -2:
-                        pygame.draw.rect(self._screen, (0, 0, 255), pos)
-                    elif self.map[i, j] == -1:
-                        pygame.draw.rect(self._screen, (0, 158, 158), pos)
                     else:
                         c = min(200, self.map[i, j])
                         pygame.draw.rect(self._screen, (200 - c, 200 - c, 200 - c), pos)
@@ -136,12 +135,8 @@ class RoadEnv(gym.Env):
         self.generate_map(seed=seed)
         if self.render_mode:
             self._reset_screen()
-        self.curr_step = 0
-        self.curr_ep += 1
-        if self.curr_ep % 100 == 0:
-            print(f"Done Training {self.curr_ep} Episodes")
-        obs, _, _, _, _ = self.step(0)
-        return obs, {}
+        self.generate_map()
+        return self.map
 
     # Generates topographic "hills" where the hills get larger as you get to the center
     def _topograph_feature(self, start_pos, h, w, mag):
@@ -178,8 +173,19 @@ class RoadEnv(gym.Env):
 
         H = np.random.randint(min_h, max_h)
         W = np.random.randint(min_w, max_w)
+
+        if min_h == max_h:
+            H = min_h
+        else:
+            H = np.random.randint(min_h, max_h)
+
+        if min_w == max_w:
+            W = min_w
+        else:
+            W = np.random.randint(min_w, max_w)
+
         # Add terrain noise
-        self.map = np.random.randint(10, size=(H, W))
+        self.map = np.random.randint(10, size=(H, W)).astype(np.float32)
         # TODO add topological features / noise
         num_of_features = np.random.randint(3, 10)
         for _ in range(num_of_features):
@@ -219,7 +225,7 @@ class RoadEnv(gym.Env):
                     start_pos[1],
                     self.map[start_pos[0], start_pos[1]],
                     self,
-                    self.view_dist,
+                    self.holes,
                 )
             )
             self.map[start_pos[0], start_pos[1]] = -i - 3
