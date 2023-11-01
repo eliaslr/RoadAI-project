@@ -11,9 +11,12 @@
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
 
+% Custom commands:
+  \newcommand{\coo}{\ensuremath{\mathrm{CO_2}}}
+
 % -----------------------------------
 % -------------- TITLE --------------
-\title{RoadAI - A Multiagent Reinforcement Learning Approach to Reducing CO2 Emissions at a Construction Site}
+\title{RoadAI - A Multiagent Reinforcement Learning Approach to Reducing \coo Emissions at a Construction Site}
 % -----------------------------------
 
 
@@ -71,20 +74,26 @@
 % - INTRODUCTION  -
 % -----------------------------------
 \section{Introduction}
+Carbon dioxide \coo emission is one of the largest contributions to greenhouse gasses and global warming.
+Reducing \coo emissions is an important step in preventing global warming and all of the negative
+consequences associated with it. Norway's total greenhouse gas emissions were, according to Statistics
+Norway, in 2022 48.9 million tonnes of \coo equivalences. <Insert reference> 1.5\% of which are emitted
+by construction machines. \cite{noraRoadAIReducing} The reduction of such a significant percentage of
+the total emissions is a crucial task.
 
 This project is based on the RoadAI competition held by Norwegian Artificial Intelligence Research
-Consortium (NORA)\cite{noraRoadAIReducing}. In this paper, we will present a method for using Multiagent
-Reinforcement Learning (MARL) algorithms in order to reduce CO2 emissions from a road construction site.
+Consortium (NORA). \cite{noraRoadAIReducing} The objective in the RoadAI competition is to reduce the
+total \coo emissions from a road construction site using machine learning methods.In this paper, we will
+present a method for using Multiagent Reinforcement Learning (MARL) algorithms in order to reduce such
+emissions.
 
-In Norway, the total CO2 emissions coming from construction machines are 1.5\%.\cite{noraRoadAIReducing}
-The reduction of CO2 emissions from construction sites will, resultively, have a large impact on the
-total CO2-emissions contributed to the environment.
-
-The idea is to reduce 
+At the construction site, there will be a designated area for the construction of a road. There are two
+different types of agents: dump trucks and excavators. The excavators fill dump trucks with <road mass??>,
+which the dump trucks then carry away to leave at the site of the unfinished road.
 
 % ::::Discard?::::
 % Our main objective is twofold: (1) reducing emissions by optimizing idle time of dump trucks and (2)
-% optimizing paths which reduce CO2 emissions as much as possible. Objective (2) can be achieved through
+% optimizing paths which reduce \coo emissions as much as possible. Objective (2) can be achieved through
 % planning paths which reduce acceleration, for example by taking topography into account.
 
 % This paper will present an implementation of a customized PettingZoo\footnote{https://pettingzoo.farama.org}
@@ -198,7 +207,7 @@ While the above works have shown the potential of MARL, there is still potential
 
 \appendices 
 \section{Ethics Statement}
-In the course of our project on Multiagent Reinforcement Learning, aimed at mitigating CO2 emissions
+In the course of our project on Multiagent Reinforcement Learning, aimed at mitigating \coo emissions
 from construction sites, we have conducted research that involves no experiments with human participants.
 While this specific phase of our work does not directly raise concerns regarding wages or human
 participation, it is essential to recognize that the technologies and methodologies we are developing
@@ -222,11 +231,11 @@ Artificial Intelligence Research Consortium (NORA), does not contain any persona
 information. Although the dataset's availability has yet to be confirmed, it was shared with us by NORA
 following the conclusion of the RoadAI competition.
 
-The primary objective of our project is to significantly reduce CO2 emissions originating from
+The primary objective of our project is to significantly reduce \coo emissions originating from
 construction sites, potentially leading to substantial environmental and societal benefits.
-Construction sites contribute 1.5\% of total Norwegian CO2 emissions, making the reduction of
+Construction sites contribute 1.5\% of total Norwegian \coo emissions, making the reduction of
 emissions in this sector a vital endeavour. Implementing our system across numerous construction sites
-in Norway could result in a significant reduction in total CO2 emissions, a crucial step toward a more
+in Norway could result in a significant reduction in total \coo emissions, a crucial step toward a more
 sustainable future.
 
 In line with our commitment to ethical AI deployment, transparency and explainability need to be
@@ -248,7 +257,7 @@ more sustainable world without compromising the well-being of individuals or soc
 
 % Title - 1 sentence
 %   (Your paper title should be specific, concise, and descriptive. Avoid using unnecessary words such as “new” or “novel”. Include keywords that will help a reader find your paper.)
-%   Proposal: RoadAI - A Multiagent Reinforcement Learning approach to reducing CO2 emissions at a construction site
+%   Proposal: RoadAI - A Multiagent Reinforcement Learning approach to reducing \coo emissions at a construction site
 
 % Abstract - 4 sentences
 %   (Provide a concise summary of the research conducted. Include the conclusions reached and the potential implications of those conclusions. Your abstract should also:
