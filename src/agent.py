@@ -25,11 +25,11 @@ class TruckAgent:
     # For now we have the observation space as square with the truck in the middle
     def observe(self):
         adj_pos = [
-                (self.pos_y + 1, self.pos_x),
-                (self.pos_y - 1, self.pos_x),
-                (self.pos_y, self.pos_x + 1),
-                (self.pos_y, self.pos_x - 1),
-                ]
+            (self.pos_y + 1, self.pos_x),
+            (self.pos_y - 1, self.pos_x),
+            (self.pos_y, self.pos_x + 1),
+            (self.pos_y, self.pos_x - 1),
+        ]
         closest = np.inf
         target = [0, 0]
         for i, pos in enumerate(self.env.excavators):
@@ -47,37 +47,26 @@ class TruckAgent:
                 adj.append(1000)
 
         obs = {
-                "filled": int(self.filled),
-                "pos": np.array([self.pos_y, self.pos_x]),
-                "adj": np.array(adj),
-                "target": np.array(target),
-                }
-        return obs
-
-    def _in_bounds(self, pos, env):
-        return (0 < pos[0] < env.map.shape[0]) and (0 < pos[1] < env.map.shape[1])
-
-    obs = {
             "filled": int(self.filled),
             "pos": np.array([self.pos_y, self.pos_x]),
             "adj": np.array(adj),
             "target": np.array(target),
-            }
-    return obs
+        }
+        return obs
 
-def _in_bounds(self, pos):
-    return (0 <= pos[0] < self.env.map.shape[0]) and (
+    def _in_bounds(self, pos):
+        return (0 <= pos[0] < self.env.map.shape[0]) and (
             0 <= pos[1] < self.env.map.shape[1]
-            )
+        )
 
     def step(self, action):
         self.prev_agent = {
-                "pos_x": self.pos_x,
-                "pos_y": self.pos_y,
-                "ground": self._ground,
-                "filled": self.filled,
-                "collided": self.collided,
-                }
+            "pos_x": self.pos_x,
+            "pos_y": self.pos_y,
+            "ground": self._ground,
+            "filled": self.filled,
+            "collided": self.collided,
+        }
         # Change dir we are facing
         dx, dy = 0, 0
         if action == 1:
@@ -111,11 +100,11 @@ def _in_bounds(self, pos):
 
         # fill if were by an
         adj = [
-                (self.pos_y + 1, self.pos_x),
-                (self.pos_y - 1, self.pos_x),
-                (self.pos_y, self.pos_x + 1),
-                (self.pos_y, self.pos_x - 1),
-                ]
+            (self.pos_y + 1, self.pos_x),
+            (self.pos_y - 1, self.pos_x),
+            (self.pos_y, self.pos_x + 1),
+            (self.pos_y, self.pos_x - 1),
+        ]
 
         for pos in adj:
             if not self._in_bounds(pos):
