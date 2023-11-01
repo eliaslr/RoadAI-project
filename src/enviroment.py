@@ -1,50 +1,85 @@
 import numpy as np
-from pettingzoo import ParallelEnv
-import gymnasium as gym
 import pygame
+import gymnasium as gym
+from gymnasium import spaces
 from agent import TruckAgent
 
 WINDOW_H = 600
 WINDOW_W = 600
+MAX_STEPS = 5000  # Episode length
 
 
 # Note that we use (y,x) instead of (x, y) in our coordinates
-class RoadEnv(ParallelEnv):
-    def __init__(self, reward_func, max_agents = None, n_agents = None, curr_ep = 0):
-        self._action_spaces = {}
-        # self._observation_spaces = {} # The obs space is the entire map
+class RoadEnv(gym.Env):
+    def __init__(self, reward_func, max_agents=None, render_mode=None):
         self.agents = []
         self.holes = {}
-        self.n_agents = n_agents
-        self.curr_ep = curr_ep
         self.reward_func = reward_func
-        self.excavators = []
-        self.curr_step = 0
-        self._screen = None
-    # Based on the example given in custom env tutorial from petting zoo
-    # Returns rewards and termination status
-    def step(self):
-        rewards = []
-        for agent in self.agents:
-            # TODO update action/obs space for each agent
-            # Cardinal movement for each truck
-            self._action_spaces[agent] = gym.spaces.Tuple(
-                (gym.spaces.Discrete(3, start=-1), gym.spaces.Discrete(3, start=-1))
+        self.curr_ep = -1
+        self.avg_rewards = []  # Avg rewards for every episode
+        self.render_mode = render_mode
+        self.observation_space = spaces.Dict(
+            {
+                "filled": spaces.Discrete(2),
+                "pos": spaces.Box(0, 1000, shape=(2,), dtype=int),
+                "adj": spaces.Box(-10, 1000, shape=(4,), dtype=int),
+                "target": spaces.Box(0, 1000, shape=(2,), dtype=int),
+            }
+        )
+
+        self.action_space = spaces.Discrete(5)
+        if render_mode == "pygame":
+            pygame.init()
+            # TODO ADD CONSTANTS IN HYDRA
+            self._margin = 25
+        self.reset()
+
+    def _reset_screen(self):
+        (H, W) = self.map.shape
+        self._s_size = (
+            (WINDOW_H - self._margin) // H if H > W else (WINDOW_W - self._margin) // W
+        )
+        self._screen = pygame.display.set_mode(
+            (
+                self._s_size * W + 2 * self._margin,
+                self._s_size * H + 2 * self._margin,
             )
-            agent.step(self.map, self._action_spaces[agent], self)
-            reward = self.reward_func(agent, self)
+        )
 
-            # agent.update(reward)
-            # Add metrics of avg reward
-        return None, False
+    # Updates agents states, reward, observations
+    # Called from learning algorithm
+    def step(self, action):
+        agent = self.agents[self.curr_step % self._num_agents]
+        self.curr_step += 1
+        next_agent = self.agents[self.curr_step % self._num_agents]
+        agent.step(action)
+        obs = next_agent.observe()
+        # Get reward
+        rew = self.reward_func(agent, self)
+        self.avg_reward = (
+            self.avg_reward * (self.curr_step - 1) + rew
+        ) / self.curr_step
+        term = False
+        if self.curr_step > MAX_STEPS:
+            term = True
+            self.avg_rewards.append(self.avg_reward)
+        self.render()
+        return (
+            obs,
+            rew,
+            term,
+            False,
+            {},
+        )
 
-    # Renders the environment accepts 3 modes
+    # Renders the environment
+    # Accepts 3 modes:
     # Console prints the enviroment in ascii to console
     # Pygame renders a graphical view
     # None skips rendering
-    def render(self, render_mode="console"):
+    def render(self):
         (H, W) = self.map.shape
-        if render_mode == "console":
+        if self.render_mode == "console":
             print(f"Episode: {self.curr_ep}, Step: {self.curr_step}")
             print("-" * W)
             for i in range(H):
@@ -60,22 +95,7 @@ class RoadEnv(ParallelEnv):
                     else:
                         print("#", end="")
                 print("")
-        elif render_mode == "pygame":
-            if not self._screen:
-                pygame.init()
-                # TODO ADD CONSTANTS IN HYDRA
-                self._margin = 50
-                self._s_size = (
-                    (WINDOW_H - self._margin) // H
-                    if H > W
-                    else (WINDOW_W - self._margin) // W
-                )
-                self._screen = pygame.display.set_mode(
-                    (
-                        self._s_size * W + 2 * self._margin,
-                        self._s_size * H + 2 * self._margin,
-                    )
-                )
+        elif self.render_mode == "pygame":
             self._screen.fill((0, 0, 0), rect=None)
             for i in range(H):
                 for j in range(W):
@@ -86,65 +106,42 @@ class RoadEnv(ParallelEnv):
                         ),
                         (self._s_size, self._s_size),
                     )
-                    if self.map[i, j] == -1:
-                        pygame.draw.rect(self._screen, (0, 158, 158), pos)
+                    if self.map[i, j] <= -3:
+                        if self.agents[self.map[i, j] * -1 - 3].out_of_bounds:
+                            pygame.draw.rect(self._screen, (0, 255, 255), pos)
+                        elif self.agents[self.map[i, j] * -1 - 3].filled:
+                            pygame.draw.rect(self._screen, (0, 200, 150), pos)
+                        else:
+                            pygame.draw.rect(self._screen, (255, 0, 0), pos)
                     elif self.map[i, j] == -2:
                         pygame.draw.rect(self._screen, (0, 0, 255), pos)
-                    elif self.map[i, j] <= -3:
-                        pygame.draw.rect(self._screen, (255, 0, 0), pos)
+                    elif self.map[i, j] == -1:
+                        pygame.draw.rect(self._screen, (0, 158, 158), pos)
                     else:
                         c = min(200, self.map[i, j])
                         pygame.draw.rect(self._screen, (200 - c, 200 - c, 200 - c), pos)
             pygame.display.flip()
-            pygame.time.delay(50)
-        elif render_mode is None:
+            # pygame.time.delay(25)
+        elif self.render_mode is None:
             return
 
-    def reset(self, seed=None, min_h=50, min_w=50, max_h=100, max_w=100, n_agents = None, curr_ep = 0):
-        self._action_spaces = {}
+    # Should be called inbetween episodes
+    def reset(self, seed=None):
         self.agents = []
         self.holes = {}
-        self.curr_ep = curr_ep
-        # self.reward_func = reward_func
         self.excavators = []
-
-        self.generate_map(seed = seed, min_h = min_h, max_h = max_h, min_w = min_w, max_w = max_w)
-
-        return self.map
-
-    # Evaluates one episode of play
-    def eval_episode(self, render_mode="console"):
-        self.generate_map()
-        (H, W) = self.map.shape
-        if render_mode == "pygame":
-            pygame.init()
-            # TODO ADD CONSTANTS IN HYDRA
-            self._margin = 50
-            self._s_size = (
-                (WINDOW_H - self._margin) // H
-                if H > W
-                else (WINDOW_W - self._margin) // W
-            )
-            self._screen = pygame.display.set_mode(
-                (
-                    self._s_size * W + 2 * self._margin,
-                    self._s_size * H + 2 * self._margin,
-                )
-            )
+        self.avg_reward = 0
+        self.generate_map(seed=seed)
+        if self.render_mode:
+            self._reset_screen()
         self.curr_step = 0
         self.curr_ep += 1
-        term = False
-        while not term:
-            self.curr_step += 1
-            rewards, term = self.step()
-            # TODO avg rewards/ call back to update agents
-            self.render(render_mode=render_mode)
-            if render_mode == "pygame":
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        term = True
+        if self.curr_ep % 100 == 0:
+            print(f"Done Training {self.curr_ep} Episodes")
+        obs, _, _, _, _ = self.step(0)
+        return obs, {}
 
-    # Generates
+    # Generates topographic "hills" where the hills get larger as you get to the center
     def _topograph_feature(self, start_pos, h, w, mag):
         last_val = 1
         while w > 0 and h > 0:
@@ -172,9 +169,13 @@ class RoadEnv(ParallelEnv):
             self.map[start_pos[0] + h, start_pos[1]] += rand_val
             h -= 1
 
-    def generate_map(self, seed=None, min_h=50, min_w=50, max_h=100, max_w=100):
-        if seed != None:
+    # Generates the grid and populates it with agents
+    def generate_map(self, seed=None, min_h=50, min_w=50, max_h=75, max_w=75):
+        if seed is not None:
             np.random.seed(seed)
+
+        H = np.random.randint(min_h, max_h)
+        W = np.random.randint(min_w, max_w)
 
         if min_h == max_h:
             H = min_h
@@ -187,7 +188,7 @@ class RoadEnv(ParallelEnv):
             W = np.random.randint(min_w, max_w)
 
         # Add terrain noise
-        self.map = np.random.randint(10, size=(H, W)).astype(np.float32)
+        self.map = np.random.randint(10, size=(H, W))
         # TODO add topological features / noise
         num_of_features = np.random.randint(3, 10)
         for _ in range(num_of_features):
@@ -202,44 +203,35 @@ class RoadEnv(ParallelEnv):
             mag = 3
             self._topograph_feature(start_pos, size[0], size[1], mag)
 
-        if self.n_agents:
-            self._num_agents = self.n_agents
-        else:
-            self._num_agents = np.random.randint(3, 10)
+        num_excavators = np.random.randint(3, 10)
+        for _ in range(num_excavators):
+            # Excavators always start at the top of the map
+            pos = (np.random.randint(1, H // 2), np.random.randint(1, W))
+            # We need this for reward function
+            # Make sure we start off in a flat space
+            while self.map[pos[0], pos[1]] >= 10:
+                pos = (np.random.randint(1, H // 2), np.random.randint(1, W))
+            self.excavators.append(pos)
+            self.map[pos[0], pos[1]] = -1
+
+        self._num_agents = np.random.randint(3, 10)
         for i in range(self._num_agents):
             # TODO add option for fixed startpositions/A deposit where the material is hauled from
-            start_pos = (np.random.randint(0, 4 * H // 5), np.random.randint(0, W))
+            start_pos = (np.random.randint(1, 4 * H // 5), np.random.randint(1, W))
             # Make sure we start off in a flat space
             while self.map[start_pos[0], start_pos[1]] >= 10:
-                start_pos = (np.random.randint(0, 4 * H // 5), np.random.randint(0, W))
+                start_pos = (np.random.randint(1, 4 * H // 5), np.random.randint(1, W))
             self.agents.append(
                 TruckAgent(
+                    i,
                     start_pos[0],
                     start_pos[1],
                     self.map[start_pos[0], start_pos[1]],
+                    self,
                     self.holes,
-                    i
                 )
             )
-            # to make the agents distinguishable for the network
-            self.map[start_pos[0], start_pos[1]] = -3-i
-        num_excavators = 3
-        for _ in range(num_excavators):
-            # Excavators always start at the top of the map
-            pos = (np.random.randint(0, H // 2), np.random.randint(0, W))
-            # Make sure we start off in a flat space
-
-            """
-                QUESTION
-                should the excavators move frequently enough for that to happen during an episode or is it fine to just store their position?
-            """
-            # Assume that excavators are stationary
-            # We need this for reward function
-            self.excavators.append(pos)
-            # Make sure we start off in a flat space
-            while self.map[pos[0], pos[1]] >= 10:
-                pos = (np.random.randint(0, H // 2), np.random.randint(0, W))
-            self.map[pos[0], pos[1]] = -1
+            self.map[start_pos[0], start_pos[1]] = -i - 3
 
         mass_per_hole = 1000  # Number of kilograms of road mass per square
         for i in range(9 * H // 10, H):
@@ -255,28 +247,3 @@ class RoadEnv(ParallelEnv):
         # 4. Add some noise to the map values to better simulate real road conditions
         def gen_map_from_image(self, image_file, classification_model):
             pass
-
-
-    def step_deep(self, actions, render):
-        term = False
-        trunc = False
-        reward = 0
-        for i in range(len(self.agents)):
-            self.agents[i].deep_step(self, actions[i])
-            reward += self.reward_func(self.agents[i], self)
-        self.curr_step += 1
-        if self.curr_step > 1000:
-            trunc = True
-            self.curr_ep += 1
-            self.curr_step = 0
-            print("")
-        if render:
-            self.render(render_mode = render)
-            if render == "pygame":
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        term = True
-        else:
-            print(f"Step: {self.curr_step}, Episode: {self.curr_ep}", end = "\r")
-
-        return self.map.flatten(), reward/len(self.agents), term, trunc

@@ -8,7 +8,7 @@
 \usepackage{url}
 \usepackage{xcolor}
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
-    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
 
 % Custom commands:
@@ -23,53 +23,61 @@
 % -----------------------------------
 % ------------- AUTHORS -------------
 \author{
-  \IEEEauthorblockN{Viktor Ringvold Hasle}
-  \IEEEauthorblockA{\textit{Dept. of Informatics} \\
-  \textit{University of Oslo}\\
-  Oslo, Norway \\
-  viktorrh@ifi.uio.no}
-  \and
-  \IEEEauthorblockN{Ada Hatland}
-  \IEEEauthorblockA{\textit{Dept. of Informatics} \\
-  \textit{University of Oslo}\\
-  Oslo, Norway \\
-  adaha@ifi.uio.no
-  }
-  \and
-  \IEEEauthorblockN{Elias Lynum Ringkjøb}
-  \IEEEauthorblockA{\textit{Dept. of Informatics} \\
-  \textit{University of Oslo}\\
-  Oslo, Norway \\
-  eliaslr@ifi.uio.no
- }
-  \and
-  \IEEEauthorblockN{Ilya Berezin}
-  \IEEEauthorblockA{\textit{Dept. of Informatics} \\
-  \textit{University of Oslo}\\
-  Oslo, Norway \\
-  ilyab@ifi.uio.no}
-  \and \\
-  \IEEEauthorblockN{Tom Frode Hansen}
-  \IEEEauthorblockA{\textit{NGI- Norges Geotekniske Institutt} \\
-  Oslo, Norway \\
-  tom.frode.hansen@ngi.no
-  }
-}
+	\IEEEauthorblockN{Viktor Ringvold Hasle}
+	\IEEEauthorblockA{\textit{Dept. of Informatics} \\
+	\textit{University of Oslo}\\
+	Oslo, Norway \\
+	viktorrh@ifi.uio.no}
+	\and
+	\IEEEauthorblockN{Ada Hatland}
+	\IEEEauthorblockA{\textit{Dept. of Informatics} \\
+	\textit{University of Oslo}\\
+	Oslo, Norway \\
+	adaha@ifi.uio.no
+	}
+	\and
+	\IEEEauthorblockN{Elias Lynum Ringkjøb}
+	\IEEEauthorblockA{\textit{Dept. of Informatics} \\
+	\textit{University of Oslo}\\
+	Oslo, Norway \\
+	eliaslr@ifi.uio.no
+	}
+	\and
+	\IEEEauthorblockN{Ilya Berezin}
+	\IEEEauthorblockA{\textit{Dept. of Informatics} \\
+	\textit{University of Oslo}\\
+	Oslo, Norway \\
+	ilyab@ifi.uio.no}
+	\and \\
+	\IEEEauthorblockN{Tom Frode Hansen}
+	\IEEEauthorblockA{\textit{NGI- Norges Geotekniske Institutt} \\
+	Oslo, Norway \\
+	tom.frode.hansen@ngi.no
+	}
+	}
 
-\maketitle
+	\maketitle
 
 
+<<<<<<< HEAD
 % -----------------------------------
 % ------------ ABSTRACT -------------
 % -----------------------------------
 % \begin{abstract}
 % % Abstract is last thing we should write.
+=======
+	% -----------------------------------
+	% ------------ ABSTRACT -------------
+	% \begin{abstract}
+	% % Abstract is last thing we should write.
+>>>>>>> f9da9ebb0e7b9751d8dc308ad9daf6e485118fe9
 
-% % Should have 3-5 keywords.
-% Index Terms - Multi-Agent Reinforcement Learning (MARL), 
-% \end{abstract}
+	% % Should have 3-5 keywords.
+	% Index Terms - Multi-Agent Reinforcement Learning (MARL),
+	% \end{abstract}
 
 
+<<<<<<< HEAD
 % -----------------------------------
 % - INTRODUCTION  -
 % -----------------------------------
@@ -98,106 +106,149 @@ which the dump trucks then carry away to leave at the site of the unfinished roa
 
 % This paper will present an implementation of a customized PettingZoo\footnote{https://pettingzoo.farama.org}
 % environment.
+=======
+	% -----------------------------------
+	% - INTRODUCTION  -
+	% -----------------------------------
+	\section{Introduction}
+	In Norway, the total CO2 emissions coming from construction machines are 1.5\%.\cite{noraRoadAIReducing}
+	This paper aims to implement Multi-Agent Reinforcement Learning (MARL) based methods, that lead to emissions reduction from the road construction activities.
+
+	The project is based on the RoadAI competition held by Norwegian Artificial Intelligence Research
+	Consortium (NORA)\cite{noraRoadAIReducing}. Participants in the competition get access to four
+	different sets of data. The provided data consists of GPS data recorded from iPads in dump trucks and
+	trucks, detailing timestamps, machine IDs, locations, material type and quantity, and loading/unloading
+	locations. This data is organized into trips. Additional metadata about the trips is also available.
+	Machine data, known as AEMP, offers information on Skanska-owned machines, including location,
+	odometer readings, fuel consumption, and usage hours. Vibration data, presents an opportunity for analysis, though duplicated with records occurring seven times. This data, collected from
+	iPads, includes three-dimensional vibration data. Drone data, generated using ArcGIS Site Scan software,
+	comprises ortho-mosaic images, point clouds, mesh data, digital terrain models, and digital surface models,
+	potentially useful for automated progress reports.
+
+	These data sets are available to us as well, and we will use the data sets for training our model.
+
+	Our main objective is twofold: (1) reducing emissions by optimizing idle time of dump trucks and (2)
+	optimizing paths which reduce CO2 emissions as much as possible. Objective (2) can be achieved through
+	planning paths which reduce acceleration, for example by taking topography into account.
+
+	This paper will present an implementation of a customized PettingZoo\footnote{https://pettingzoo.farama.org}
+	environment.
+>>>>>>> f9da9ebb0e7b9751d8dc308ad9daf6e485118fe9
 
 
-% -----------------------------------
-% ------------- METHODS -------------
-% -----------------------------------
-\section{Methodology}
+	% -----------------------------------
+	% ------------- METHODS -------------
+	% -----------------------------------
+	\section{Methodology}
 
-The goal of the Road AI project is to demonstrate an algorithm that could reduce emissions from road construction.
-We are using MARL to train agents on a simulation of road construction and to demonstrate how it can be utilized to solve this problem.
-Our methodology primarily focuses on the utilization of Multi-Agent Reinforcement Learning to tackle the problem of emissions in road construction. Given the complexity of the task, we adopted a step-by-step approach to ensure that the model is not only accurate but also efficient.
+	The goal of the Road AI project is to demonstrate an algorithm that could reduce emissions from road construction.
+	We are using MARL to train agents on a simulation of road construction and to demonstrate how it can be utilized to solve this problem.
+	Our methodology primarily focuses on the utilization of Multi-Agent Reinforcement Learning to tackle the problem of emissions in road construction. Given the complexity of the task, we adopted a step-by-step approach to ensure that the model is not only accurate but also efficient.
 
-\subsection{Problem Formulation}
-The first step in our methodology was to formulate the problem in the context of MARL. We defined each construction vehicle as an agent with its own set of actions, observations, and rewards. The joint action space consisted of moving, idling, loading, or unloading materials. Observations for each agent included the status of the road construction, the position of other agents, and the current load of materials. Rewards were also implemented to promote actions that lead to reduced emissions.
+	\subsection{Problem Formulation}
+	The first step in our methodology was to formulate the problem in the context of MARL. We defined each construction vehicle as an agent with its own set of actions, observations, and rewards. The joint action space consisted of moving, idling, loading, or unloading materials. Observations for each agent included the status of the road construction, the position of other agents, and the current load of materials. Rewards were also implemented to promote actions that lead to reduced emissions.
 
-\subsection{Simulation Environment}
-To train our agents, we developed a custom simulation environment using the PettingZoo framework. The environment replicates a typical road construction site, with details like topography and material locations. In this environment every object is represented as a particle in a grid. 
-The agents of the simulation, construction trucks are able to move cardinally in this grid with the goal of hauling construction materials from excavators to the unfinished road. 
-Every agent gets assigned a reward for each action they take with positive rewards for productive moves, and negative rewards for unproductive ones (idling, or unnecessary moving). 
+	\subsection{Simulation Environment}
+	To train our agents, we developed a custom simulation environment using the PettingZoo framework. The environment replicates a typical road construction site, with details like topography and material locations. In this environment every object is represented as a particle in a grid.
+	The agents of the simulation, construction trucks are able to move cardinally in this grid with the goal of hauling construction materials from excavators to the unfinished road.
+	Every agent gets assigned a reward for each action they take with positive rewards for productive moves, and negative rewards for unproductive ones (idling, or unnecessary moving).
 
-While simulating the trucks we collect the rewards which the reinforcement learning algorithms uses to train.
-Using the average rewards we can estimate the algorithms performance. After simulating 10 episodes of 10,000 time steps we have a firm grasp over if an algorithm performed well.
+	While simulating the trucks we collect the rewards which the reinforcement learning algorithms uses to train.
+	Using the average episodic rewards we can estimate the algorithms performance over the training, and compare them to eachother.
+	\begin{figure}
+		\includegraphics[width=0.9\columnwidth]{graphs/example_env.png}
+		\caption{Example randomly generated environment}
+	\end{figure}
+	While this environment is very simplified in contrast to real life, it easy to randomly generate.
 
-\subsection{Training Procedure}
-Training conducted using state-of-the-art MARL algorithms, namely MAPPO and QMIX. Each agent is initialized with random policies, and as the training progressed, they learn how to collaborate and make decisions that minimized the overall emissions.
-
-\begin{itemize}
-\item \textbf{MAPPO}: A decentralized actor-critic method that leverages a centralized value function to enhance training stability.
-\item \textbf{QMIX}: A value-based method that uses a centralized critic to estimate joint action-value functions.
-\end{itemize}
-
-\subsection{Evaluation}
-Post-training, we evaluated our models based on following metrics:
-\begin{enumerate}
-\item ....TBA
-\end{enumerate}
-
-\subsection{Hyperparameter Optimization}
-To ensure the best performance of our models, we used the Hydra framework\cite{Yadan2019Hydra} to manage and optimize the system's hyperparameters. Using a grid search approach, we explore various configurations and selecte the one that provides with the best results.
+	\subsection{MAPPO}
+	We used the Stable-baselines implementation of the PPO algorithm to train our agents.
+	PPO works by gradient ascent to find the optimal policy, and has been shown to produce good results in similiar cooperative environments. % INSERT SITATION HERE
 
 
-% -----------------------------------
-% ------ RESULTS AND DISCUSSION -----
-% -----------------------------------
+	\subsection{Multiagent DQN}
+
+	\subsection{Training Procedure}
+	Each algorithm was trained for 250 episiodes of a fixed length of 5000 steps. In total the training was 1250000 timesteps and took about 2 hours on a gpu.
+
+	\subsection{Evaluation}
+	Post-training, we evaluated our models based on following metrics:
+	\begin{enumerate}
+		\item Mean episodic reward
+		\item Number of road pieces built per step
+	\end{enumerate}
+
+	\begin{figure}[h!]
+		\includegraphics[width=\columnwidth]{graphs/PPOvsDQN250.png}
+		\caption{Mean Episodic rewards}
+	\end{figure}
+
+	As you could see from the graphs the algorithms performed quite similiarly.
+
+	\subsection{Hyperparameter Optimization}
+	We used the optuna library to hyperparameter optimize our the PPO algorithm. Optuna uses a baynesian search to find the best parameters for us. This way we could make sure that our results
 
 
-% -----------------------------------
-% ---------- RELATED WORK -----------
-% -----------------------------------
-\section{Related works}
-SMACv2\cite{ellis2022smacv2} evaluates two MARL algorithms for problems using centralized training with
-decentralized execution (CTDE); QMIX and MAPPO.
-
-QMIX employs a centralized critic to estimate joint action-value functions, while MAPPO uses a decentralized
-actor-critic framework with a centralized value function.
-
-QMIX outperformed MAPPO on most scenarios, but QMIX is memory-intensive due to its large replay buffer. For
-this reason, QMIX requires more computational power. In addition, the paper notes that MAPPO was still
-increasing its performance at the time of termination in several scenarios, which indicates it could end up
-with a better result.
-
-This paper aims to evaluate both the QMIX and MAPPO algorithms.
+	% -----------------------------------
+	% ------ RESULTS AND DISCUSSION -----
+	% -----------------------------------
 
 
-Flatlands\cite{laurent2021flatland} was a competition where contestants to design a MARL algorithm for 
-train scheduling. This is similar to the approach we seek to use to solve RoadAI. 
-In the competition MAPPO performed well and is a pointer for what we could use in our own MARL implementation.
+	% -----------------------------------
+	% ---------- RELATED WORK -----------
+	% -----------------------------------
+	\section{Related works}
+	SMACv2\cite{ellis2022smacv2} evaluates two MARL algorithms for problems using centralized training with
+	decentralized execution (CTDE); QMIX and MAPPO.
+
+	QMIX employs a centralized critic to estimate joint action-value functions, while MAPPO uses a decentralized
+	actor-critic framework with a centralized value function.
+
+	QMIX outperformed MAPPO on most scenarios, but QMIX is memory-intensive due to its large replay buffer. For
+	this reason, QMIX requires more computational power. In addition, the paper notes that MAPPO was still
+	increasing its performance at the time of termination in several scenarios, which indicates it could end up
+	with a better result.
+
+	This paper aims to evaluate both the QMIX and MAPPO algorithms.
 
 
-The application of Multi-Agent Reinforcement Learning (MARL) for carbon reduction in the construction industry is relatively recent field. Here are some other related works:
-
-\begin{itemize}
-
-\item \textbf{Optimized Resource Allocation:}
-MARL has been used to optimize resource allocation in construction sites, ensuring that machinery and equipment are used in a most efficient way. By minimizing idle times and optimizing machinery routes, fuel consumption can be reduced, leading to a decrease in carbon emissions\cite{resource_allocation}.
-
-\item \textbf{Dynamic Scheduling:}
-Construction projects often involve multiple tasks that need a proper coordination. MARL algorithms has been used for dynamic scheduling, ensuring that tasks are carried out in an optimized way, reducing potential delays and minimizing the carbon footprint due to inefficiencies\cite{dynamic_scheduling}.
-
-\end{itemize}
-
-While the above works have shown the potential of MARL, there is still potential to explore with the advent of newer algorithms. The main challenge remains in integrating these advanced techniques seamlessly into the traditional construction processes and ensuring real-world applicability.
-
-\noindent
+	Flatlands\cite{laurent2021flatland} was a competition where contestants to design a MARL algorithm for
+	train scheduling. This is similar to the approach we seek to use to solve RoadAI.
+	In the competition MAPPO performed well and is a pointer for what we could use in our own MARL implementation.
 
 
-% -----------------------------------
-% ----------- CONCLUSION ------------
-% -----------------------------------
-\section{Conclusion}
+	The application of Multi-Agent Reinforcement Learning (MARL) for carbon reduction in the construction industry is relatively recent field. Here are some other related works:
+
+	\begin{itemize}
+
+		\item \textbf{Optimized Resource Allocation:}
+			MARL has been used to optimize resource allocation in construction sites, ensuring that machinery and equipment are used in a most efficient way. By minimizing idle times and optimizing machinery routes, fuel consumption can be reduced, leading to a decrease in carbon emissions\cite{resource_allocation}.
+
+		\item \textbf{Dynamic Scheduling:}
+			Construction projects often involve multiple tasks that need a proper coordination. MARL algorithms has been used for dynamic scheduling, ensuring that tasks are carried out in an optimized way, reducing potential delays and minimizing the carbon footprint due to inefficiencies\cite{dynamic_scheduling}.
+
+	\end{itemize}
+
+	While the above works have shown the potential of MARL, there is still potential to explore with the advent of newer algorithms. The main challenge remains in integrating these advanced techniques seamlessly into the traditional construction processes and ensuring real-world applicability.
+
+	\noindent
+
+
+	% -----------------------------------
+	% ----------- CONCLUSION ------------
+	% -----------------------------------
+	\section{Conclusion}
 
 
 
 
-% -----------------------------------
-% ----------- REFERENCES ------------
-% -----------------------------------
-\newpage
-% \nocite{*}        % This includes all references that haven't been explicitly cited
-\bibliography{citations.bib}
-\bibliographystyle{plain}
+	% -----------------------------------
+	% ----------- REFERENCES ------------
+	% -----------------------------------
+	\newpage
+	% \nocite{*}        % This includes all references that haven't been explicitly cited
+	\bibliography{citations.bib}
+	\bibliographystyle{plain}
 
 
 % -----------------------------------
