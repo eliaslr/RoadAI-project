@@ -113,6 +113,10 @@ class RoadEnv(gym.Env):
                             pygame.draw.rect(self._screen, (0, 200, 150), pos)
                         else:
                             pygame.draw.rect(self._screen, (255, 0, 0), pos)
+                    elif self.map[i, j] == -2:
+                        pygame.draw.rect(self._screen, (0, 0, 255), pos)
+                    elif self.map[i, j] == -1:
+                        pygame.draw.rect(self._screen, (0, 158, 158), pos)
                     else:
                         c = min(200, self.map[i, j])
                         pygame.draw.rect(self._screen, (200 - c, 200 - c, 200 - c), pos)

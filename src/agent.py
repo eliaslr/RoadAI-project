@@ -6,7 +6,8 @@ import torch
 
 
 class TruckAgent:
-    def __init__(self, i, pos_y, pos_x, ground, env, holes):
+    def __init__(self, id, pos_y, pos_x, ground, env, holes):
+        self.id = id
         self.pos_x = pos_x
         self.pos_y = pos_y
         # We have to keep track of whats under the truck when we replace tiles on the map
