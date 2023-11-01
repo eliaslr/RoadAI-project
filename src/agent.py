@@ -5,9 +5,8 @@ import gymnasium as gym
 import torch
 
 class TruckAgent:
-    def __init__(self, id, pos_y, pos_x, ground, env, view_dist):
-        self.id = id
-    def __init__(self, pos_y, pos_x, ground, holes):
+
+    def __init__(self, pos_y, pos_x, ground, holes, agent_num):
         self.pos_x = pos_x
         self.pos_y = pos_y
         # We have to keep track of whats under the truck when we replace tiles on the map
@@ -24,7 +23,6 @@ class TruckAgent:
         self.view_dist = view_dist
         self.dir = 1  # Start pointing North
         self.agent_num = agent_num
-        self.info = torch.tensor([agent_num, self.filled]).unsqueeze(0)
 
     # For now we have the observation space as square with the truck in the middle
     def observe(self):

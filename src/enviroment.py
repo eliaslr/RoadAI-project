@@ -10,8 +10,6 @@ MAX_STEPS = 5000  # Episode length
 
 
 # Note that we use (y,x) instead of (x, y) in our coordinates
-
-
 class RoadEnv(gym.Env):
     def __init__(self, reward_func, max_agents=None, render_mode=None):
         self.agents = []
@@ -124,8 +122,6 @@ class RoadEnv(gym.Env):
         elif self.render_mode is None:
             return
 
-        # Resets the env and generates new map
-
     # Should be called inbetween episodes
     def reset(self, seed=None):
         self.agents = []
@@ -135,9 +131,13 @@ class RoadEnv(gym.Env):
         self.generate_map(seed=seed)
         if self.render_mode:
             self._reset_screen()
-        self.generate_map()
-        return self.map
-
+        self.curr_step = 0
+        self.curr_ep += 1
+        if self.curr_ep % 100 == 0:
+            print(f"Done Training {self.curr_ep} Episodes")
+        obs, _, _, _, _ = self.step(0)
+        return obs, {}
+  
     # Generates topographic "hills" where the hills get larger as you get to the center
     def _topograph_feature(self, start_pos, h, w, mag):
         last_val = 1
