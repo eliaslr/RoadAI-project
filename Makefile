@@ -4,7 +4,7 @@ pdf: compileplan compilepaper
 compileplan: clean
 	pdflatex -shell-escape -pdf project-plan.tex
 
-compilepaper:
+compilepaper: clean
 	pdflatex project-paper
 	bibtex project-paper
 	pdflatex project-paper.tex

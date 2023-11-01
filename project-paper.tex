@@ -58,6 +58,7 @@
 
 % -----------------------------------
 % ------------ ABSTRACT -------------
+% -----------------------------------
 % \begin{abstract}
 % % Abstract is last thing we should write.
 
@@ -70,28 +71,24 @@
 % - INTRODUCTION  -
 % -----------------------------------
 \section{Introduction}
+
+This project is based on the RoadAI competition held by Norwegian Artificial Intelligence Research
+Consortium (NORA)\cite{noraRoadAIReducing}. In this paper, we will present a method for using Multiagent
+Reinforcement Learning (MARL) algorithms in order to reduce CO2 emissions from a road construction site.
+
 In Norway, the total CO2 emissions coming from construction machines are 1.5\%.\cite{noraRoadAIReducing}
-This paper aims to implement Multi-Agent Reinforcement Learning (MARL) based methods, that lead to emissions reduction from the road construction activities.
+The reduction of CO2 emissions from construction sites will, resultively, have a large impact on the
+total CO2-emissions contributed to the environment.
 
-The project is based on the RoadAI competition held by Norwegian Artificial Intelligence Research
-Consortium (NORA)\cite{noraRoadAIReducing}. Participants in the competition get access to four
-different sets of data. The provided data consists of GPS data recorded from iPads in dump trucks and
-trucks, detailing timestamps, machine IDs, locations, material type and quantity, and loading/unloading
-locations. This data is organized into trips. Additional metadata about the trips is also available.
-Machine data, known as AEMP, offers information on Skanska-owned machines, including location,
-odometer readings, fuel consumption, and usage hours. Vibration data, presents an opportunity for analysis, though duplicated with records occurring seven times. This data, collected from
-iPads, includes three-dimensional vibration data. Drone data, generated using ArcGIS Site Scan software,
-comprises ortho-mosaic images, point clouds, mesh data, digital terrain models, and digital surface models,
-potentially useful for automated progress reports.
+The idea is to reduce 
 
-These data sets are available to us as well, and we will use the data sets for training our model.
+% ::::Discard?::::
+% Our main objective is twofold: (1) reducing emissions by optimizing idle time of dump trucks and (2)
+% optimizing paths which reduce CO2 emissions as much as possible. Objective (2) can be achieved through
+% planning paths which reduce acceleration, for example by taking topography into account.
 
-Our main objective is twofold: (1) reducing emissions by optimizing idle time of dump trucks and (2)
-optimizing paths which reduce CO2 emissions as much as possible. Objective (2) can be achieved through
-planning paths which reduce acceleration, for example by taking topography into account.
-
-This paper will present an implementation of a customized PettingZoo\footnote{https://pettingzoo.farama.org}
-environment.
+% This paper will present an implementation of a customized PettingZoo\footnote{https://pettingzoo.farama.org}
+% environment.
 
 
 % -----------------------------------
@@ -192,6 +189,57 @@ While the above works have shown the potential of MARL, there is still potential
 % \nocite{*}        % This includes all references that haven't been explicitly cited
 \bibliography{citations.bib}
 \bibliographystyle{plain}
+
+
+% -----------------------------------
+% -------- ETHICS STATEMENT ---------
+% -----------------------------------
+\newpage
+
+\appendices 
+\section{Ethics Statement}
+In the course of our project on Multiagent Reinforcement Learning, aimed at mitigating CO2 emissions
+from construction sites, we have conducted research that involves no experiments with human participants.
+While this specific phase of our work does not directly raise concerns regarding wages or human
+participation, it is essential to recognize that the technologies and methodologies we are developing
+may eventually be applied in real-world settings where human interactions are integral. In such instances,
+it becomes crucial to address ethical considerations associated with human safety and well-being.
+
+We acknowledge that our current implementation serves as a simulation, and it is not as robust as a
+real-world application would need to be. However, we are committed to exploring ways to ensure that the
+agents, which are part of the system, incorporate safeguards to prevent harm to humans and machinery.
+This commitment reflects our ethical responsibility to uphold the safety and welfare of individuals who
+may interact with these agents in practical applications.
+
+Moreover, our reinforcement learning framework includes a reward function that assigns a substantial
+negative reward for agent collisions, with the intent of discouraging such incidents. The severity of
+this negative feedback is designed to minimize the likelihood of agents crashing into one another. It
+is important to note, though, that while our design minimizes such events, it does not guarantee their
+complete avoidance.
+
+The dataset we have employed for this project, generated by Skanska Norge AS and provided by Norwegian
+Artificial Intelligence Research Consortium (NORA), does not contain any personally identifiable
+information. Although the dataset's availability has yet to be confirmed, it was shared with us by NORA
+following the conclusion of the RoadAI competition.
+
+The primary objective of our project is to significantly reduce CO2 emissions originating from
+construction sites, potentially leading to substantial environmental and societal benefits.
+Construction sites contribute 1.5\% of total Norwegian CO2 emissions, making the reduction of
+emissions in this sector a vital endeavour. Implementing our system across numerous construction sites
+in Norway could result in a significant reduction in total CO2 emissions, a crucial step toward a more
+sustainable future.
+
+In line with our commitment to ethical AI deployment, transparency and explainability need to be
+addressed. It is imperative to ensure stakeholders can understand and trust the model's decisions.
+Thus we have to make efforts to ensure that MARL algorithms are interpretable, allowing a comprehensive
+understanding of factors influencing decisions.
+
+Our research and project implementation do not support or enable any form of discrimination against
+individuals or groups. Furthermore, they do not entail risks related to deception or harassment.
+Our work is firmly rooted in legal activities and does not promote any restrictions on human rights.
+Our ethical commitment is to conduct research and develop technologies that contribute to a greener,
+more sustainable world without compromising the well-being of individuals or society as a whole.
+
 
 \end{document}
 
