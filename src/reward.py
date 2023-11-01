@@ -62,4 +62,3 @@ def reward(agent, env):
     elif np.min(distances) > np.min(prev_dist):
         tot_reward += wrong_direction
     return tot_reward
-

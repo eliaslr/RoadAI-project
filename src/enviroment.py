@@ -45,7 +45,6 @@ class RoadEnv(gym.Env):
                 self._s_size * H + 2 * self._margin,
             )
         )
-        self.excavators = []
 
     # Updates agents states, reward, observations
     # Called from learning algorithm
@@ -137,7 +136,7 @@ class RoadEnv(gym.Env):
             print(f"Done Training {self.curr_ep} Episodes")
         obs, _, _, _, _ = self.step(0)
         return obs, {}
-  
+
     # Generates topographic "hills" where the hills get larger as you get to the center
     def _topograph_feature(self, start_pos, h, w, mag):
         last_val = 1
@@ -185,7 +184,7 @@ class RoadEnv(gym.Env):
             W = np.random.randint(min_w, max_w)
 
         # Add terrain noise
-        self.map = np.random.randint(10, size=(H, W)).astype(np.float32)
+        self.map = np.random.randint(10, size=(H, W))
         # TODO add topological features / noise
         num_of_features = np.random.randint(3, 10)
         for _ in range(num_of_features):

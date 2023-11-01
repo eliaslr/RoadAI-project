@@ -1,4 +1,3 @@
-from omegaconf import DictConfig
 from enviroment import RoadEnv
 from stable_baselines3 import PPO
 from stable_baselines3 import DQN
@@ -115,6 +114,7 @@ def parse_args():
     )
 
     return parser.parse_args()
+
 
 if __name__ == "__main__":
     # study = optuna.create_study()
