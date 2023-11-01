@@ -9,11 +9,11 @@ import time
 import os
 
 # TODO add these to hydra
-BATCH_SIZE = 1000
-NUM_UPDATES = 5
+BATCH_SIZE = 750
+NUM_UPDATES = 4
 MAX_EPS = 600
-MAX_STEPS = 1_000_000
-SAVE_RATE = 100  # Save model every 25 episodes
+MAX_STEPS = 5_000_000
+SAVE_RATE = 25  # Save model every 25 episodes
 ACTION_REPEAT = 1
 
 
@@ -32,7 +32,7 @@ class ActorNetwork(nn.Module):
         # Convert to tensor
         if not torch.is_tensor(X):
             X = torch.tensor(X, dtype=torch.float, device=self.device)
-        #    X = X.unsqueeze(0)
+        #    X =X.unsqueeze(0)
         #    X = X.unsqueeze(0)
         # z = F.relu(self.c1(X))
         # z = F.relu(self.c2(z))
@@ -84,7 +84,7 @@ class PPO:
         self.device = device
         self.gamma = gamma  # Discount coeff for rewards
         self.epsilon = cliprange  # Clip for actor
-        # :e Saw one paper using clip Loss for critic aswell
+        # Saw one paper using clip Loss for critic aswell
         # self.upsilon = cliprange  # Clip for critic
         self.in_dim = 9  # Square view
         # Action space is cardinal movement
@@ -103,16 +103,12 @@ class PPO:
 
     # Calculates discouted rewards
     def _rtgs(self, rews):
-        agents = self.env._num_agents
-        returns = np.zeros(len(rews) * self.env._num_agents)
+        returns = np.zeros(len(rews))
         for i in reversed(range(len(rews))):
             if i == len(rews) - 1:
-                returns[i * agents : (i + 1) * agents] = rews[i]
+                returns[i] = rews[i]
             else:
-                for j in range(agents):
-                    returns[i * agents + j] = (
-                        rews[i][j] + returns[(i + 1) * agents + j] * self.gamma
-                    )
+                returns[i] = rews[i] + returns[i + 1] * self.gamma
         return torch.tensor(returns, dtype=float)
 
     # See arxiv 2103.01955 for implementation details
@@ -127,9 +123,8 @@ class PPO:
 
     # See arxiv 2103.01955 for implementation details
     def _cri_loss(self, V, rtgs):
-        square = (V - rtgs) ** 2
         # clip = (torch.clamp(V, V_old - self.upsilon, V_old + self.upsilon) - rtgs) ** 2
-        return square.mean()
+        return nn.MSELoss()(V, rtgs)
 
     # Main training loop
     def train(self):
@@ -157,9 +152,9 @@ class PPO:
             curr_step += len(b_obs)
             V, _ = self._eval(b_obs, b_acts)
             # Calculate advantage
-            A_k = rtgs - V
+            A_k = rtgs - V.detach()
             # Normalize Advantage
-            A_k = (A_k - A_k.mean()) / (A_k.std() + 1e-10)
+            # A_k = (A_k - A_k.mean()) / (A_k.std() + 1e-10)
             # Update actor critic based on L
             for _ in range(NUM_UPDATES):
                 V, pi = self._eval(b_obs, b_acts)
@@ -190,8 +185,8 @@ class PPO:
                 # self._plot_rewards(avg_rewards, a_loss, c_loss)
                 torch.save(self.actor.state_dict(), self.model_path + "actor")
                 torch.save(self.critic.state_dict(), self.model_path + "critic")
-        self._plot_rewards(avg_rewards, a_loss, c_loss)
-        return np.mean(self.env.avg_rewards)
+                self._plot_rewards(avg_rewards, a_loss, c_loss)
+        return rtgs.mean()
 
     def _plot_rewards(self, avg_rewards, a_loss, c_loss):
         _, axs = plt.subplots(1, 3, layout="constrained")
@@ -204,36 +199,33 @@ class PPO:
 
         plt.savefig(f"graphs/{len(avg_rewards)}.png")
 
-        plt.show()
-
     def _rollout(self):
         batch_obs = []
-        batch_actions = torch.zeros((BATCH_SIZE, self.env._num_agents, self.out_dim))
+        batch_actions = []
         batch_probs = torch.zeros((BATCH_SIZE, self.env._num_agents))
         batch_rews = []
         for i in range(BATCH_SIZE):
-            batch_obs.append(self.env.observation_spaces)
+            batch_obs += self.env.observation_spaces
             actions, probs = self.action(self.env.observation_spaces)
             # for _ in range(ACTION_REPEAT):
             # Fuck this is ugly
             action = list(map(lambda x: torch.argmax(x).item(), actions))
             rews = self.env.step(action)
             for j in range(self.env._num_agents):
-                batch_actions[i][j] = actions[j]
+                batch_actions.append(actions[j])
             batch_probs[i] = probs
-            batch_rews.append(rews)
+            batch_rews += rews
         batch_probs = torch.flatten(batch_probs)
         return (batch_obs, batch_actions, batch_probs, batch_rews)
 
     def _eval(self, b_obs, b_acts):
-        V = torch.zeros(len(b_obs) * self.env._num_agents)
-        pi = torch.zeros(len(b_obs) * self.env._num_agents)
-        for i in range(len(b_obs)):
-            for j in range(self.env._num_agents):
-                V[i * self.env._num_agents + j] = self.critic(b_obs[i][j])
-                mu = self.actor(b_obs[i][j])
-                dist = MultivariateNormal(mu, self.cov_mat)
-                pi[i * self.env._num_agents + j] = dist.log_prob(b_acts[i][j])
+        V = torch.zeros(len(b_obs), dtype=float)
+        pi = torch.zeros(len(b_obs))
+        for i, obs in enumerate(b_obs):
+            V[i] = self.critic(obs)
+            mu = self.actor(obs)
+            dist = MultivariateNormal(mu, self.cov_mat)
+            pi[i] = dist.log_prob(b_acts[i])
         return V, pi
 
     def action(self, obs):
