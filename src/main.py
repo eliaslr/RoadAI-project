@@ -77,17 +77,17 @@ def main(render):
     with open(f"results/ppo{MAX_EPS}.pkl", "wb") as file:
         pickle.dump(ppo_rews, file)
     """
+    """
     with open("results/ppo1000.pkl", "rb") as file:
         ppo_rews = pickle.load(file)
     with open("results/dqn1000.pkl", "rb") as file:
         dqn_rews = pickle.load(file)
-    """
     dqn_rews = train_dqn()
     with open(f"results/dqn{MAX_EPS}.pkl", "wb") as file:
         pickle.dump(dqn_rews, file)
     """
     # make_plot(ppo_rews, dqn_rews)
-    # show_models()
+    show_models()
 
     """
     storage = optuna.storages.InMemoryStorage()
