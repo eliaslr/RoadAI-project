@@ -134,7 +134,9 @@ a significant percentage of the total emissions is a crucial task.
 	\subsection{MAPPO}
 	We used the Stable-baselines implementation of the PPO algorithm to train our agents.
 	PPO works by gradient ascent to find the optimal policy, and has been shown to produce good results in similiar cooperative environments. % INSERT SITATION HERE
-
+    PPO is an actor-critic method that is currently considered state of the art. 
+    It implements clipping of the gradient to ensure we don't overshoot when climbing. 
+    It is also stochastic by design where the policy $\pi_\theta$ chooses random actions according to a certain heat which decreases over time. 
 
 	\subsection{Multiagent DQN}
     We attempted a version of DQN where the reward for an action is given as the average reward for all the actions in that timestep. The issue with this is that it might reward a "bad" action and punish a "good" action if the average reward that timestep was high or low respectively, it turns out not treating it as a cooperative system but rather a system where every agent attempts to maximise their own reward is significantly more effecient. It's possible that with better hyperparameters or longer training time our multi agent implementation of DQN might outperform the single agent implementation, but with the training time and hyperparameters used we struggled to get positive rewards at all with this approach. We ended up using StableBaselines implementation of DQN.
