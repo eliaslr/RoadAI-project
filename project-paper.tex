@@ -72,25 +72,25 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
   % \end{abstract}
 
 
-% -----------------------------------
-% ---------- INTRODUCTION  ----------
-% -----------------------------------
-\section{Introduction}
-Carbon dioxide (\coo{}) emission is one of the largest contributions to greenhouse gasses and global warming.
-Reducing \coo{} emissions is an important step in preventing global warming and all of the negative
-consequences associated with it. Norway's total greenhouse gas emissions were, according to Statistics
-Norway, in 2022 48.9 million tonnes of \coo{}
-equivalences\footnote{https://www.ssb.no/natur-og-miljo/forurensning-og-klima/statistikk/utslipp-til-luft}.
-1.5\% of which are emitted by construction machines. \cite{noraRoadAIReducing} The reduction of such
-a significant percentage of the total emissions is a crucial task.
+  % -----------------------------------
+  % ---------- INTRODUCTION  ----------
+  % -----------------------------------
+  \section{Introduction}
+  Carbon dioxide (\coo{}) emission is one of the largest contributions to greenhouse gasses and global warming.
+  Reducing \coo{} emissions is an important step in preventing global warming and all of the negative
+  consequences associated with it. Norway's total greenhouse gas emissions were, according to Statistics
+  Norway, in 2022 48.9 million tonnes of \coo{}
+  equivalences\footnote{https://www.ssb.no/natur-og-miljo/forurensning-og-klima/statistikk/utslipp-til-luft}.
+  1.5\% of which are emitted by construction machines. \cite{noraRoadAIReducing} The reduction of such
+  a significant percentage of the total emissions is a crucial task.
 
   This project is based on the RoadAI competition held by Norwegian Artificial Intelligence Research
   Consortium (NORA). \cite{noraRoadAIReducing} The objective in the RoadAI competition is to reduce the
-  total \coo{} emissions from a road construction site using machine learning methods.In this paper, we will
+  total \coo{} emissions from a road construction site using machine learning methods. In this paper, we will
   present a method for using Multiagent Reinforcement Learning (MARL) algorithms in order to reduce such
   emissions.
 
-
+  % RL for GHG reduction
   In a study from 2022, a group of researchers from Germany and Switzerland used reinforcement learning
   (RL) for route optimization of marine transport. \cite{MORADI2022111882} This study ... \textless Elaborate. You need
   Eduroam to read the article\footnote{\url{https://www.sciencedirect.com/science/article/abs/pii/S0029801822012239?casa_token=kkxSoukxDkgAAAAA:eDAPRTWeGqMvCvfZxtBB9mJLswCbGDP2922zGX3HWtWn_hDtYkWM_PWqaJWsSmJBTc42HzL8BYI}} \textgreater
@@ -104,6 +104,30 @@ a significant percentage of the total emissions is a crucial task.
   payload and maintenence requirements. As a result, the model showed an up to 30\% reduction in greenhouse
   gases while having no impact on production levels.
 
+  % MARL
+
+  % Environments
+
+  % PPO / MAPPO
+  Proximal Policy Optimization (PPO) is an RL algorithm used mostly for single-agent reinforcement learning.
+  This is due to the fact that PPO is often considered less sample-effective than other off-policy algorithms
+  when it comes to MARL problems. In a study made by researchers from China and USA, however, they showed the
+  effectiveness of the PPO algorithm on multiagent cooperative problems. \cite{yu2022surprising}
+
+  % DQN / QMIX
+
+  % Our work
+  The purpose of this paper is to highlight the use of MARL algorithms in order to reduce \coo emissions
+  from construction sites. This is done through reducing the distance driven by dump trucks at the site,
+  reducing idle time and optimal route finding in order to reduce acceleration due to topography. In this
+  paper, we will demonstrate an implementation of two different MARL algorithms:
+  (1) multiagent PPO (MAPPO) and (2) multiagemnt DQN. In addition to these algorithms, we have implemented a
+  custom environment based on \texttt{gymnasium}. \cite{Towers_Gymnasium}
+  
+  % Include this?
+  Our work shows the potential of MARL algorithms to reduce emissions at construction sites using MARL
+  algorithms. The model is learning, however it is learning very slowly. This shows the potential of
+  the algorithms tested in this paper, but there is room for improvement.
 
 
 	% -----------------------------------
