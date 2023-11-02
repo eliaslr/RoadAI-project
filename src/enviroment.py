@@ -17,12 +17,13 @@ class RoadEnv(gym.Env):
         self.reward_func = reward_func
         self.curr_ep = -1
         self.avg_rewards = []  # Avg rewards for every episode
+        self.avg_mass = []
         self.render_mode = render_mode
         self.observation_space = spaces.Dict(
             {
                 "filled": spaces.Discrete(2),
                 "pos": spaces.Box(0, 1000, shape=(2,), dtype=int),
-                "adj": spaces.Box(-10, 1000, shape=(4,), dtype=int),
+                "adj": spaces.Box(-10, 1000, shape=(25,), dtype=int),
                 "target": spaces.Box(0, 1000, shape=(2,), dtype=int),
             }
         )
@@ -61,7 +62,11 @@ class RoadEnv(gym.Env):
         ) / self.curr_step
         term = False
         if self.curr_step > MAX_STEPS:
+            mass = 0
+            for m in self.holes.values():
+                mass += 1000 - m
             term = True
+            self.avg_mass.append(mass)
             self.avg_rewards.append(self.avg_reward)
         self.render()
         return (

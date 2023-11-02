@@ -6,17 +6,20 @@ def reward(agent, env):
     previous = agent.prev_agent
 
     # Rewards
-    idle_penalty = -0.3
-    step_penalty = -0.1
+    idle_penalty = -1
+    step_penalty = -0.5
     collision_pen = -100
-    incline_pen = 0.1
+    incline_pen = -0.1
     right_direction = 5
-    wrong_direction = 0
+    wrong_direction = -5
     out_of_bounds = -100
+    adjecency_pen = -1
 
     filled = 20
-    emptied = 30
+    emptied = 50
 
+    if agent.adjecent:
+        tot_reward += adjecency_pen
     if agent.collided:
         tot_reward += collision_pen
     if agent.out_of_bounds:
@@ -27,8 +30,9 @@ def reward(agent, env):
         tot_reward += step_penalty
         if env.map[previous["pos_y"], previous["pos_x"]] < agent._ground:
             tot_reward += (
-                env.map[previous["pos_y"], previous["pos_x"]] - agent._ground
-            ) * incline_pen
+                abs(env.map[previous["pos_y"], previous["pos_x"]] - agent._ground)
+                * incline_pen
+            )
 
     if agent.filled and not previous["filled"]:
         tot_reward += filled

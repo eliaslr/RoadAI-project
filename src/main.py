@@ -10,8 +10,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pickle
 
-MAX_EPS = 250
+MAX_EPS = 500
 MAX_STEPS = MAX_EPS * 5000
+
+
+plt.style.use("bmh")
 
 
 def tune_PPO(trial):
@@ -36,7 +39,7 @@ def train_ppo(load_model=False):
         )
     ppo = ppo.learn(total_timesteps=MAX_STEPS)
     ppo.save("models/baselines-ppo")
-    return env.avg_rewards
+    return env.avg_rewards, env.avg_mass
 
 
 def train_dqn(load_model=False):
@@ -47,7 +50,7 @@ def train_dqn(load_model=False):
         dqn = DQN("MultiInputPolicy", env)
     dqn = dqn.learn(total_timesteps=MAX_STEPS)
     dqn.save("models/baselines-dqn")
-    return env.avg_rewards
+    return env.avg_rewards, env.avg_mass
 
 
 def show_models():
@@ -60,33 +63,53 @@ def show_models():
         obs, rewards, _, _, _ = env.step(action)
 
 
-def make_plot(ppo_rews, dqn_rews):
+def make_plot(ppo_rews, ppo_mass, dqn_rews, dqn_mass):
+    for rew in ppo_rews:
+        if rew < -500:
+            ppo_rews.remove(rew)
+    for rew in dqn_rews:
+        if rew < -500:
+            dqn_rews.remove(rew)
     plt.title(f"PPOvsDQN {MAX_EPS} episode rewards")
     plt.xlabel("Number of episodes")
     plt.ylabel("Average episodic reward")
     plt.plot(np.arange(len(ppo_rews)), ppo_rews, label="PPO")
     plt.plot(np.arange(len(dqn_rews)), dqn_rews, label="DQN")
     plt.legend()
-    plt.savefig(f"graphs/PPOvsDQN{MAX_EPS}.png")
+    plt.savefig(f"graphs/PPOvsDQN{MAX_EPS}rews.png")
+    plt.show()
+    plt.title(f"PPOvsDQN {MAX_EPS} Mass per episode")
+    plt.xlabel("Number of episodes")
+    plt.ylabel("Mass in kgs")
+    plt.plot(np.arange(len(ppo_mass)), ppo_mass, label="PPO")
+    plt.plot(np.arange(len(dqn_mass)), dqn_mass, label="DQN")
+    plt.legend()
+    plt.savefig(f"graphs/PPOvsDQN{MAX_EPS}mass.png")
     plt.show()
 
 
 def main(render):
     """
-    ppo_rews = train_ppo()
-    with open(f"results/ppo{MAX_EPS}.pkl", "wb") as file:
+    ppo_rews, ppo_mass = train_ppo()
+    with open(f"results/ppo{MAX_EPS}rews.pkl", "wb") as file:
         pickle.dump(ppo_rews, file)
-    """
-    """
-    with open("results/ppo1000.pkl", "rb") as file:
-        ppo_rews = pickle.load(file)
-    with open("results/dqn1000.pkl", "rb") as file:
-        dqn_rews = pickle.load(file)
-    dqn_rews = train_dqn()
-    with open(f"results/dqn{MAX_EPS}.pkl", "wb") as file:
+    with open(f"results/ppo{MAX_EPS}mass.pkl", "wb") as file:
+        pickle.dump(ppo_mass, file)
+    dqn_rews, dqn_mass = train_dqn()
+    with open(f"results/dqn{MAX_EPS}rews.pkl", "wb") as file:
         pickle.dump(dqn_rews, file)
-    """
-    # make_plot(ppo_rews, dqn_rews)
+    with open(f"results/dqn{MAX_EPS}mass.pkl", "wb") as file:
+        pickle.dump(dqn_mass, file)"""
+    with open(f"results/ppo{MAX_EPS}rews.pkl", "rb") as file:
+        ppo_rews = pickle.load(file)
+    with open(f"results/ppo{MAX_EPS}mass.pkl", "rb") as file:
+        ppo_mass = pickle.load(file)
+    with open(f"results/dqn{MAX_EPS}rews.pkl", "rb") as file:
+        dqn_rews = pickle.load(file)
+    with open(f"results/dqn{MAX_EPS}mass.pkl", "rb") as file:
+        dqn_mass = pickle.load(file)
+
+    # make_plot(ppo_rews, ppo_mass, dqn_rews, dqn_mass)
     show_models()
 
     """
