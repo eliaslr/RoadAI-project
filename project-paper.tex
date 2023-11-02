@@ -117,7 +117,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 		\includegraphics[width=0.9\columnwidth]{graphs/example_env.png}
 		\caption{Example randomly generated environment}
 	\end{figure}
-	While this environment is very simplified in contrast to real life, it easy to randomly generate.
+	While this environment is very simplified in contrast to real life, it easy to randomly generate and lightweight.
 
 	\subsection{MAPPO}
 	We used the Stable-baselines implementation of the PPO algorithm to train our agents.
@@ -125,6 +125,10 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 
 	\subsection{Multiagent DQN}
+
+	\subsection{Stable-baselines}
+	While stable-baselines is not inherently compatible with multi-agent environments we found that if you
+	make it so that each agent steps
 
 	\subsection{Training Procedure}
 	Each algorithm was trained for 250 episiodes of a fixed length of 5000 steps. In total the training was 1250000 timesteps and took about 2 hours on a gpu.
@@ -137,6 +141,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 	\end{enumerate}
 
 	\begin{figure}[h!]
+		%TODO ADD new image
 		\includegraphics[width=\columnwidth]{graphs/PPOvsDQN250.png}
 		\caption{Mean Episodic rewards}
 	\end{figure}
