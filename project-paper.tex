@@ -16,12 +16,14 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 % -----------------------------------
 % -------------- TITLE --------------
-\title{RoadAI - A Multiagent Reinforcement Learning Approach to Reducing \coo Emissions at a Construction Site}
+\title{RoadAI - A Multiagent Reinforcement Learning Approach to Reducing \coo{} Emissions at a Construction Site}
 % -----------------------------------
+
 
 
 % -----------------------------------
 % ------------- AUTHORS -------------
+% -----------------------------------
 \author{
 	\IEEEauthorblockN{Viktor Ringvold Hasle}
 	\IEEEauthorblockA{\textit{Dept. of Informatics} \\
@@ -54,218 +56,468 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 	Oslo, Norway \\
 	tom.frode.hansen@ngi.no
 	}
-	}
+}
 
-	\maketitle
-
-
-	% -----------------------------------
-	% ------------ ABSTRACT -------------
-	% -----------------------------------
-	% \begin{abstract}
-	% % Abstract is last thing we should write.
-
-	% % Should have 3-5 keywords.
-	% Index Terms - Multi-Agent Reinforcement Learning (MARL),
-	% \end{abstract}
+\maketitle
 
 
-	% -----------------------------------
-	% - INTRODUCTION  -
-	% -----------------------------------
-	\section{Introduction}
-	Carbon dioxide \coo emission is one of the largest contributions to greenhouse gasses and global warming.
-	Reducing \coo emissions is an important step in preventing global warming and all of the negative
-	consequences associated with it. Norway's total greenhouse gas emissions were, according to Statistics
-	Norway, in 2022 48.9 million tonnes of \coo equivalences. <Insert reference> 1.5\% of which are emitted
-	by construction machines. \cite{noraRoadAIReducing} The reduction of such a significant percentage of
-	the total emissions is a crucial task.
+% -----------------------------------
+% ------------ ABSTRACT -------------
+% -----------------------------------
+% \begin{abstract}
+% % Abstract is last thing we should write.
 
-	This project is based on the RoadAI competition held by Norwegian Artificial Intelligence Research
-	Consortium (NORA). \cite{noraRoadAIReducing} The objective in the RoadAI competition is to reduce the
-	total \coo emissions from a road construction site using machine learning methods.In this paper, we will
-	present a method for using Multiagent Reinforcement Learning (MARL) algorithms in order to reduce such
-	emissions.
-
-	At the construction site, there will be a designated area for the construction of a road. There are two
-	different types of agents: dump trucks and excavators. The excavators fill dump trucks with <road mass??>,
-	which the dump trucks then carry away to leave at the site of the unfinished road.
+% % Should have 3-5 keywords.
+% Index Terms - Multi-Agent Reinforcement Learning (MARL),
+% \end{abstract}
 
 
+% -----------------------------------
+% - INTRODUCTION  -
+% -----------------------------------
+\section{Introduction}
+Carbon dioxide \coo emission is one of the largest contributions to greenhouse gasses and global warming.
+Reducing \coo emissions is an important step in preventing global warming and all of the negative
+consequences associated with it. Norway's total greenhouse gas emissions were, according to Statistics
+Norway, in 2022 48.9 million tonnes of \coo equivalences. <Insert reference> 1.5\% of which are emitted
+by construction machines. \cite{noraRoadAIReducing} The reduction of such a significant percentage of
+the total emissions is a crucial task.
 
-	% -----------------------------------
-	% ------------- METHODS -------------
-	% -----------------------------------
-	\section{Methodology}
+This project is based on the RoadAI competition held by Norwegian Artificial Intelligence Research
+Consortium (NORA). \cite{noraRoadAIReducing} The objective in the RoadAI competition is to reduce the
+total \coo emissions from a road construction site using machine learning methods.In this paper, we will
+present a method for using Multiagent Reinforcement Learning (MARL) algorithms in order to reduce such
+emissions.
 
-	The goal of the Road AI project is to demonstrate an algorithm that could reduce emissions from road construction.
-	We are using MARL to train agents on a simulation of road construction and to demonstrate how it can be utilized to solve this problem.
-	Our methodology primarily focuses on the utilization of Multi-Agent Reinforcement Learning to tackle the problem of emissions in road construction. Given the complexity of the task, we adopted a step-by-step approach to ensure that the model is not only accurate but also efficient.
+At the construction site, there will be a designated area for the construction of a road. There are two
+different types of agents: dump trucks and excavators. The excavators fill dump trucks with <road mass??>,
+which the dump trucks then carry away to leave at the site of the unfinished road.
 
-	\subsection{Problem Formulation}
-	The first step in our methodology was to formulate the problem in the context of MARL. We defined each construction vehicle as an agent with its own set of actions, observations, and rewards. The joint action space consisted of moving, idling, loading, or unloading materials. Observations for each agent included the status of the road construction, the position of other agents, and the current load of materials. Rewards were also implemented to promote actions that lead to reduced emissions.
-
-	\subsection{Simulation Environment}
-	To train our agents, we developed a custom simulation environment using the PettingZoo framework. The environment replicates a typical road construction site, with details like topography and material locations. In this environment every object is represented as a particle in a grid.
-	The agents of the simulation, construction trucks are able to move cardinally in this grid with the goal of hauling construction materials from excavators to the unfinished road.
-	Every agent gets assigned a reward for each action they take with positive rewards for productive moves, and negative rewards for unproductive ones (idling, or unnecessary moving).
-
-	While simulating the trucks we collect the rewards which the reinforcement learning algorithms uses to train.
-	Using the average episodic rewards we can estimate the algorithms performance over the training, and compare them to eachother.
-	\begin{figure}
-		\includegraphics[width=0.9\columnwidth]{graphs/example_env.png}
-		\caption{Example randomly generated environment}
-	\end{figure}
-	While this environment is very simplified in contrast to real life, it easy to randomly generate and lightweight.
-
-	\subsection{MAPPO}
-	We used the Stable-baselines implementation of the PPO algorithm to train our agents.
-	PPO works by gradient ascent to find the optimal policy, and has been shown to produce good results in similiar cooperative environments. % INSERT SITATION HERE
+the algorithms tested in this paper, but there is room for improvement.
 
 
-	\subsection{Multiagent DQN}
+% -----------------------------------
+% ------------- METHODS -------------
+% -----------------------------------
+\section{Methodology}
 
-	\subsection{Stable-baselines}
-	While stable-baselines is not inherently compatible with multi-agent environments we found that if you
-	make it so that each agent steps
+The goal of the Road AI project is to demonstrate an algorithm that could reduce emissions from road construction.
+We are using MARL to train agents on a simulation of road construction and to demonstrate how it can be utilized to solve this problem.
+Our methodology primarily focuses on the utilization of Multi-Agent Reinforcement Learning to tackle the problem of emissions in road construction. Given the complexity of the task, we adopted a step-by-step approach to ensure that the model is not only accurate but also efficient.
 
-	\subsection{Training Procedure}
-	Each algorithm was trained for 500 episiodes of a fixed length of 5000 steps. In total the training was 250.000 timesteps and took about 2 hours on a standard gpu.
-	\subsection{Hyperparameter Optimization}
-	We used the optuna library to hyperparameter optimize our the PPO algorithm. Optuna uses a baynesian search to find the best parameters for us. This way we could make sure that our results % Kan fjernes?
-	\newpage
-	\section{Results and Discussion}
-	Post-training, we evaluated our models based on following metrics:
-	\begin{enumerate}
-		\item Mean episodic reward
-		\item Total mass moved per episode
-	\end{enumerate}
+\subsection{Problem Formulation}
+The first step in our methodology was to formulate the problem in the context of MARL. We defined each construction vehicle as an agent with its own set of actions, observations, and rewards. The joint action space consisted of moving, idling, loading, or unloading materials. Observations for each agent included the status of the road construction, the position of other agents, and the current load of materials. Rewards were also implemented to promote actions that lead to reduced emissions.
 
-	\begin{figure}[h!]
-		%TODO ADD new image
-		\includegraphics[width=\columnwidth]{graphs/PPOvsDQN250.png}
-		\caption{Mean Episodic rewards}
-	\end{figure}
-	\begin{figure}[h!]
-		%TODO ADD new image
-		\includegraphics[width=\columnwidth]{graphs/PPOvsDQN500mass.png}
-		\caption{Mass of construction materials moved per episode}
-	\end{figure}
-	As you could see from the graphs the algorithms performed quite similiarly.
+\subsection{Simulation Environment}
+To train our agents, we developed a custom simulation environment using the PettingZoo framework. The environment replicates a typical road construction site, with details like topography and material locations. In this environment every object is represented as a particle in a grid.
+The agents of the simulation, construction trucks are able to move cardinally in this grid with the goal of hauling construction materials from excavators to the unfinished road.
+Every agent gets assigned a reward for each action they take with positive rewards for productive moves, and negative rewards for unproductive ones (idling, or unnecessary moving).
 
+While simulating the trucks we collect the rewards which the reinforcement learning algorithms uses to train.
+Using the average episodic rewards we can estimate the algorithms performance over the training, and compare them to eachother.
+\begin{figure}
+	\includegraphics[width=0.9\columnwidth]{graphs/example_env.png}
+	\caption{Example randomly generated environment}
+\end{figure}
+While this environment is very simplified in contrast to real life, it easy to randomly generate and lightweight.
 
+\subsection{MAPPO}
+We used the Stable-baselines implementation of the PPO algorithm to train our agents.
+PPO works by gradient ascent to find the optimal policy, and has been shown to produce good results in similiar cooperative environments. % INSERT SITATION HERE
+PPO is an actor-critic method that is currently considered state of the art.
+It implements clipping of the gradient to ensure we don't overshoot when climbing.
+It is also stochastic by design where the policy $\pi_\theta$ chooses random actions according to a certain heat which decreases over time.
 
+\subsection{Multiagent DQN}
+We attempted a version of DQN where the reward for an action is given as the average reward for all the actions in that timestep. The issue with this is that it might reward a "bad" action and punish a "good" action if the average reward that timestep was high or low respectively, it turns out not treating it as a cooperative system but rather a system where every agent attempts to maximise their own reward is significantly more effecient.
+It's possible that with better hyperparameters or longer training time our multi agent implementation of DQN might outperform the single agent implementation, but with the training time and hyperparameters used we struggled to get positive rewards at all with this approach. We ended up using StableBaselines implementation of DQN.
+\subsection{Stable-baselines}
+While stable-baselines is not inherently compatible with multi-agent environments we found that if you
+make it so that each agent steps
 
-	% -----------------------------------
-	% ------ RESULTS AND DISCUSSION -----
-	% -----------------------------------
-
-
-	% -----------------------------------
-	% ---------- RELATED WORK -----------
-	% -----------------------------------
-	\section{Related works}
-	SMACv2\cite{ellis2022smacv2} evaluates two MARL algorithms for problems using centralized training with
-	decentralized execution (CTDE); QMIX and MAPPO.
-
-	QMIX employs a centralized critic to estimate joint action-value functions, while MAPPO uses a decentralized
-	actor-critic framework with a centralized value function.
-
-	QMIX outperformed MAPPO on most scenarios, but QMIX is memory-intensive due to its large replay buffer. For
-	this reason, QMIX requires more computational power. In addition, the paper notes that MAPPO was still
-	increasing its performance at the time of termination in several scenarios, which indicates it could end up
-	with a better result.
-
-	This paper aims to evaluate both the QMIX and MAPPO algorithms.
+\subsection{Training Procedure}
+Each algorithm was trained for 500 episiodes of a fixed length of 5000 steps. In total the training was 250.000 timesteps and took about 2 hours on a standard gpu.
+\subsection{Hyperparameter Optimization}
+We used the optuna library to hyperparameter optimize our the PPO algorithm. Optuna uses a baynesian search to find the best parameters for us. This way we could make sure that our results % Kan fjernes?
+\newpage
+% -----------------------------------
+% ------ RESULTS AND DISCUSSION -----
+% -----------------------------------
 
 
-	Flatlands\cite{laurent2021flatland} was a competition where contestants to design a MARL algorithm for
-	train scheduling. This is similar to the approach we seek to use to solve RoadAI.
-	In the competition MAPPO performed well and is a pointer for what we could use in our own MARL implementation.
+\section{Results and Discussion}
+Post-training, we evaluated our models based on following metrics:
+\begin{enumerate}
+	\item Mean episodic reward
+	\item Total mass moved per episode
+\end{enumerate}
 
-
-	The application of Multi-Agent Reinforcement Learning (MARL) for carbon reduction in the construction industry is relatively recent field. Here are some other related works:
-
-	\begin{itemize}
-
-		\item \textbf{Optimized Resource Allocation:}
-			MARL has been used to optimize resource allocation in construction sites, ensuring that machinery and equipment are used in a most efficient way. By minimizing idle times and optimizing machinery routes, fuel consumption can be reduced, leading to a decrease in carbon emissions\cite{resource_allocation}.
-
-		\item \textbf{Dynamic Scheduling:}
-			Construction projects often involve multiple tasks that need a proper coordination. MARL algorithms has been used for dynamic scheduling, ensuring that tasks are carried out in an optimized way, reducing potential delays and minimizing the carbon footprint due to inefficiencies\cite{dynamic_scheduling}.
-
-	\end{itemize}
-
-	While the above works have shown the potential of MARL, there is still potential to explore with the advent of newer algorithms. The main challenge remains in integrating these advanced techniques seamlessly into the traditional construction processes and ensuring real-world applicability.
-
-	\noindent
-
-
-	% -----------------------------------
-	% ----------- CONCLUSION ------------
-	% -----------------------------------
-	\section{Conclusion}
+\begin{figure}[h!]
+	%TODO ADD new image
+	\includegraphics[width=\columnwidth]{graphs/PPOvsDQN250.png}
+	\caption{Mean Episodic rewards}
+\end{figure}
+\begin{figure}[h!]
+	%TODO ADD new image
+	\includegraphics[width=\columnwidth]{graphs/PPOvsDQN500mass.png}
+	\caption{Mass of construction materials moved per episode}
+\end{figure}
+As you could see from the graphs the algorithms performed quite similiarly.
 
 
 
 
-	% -----------------------------------
-	% ----------- REFERENCES ------------
-	% -----------------------------------
-	\newpage
-	% \nocite{*}        % This includes all references that haven't been explicitly cited
-	\bibliography{citations.bib}
-	\bibliographystyle{plain}
+
+% -----------------------------------
+% ---------- RELATED WORK -----------
+% -----------------------------------
+\section{Related works}
+SMACv2\cite{ellis2022smacv2} evaluates two MARL algorithms for problems using centralized training with
+decentralized execution (CTDE); QMIX and MAPPO.
+
+QMIX employs a centralized critic to estimate joint action-value functions, while MAPPO uses a decentralized
+actor-critic framework with a centralized value function.
+
+QMIX outperformed MAPPO on most scenarios, but QMIX is memory-intensive due to its large replay buffer. For
+this reason, QMIX requires more computational power. In addition, the paper notes that MAPPO was still
+increasing its performance at the time of termination in several scenarios, which indicates it could end up
+with a better result.
+
+This paper aims to evaluate both the QMIX and MAPPO algorithms.
 
 
-	% -----------------------------------
-	% -------- ETHICS STATEMENT ---------
-	% -----------------------------------
-	\newpage
+Flatlands\cite{laurent2021flatland} was a competition where contestants to design a MARL algorithm for
+train scheduling. This is similar to the approach we seek to use to solve RoadAI.
+In the competition MAPPO performed well and is a pointer for what we could use in our own MARL implementation.
 
-	\appendices
-	\section{Ethics Statement}
-	In the course of our project on Multiagent Reinforcement Learning, aimed at mitigating \coo emissions
-	from construction sites, we have conducted research that involves no experiments with human participants.
-	While this specific phase of our work does not directly raise concerns regarding wages or human
-	participation, it is essential to recognize that the technologies and methodologies we are developing
-	may eventually be applied in real-world settings where human interactions are integral. In such instances,
-	it becomes crucial to address ethical considerations associated with human safety and well-being.
 
-	We acknowledge that our current implementation serves as a simulation, and it is not as robust as a
-	real-world application would need to be. However, we are committed to exploring ways to ensure that the
-	agents, which are part of the system, incorporate safeguards to prevent harm to humans and machinery.
-	This commitment reflects our ethical responsibility to uphold the safety and welfare of individuals who
-	may interact with these agents in practical applications.
+The application of Multi-Agent Reinforcement Learning (MARL) for carbon reduction in the construction industry is relatively recent field. Here are some other related works:
 
-	Moreover, our reinforcement learning framework includes a reward function that assigns a substantial
-	negative reward for agent collisions, with the intent of discouraging such incidents. The severity of
-	this negative feedback is designed to minimize the likelihood of agents crashing into one another. It
-	is important to note, though, that while our design minimizes such events, it does not guarantee their
-	complete avoidance.
+\begin{itemize}
 
-	The dataset we have employed for this project, generated by Skanska Norge AS and provided by Norwegian
-	Artificial Intelligence Research Consortium (NORA), does not contain any personally identifiable
-	information. Although the dataset's availability has yet to be confirmed, it was shared with us by NORA
-	following the conclusion of the RoadAI competition.
+	\item \textbf{Optimized Resource Allocation:}
+		MARL has been used to optimize resource allocation in construction sites, ensuring that machinery and equipment are used in a most efficient way. By minimizing idle times and optimizing machinery routes, fuel consumption can be reduced, leading to a decrease in carbon emissions\cite{resource_allocation}.
 
-	The primary objective of our project is to significantly reduce \coo emissions originating from
-	construction sites, potentially leading to substantial environmental and societal benefits.
-	Construction sites contribute 1.5\% of total Norwegian \coo emissions, making the reduction of
-	emissions in this sector a vital endeavour. Implementing our system across numerous construction sites
-	in Norway could result in a significant reduction in total \coo emissions, a crucial step toward a more
-	sustainable future.
+	\item \textbf{Dynamic Scheduling:}
+		Construction projects often involve multiple tasks that need a proper coordination. MARL algorithms has been used for dynamic scheduling, ensuring that tasks are carried out in an optimized way, reducing potential delays and minimizing the carbon footprint due to inefficiencies\cite{dynamic_scheduling}.
 
-	In line with our commitment to ethical AI deployment, transparency and explainability need to be
-	addressed. It is imperative to ensure stakeholders can understand and trust the model's decisions.
-	Thus we have to make efforts to ensure that MARL algorithms are interpretable, allowing a comprehensive
-	understanding of factors influencing decisions.
+\end{itemize}
 
-	Our research and project implementation do not support or enable any form of discrimination against
-	individuals or groups. Furthermore, they do not entail risks related to deception or harassment.
-	Our work is firmly rooted in legal activities and does not promote any restrictions on human rights.
-	Our ethical commitment is to conduct research and develop technologies that contribute to a greener,
-	more sustainable world without compromising the well-being of individuals or society as a whole.
+While the above works have shown the potential of MARL, there is still potential to explore with the advent of newer algorithms. The main challenge remains in integrating these advanced techniques seamlessly into the traditional construction processes and ensuring real-world applicability.
+
+\noindent
+
+
+% -----------------------------------
+% ----------- CONCLUSION ------------
+% -----------------------------------
+\section{Conclusion}
+
+
+
+
+
+% -----------------------------------
+% ---------- RELATED WORK -----------
+% -----------------------------------
+\section{Related works}
+SMACv2\cite{ellis2022smacv2} evaluates two MARL algorithms for problems using centralized training with
+decentralized execution (CTDE); QMIX and MAPPO.
+
+QMIX employs a centralized critic to estimate joint action-value functions, while MAPPO uses a decentralized
+actor-critic framework with a centralized value function.
+
+QMIX outperformed MAPPO on most scenarios, but QMIX is memory-intensive due to its large replay buffer. For
+this reason, QMIX requires more computational power. In addition, the paper notes that MAPPO was still
+increasing its performance at the time of termination in several scenarios, which indicates it could end up
+with a better result.
+
+This paper aims to evaluate both the QMIX and MAPPO algorithms.
+
+
+Flatlands\cite{laurent2021flatland} was a competition where contestants to design a MARL algorithm for
+train scheduling. This is similar to the approach we seek to use to solve RoadAI.
+In the competition MAPPO performed well and is a pointer for what we could use in our own MARL implementation.
+
+
+The application of Multi-Agent Reinforcement Learning (MARL) for carbon reduction in the construction industry is relatively recent field. Here are some other related works:
+
+\begin{itemize}
+
+	\item \textbf{Optimized Resource Allocation:}
+		MARL has been used to optimize resource allocation in construction sites, ensuring that machinery and equipment are used in a most efficient way. By minimizing idle times and optimizing machinery routes, fuel consumption can be reduced, leading to a decrease in carbon emissions\cite{resource_allocation}.
+
+	\item \textbf{Dynamic Scheduling:}
+		Construction projects often involve multiple tasks that need a proper coordination. MARL algorithms has been used for dynamic scheduling, ensuring that tasks are carried out in an optimized way, reducing potential delays and minimizing the carbon footprint due to inefficiencies\cite{dynamic_scheduling}.
+
+\end{itemize}
+
+While the above works have shown the potential of MARL, there is still potential to explore with the advent of newer algorithms. The main challenge remains in integrating these advanced techniques seamlessly into the traditional construction processes and ensuring real-world applicability.
+
+\noindent
+
+
+% -----------------------------------
+% ----------- CONCLUSION ------------
+% -----------------------------------
+\section{Conclusion}
+
+
+\newpage
+
+
+\section{Future work}
+% -----------------------------------
+% ----------- FUTURE WORK -----------
+% -----------------------------------
+\subsection{Reward function}
+There are several potential improvements we could make to the reward function, that might alleviate the agents from performing some unwanted actions that currently occur.
+Firstly, sometimes an agent will get stuck north of a hill not realizing it can reach the holes it wants to fill by going around it and instead get stuck in a loop going up and down.
+This behaviour might be caused by the fact that going the wrong direction currently doesn't give it a negative reward, but going the right direction does yield a positive reward, so such a behaviour where it gets stuck going up and down does actually yield a positive reward even though it doesn't actually contribute to the goal of the problem.
+Possible fixes are giving a penalty for going the wrong way or giving a possible reward for going sideways to encourage going around obstacles in cases where going the right way is impossible or not encouraged.
+Secondly multiple agents will sometimes get stuck trying to leave and fill holes among each other where all of them try to avoid colliding while also trying to go different ways.
+Their behaviour might be improved by giving them a penalty for being too close to one another or a reward for keeping proper distance, not just collision.
+
+\subsection{Environment and action space}
+Currently the environment we're using is a microgrid environment. This allows for moving up, down, right and left.
+While this is sufficient for a lot of states, in several cases we might want to go diagonally between two points as this means fewer steps, as well as a potentially shorter time between two holes are filled by one dump truck.
+Using a continuous environment instead with a continuous action space might cause the training time to increase but the asymptotic reward possible to reach would increase. The representation of the state could still be very similar to what it currently is, but the action space would significantly change.
+One possible implementation of this action space could instead of being a discrete set of directions be an angle and speed.
+As a consequence of this the reward function would also have to change, to not just encourage dump trucks to go for example 3000km/h to reach their goal in a single timestep, or not just give them a reward for getting closer to their goal, but how much distance is closed.
+The DQN approach would not be sufficient in this case because it is designed for discrete action spaces, PPO however is designed to both work for discrete and continuous action spaces.
+
+\subsection{Environment creation}
+Currently the environment is just created randomly with a certain set of features, excavators, agents and holes to be filled.
+For our implementation to be viable in a real world setting it would be necessary to procuce environments from images of real construction sites, and it would be massively beneficial for the training set to be similarly constructed.
+For this to be possible we would need a segmentation algorithm as well to find where all the important parts of the image are and either translate it into a microgrid like environment or simply use the image as well as the segmentation as the state and observation.
+Along with making this change the environment and action space would likely have to be made continuous as discussed in the previous paragraph.
+If the state is the image and not a transformation of the image into a microgrid or similar environment we would likely have to render each timestep as realistically as possible so it transfers nicely to the real world.
+A better approach might be to transform it into a microgrid like environment and in the real world update it for example every 5 timesteps to the current state with a new image and new segmenting to make sure the real world doesn't deviate too far from what the environment looks like.
+A way to implement this in training is to not make the environment entirely deterministic, and only update the environment to what it "actually" is every 5 timesteps.
+
+\subsection{Agents}
+Currently the excavators in our simulations are stationary, but in a real world scenario there isn't an infinite amount of mass where the excavators are stationed, so they would have to move every now and then, or possibly more often.
+This could be done by moving the excavators to the closest depot whenever they empty the depot of gravel they're standing by, but a potential better solution is adding them to the pool of agents with their own actions, this will most likely increase training time but might very well increase performance over all.
+Some minor changes should also likely be made to the dump truck agents to better resemble real world dump trucks.
+Currently emptying and loading happens instantaneously, which is unrealistic. Its possible they require one or more timesteps to do, which would allow other agents to move in this time.
+An excavator is also able to load more than a single dump truck at a time which is obviously impossible.
+
+\subsection{Future work conclusion}
+There are both small and big changes to be made. Due to limited time and resources we are not currently able to implement them, even though implementation of the smaller changes would not take a lot of time, the bigger issue is retraining the algorithm and measure performance before and after, if the change is performance based, but even in the case of realism based changes the training and graphs would have to be remade.
+
+% -----------------------------------
+% ----------- REFERENCES ------------
+% -----------------------------------
+\newpage
+
+
+% \nocite{*}        % This includes all references that haven't been explicitly cited
+\bibliography{citations.bib}
+\bibliographystyle{plain}
+
+
+\subsection{Problem Formulation}
+The first step in our methodology was to formulate the problem in the context of MARL. We defined each construction vehicle as an agent with its own set of actions, observations, and rewards. The joint action space consisted of moving, idling, loading, or unloading materials. Observations for each agent included the status of the road construction, the position of other agents, and the current load of materials. Rewards were also implemented to promote actions that lead to reduced emissions.
+
+\subsection{Simulation Environment}
+To train our agents, we developed a custom simulation environment using the PettingZoo framework. The environment replicates a typical road construction site, with details like topography and material locations. In this environment every object is represented as a particle in a grid.
+The agents of the simulation, construction trucks are able to move cardinally in this grid with the goal of hauling construction materials from excavators to the unfinished road.
+Every agent gets assigned a reward for each action they take with positive rewards for productive moves, and negative rewards for unproductive ones (idling, or unnecessary moving).
+
+While simulating the trucks we collect the rewards which the reinforcement learning algorithms uses to train.
+Using the average episodic rewards we can estimate the algorithms performance over the training, and compare them to eachother.
+\begin{figure}
+	\includegraphics[width=0.9\columnwidth]{graphs/example_env.png}
+	\caption{Example randomly generated environment}
+\end{figure}
+While this environment is very simplified in contrast to real life, it easy to randomly generate.
+
+\subsection{MAPPO}
+We used the Stable-baselines implementation of the PPO algorithm to train our agents.
+PPO works by gradient ascent to find the optimal policy, and has been shown to produce good results in similiar cooperative environments. % INSERT SITATION HERE
+PPO is an actor-critic method that is currently considered state of the art.
+It implements clipping of the gradient to ensure we don't overshoot when climbing.
+It is also stochastic by design where the policy $\pi_\theta$ chooses random actions according to a certain heat which decreases over time.
+
+\subsection{Multiagent DQN}
+
+We attempted a version of DQN where the reward for an action is given as the average reward for all the actions in that timestep.
+The issue with this is that it might reward a "bad" action and punish a "good" action if the average reward that timestep was high or low respectively, it turns out not treating it as a cooperative system but rather a system where every agent attempts to maximise their own reward is significantly more efficient.
+It's possible that with better hyperparameters or longer training time our multi agent implementation of DQN might outperform the single agent implementation, but with the training time and hyperparameters used we struggled to get positive rewards at all with this approach.
+
+\subsection{Training Procedure}
+Each algorithm was trained for 250 episiodes of a fixed length of 5000 steps. In total the training was 1250000 timesteps and took about 2 hours on a gpu.
+
+\subsection{Evaluation}
+Post-training, we evaluated our models based on following metrics:
+\begin{enumerate}
+	\item Mean episodic reward
+	\item Number of road pieces built per step
+\end{enumerate}
+
+\begin{figure}[h!]
+	\includegraphics[width=\columnwidth]{graphs/PPOvsDQN250.png}
+	\caption{Mean Episodic rewards}
+\end{figure}
+
+As you could see from the graphs the algorithms performed quite similiarly.
+
+\subsection{Hyperparameter Optimization}
+We used the Optuna library to hyperparameter optimize our the PPO algorithm. Optuna uses a Bayesian search algorithm known as Parzen tree estimator to find good parameters for us. This way we could make sure that our results reach high average rewards when combined with a fitting policy.
+
+
+% -----------------------------------
+% ------ RESULTS AND DISCUSSION -----
+% -----------------------------------
+
+
+% -----------------------------------
+% ---------- RELATED WORK -----------
+% -----------------------------------
+\section{Related works}
+SMACv2\cite{ellis2022smacv2} evaluates two MARL algorithms for problems using centralized training with
+decentralized execution (CTDE); QMIX and MAPPO.
+
+QMIX employs a centralized critic to estimate joint action-value functions, while MAPPO uses a decentralized
+actor-critic framework with a centralized value function.
+
+QMIX outperformed MAPPO on most scenarios, but QMIX is memory-intensive due to its large replay buffer. For
+this reason, QMIX requires more computational power. In addition, the paper notes that MAPPO was still
+increasing its performance at the time of termination in several scenarios, which indicates it could end up
+with a better result.
+
+This paper aims to evaluate both the QMIX and MAPPO algorithms.
+
+
+Flatlands\cite{laurent2021flatland} was a competition where contestants to design a MARL algorithm for
+train scheduling. This is similar to the approach we seek to use to solve RoadAI.
+In the competition MAPPO performed well and is a pointer for what we could use in our own MARL implementation.
+
+
+The application of Multi-Agent Reinforcement Learning (MARL) for carbon reduction in the construction industry is relatively recent field. Here are some other related works:
+
+\begin{itemize}
+
+	\item \textbf{Optimized Resource Allocation:}
+		MARL has been used to optimize resource allocation in construction sites, ensuring that machinery and equipment are used in a most efficient way. By minimizing idle times and optimizing machinery routes, fuel consumption can be reduced, leading to a decrease in carbon emissions\cite{resource_allocation}.
+
+	\item \textbf{Dynamic Scheduling:}
+		Construction projects often involve multiple tasks that need a proper coordination. MARL algorithms has been used for dynamic scheduling, ensuring that tasks are carried out in an optimized way, reducing potential delays and minimizing the carbon footprint due to inefficiencies\cite{dynamic_scheduling}.
+
+\end{itemize}
+
+While the above works have shown the potential of MARL, there is still potential to explore with the advent of newer algorithms. The main challenge remains in integrating these advanced techniques seamlessly into the traditional construction processes and ensuring real-world applicability.
+
+\noindent
+
+
+% -----------------------------------
+% ----------- CONCLUSION ------------
+% -----------------------------------
+\section{Conclusion}
+
+
+\newpage
+
+
+\section{Future work}
+% -----------------------------------
+% ----------- FUTURE WORK -----------
+% -----------------------------------
+\subsection{Reward function}
+There are several potential improvements we could make to the reward function, that might alleviate the agents from performing some unwanted actions that currently occur.
+Firstly, sometimes an agent will get stuck north of a hill not realizing it can reach the holes it wants to fill by going around it and instead get stuck in a loop going up and down.
+This behaviour might be caused by the fact that going the wrong direction currently doesn't give it a negative reward, but going the right direction does yield a positive reward, so such a behaviour where it gets stuck going up and down does actually yield a positive reward even though it doesn't actually contribute to the goal of the problem.
+Possible fixes are giving a penalty for going the wrong way or giving a possible reward for going sideways to encourage going around obstacles in cases where going the right way is impossible or not encouraged.
+Secondly multiple agents will sometimes get stuck trying to leave and fill holes among each other where all of them try to avoid colliding while also trying to go different ways.
+Their behaviour might be improved by giving them a penalty for being too close to one another or a reward for keeping proper distance, not just collision.
+
+\subsection{Environment and action space}
+Currently the environment we're using is a microgrid environment. This allows for moving up, down, right and left.
+While this is sufficient for a lot of states, in several cases we might want to go diagonally between two points as this means fewer steps, as well as a potentially shorter time between two holes are filled by one dump truck.
+Using a continuous environment instead with a continuous action space might cause the training time to increase but the asymptotic reward possible to reach would increase. The representation of the state could still be very similar to what it currently is, but the action space would significantly change.
+One possible implementation of this action space could instead of being a discrete set of directions be an angle and speed.
+As a consequence of this the reward function would also have to change, to not just encourage dump trucks to go for example 3000km/h to reach their goal in a single timestep, or not just give them a reward for getting closer to their goal, but how much distance is closed.
+The DQN approach would not be sufficient in this case because it is designed for discrete action spaces, PPO however is designed to both work for discrete and continuous action spaces.
+
+\subsection{Environment creation}
+Currently the environment is just created randomly with a certain set of features, excavators, agents and holes to be filled.
+For our implementation to be viable in a real world setting it would be necessary to procuce environments from images of real construction sites, and it would be massively beneficial for the training set to be similarly constructed.
+For this to be possible we would need a segmentation algorithm as well to find where all the important parts of the image are and either translate it into a microgrid like environment or simply use the image as well as the segmentation as the state and observation.
+Along with making this change the environment and action space would likely have to be made continuous as discussed in the previous paragraph.
+If the state is the image and not a transformation of the image into a microgrid or similar environment we would likely have to render each timestep as realistically as possible so it transfers nicely to the real world.
+A better approach might be to transform it into a microgrid like environment and in the real world update it for example every 5 timesteps to the current state with a new image and new segmenting to make sure the real world doesn't deviate too far from what the environment looks like.
+A way to implement this in training is to not make the environment entirely deterministic, and only update the environment to what it "actually" is every 5 timesteps.
+
+\subsection{Agents}
+Currently the excavators in our simulations are stationary, but in a real world scenario there isn't an infinite amount of mass where the excavators are stationed, so they would have to move every now and then, or possibly more often.
+This could be done by moving the excavators to the closest depot whenever they empty the depot of gravel they're standing by, but a potential better solution is adding them to the pool of agents with their own actions, this will most likely increase training time but might very well increase performance over all.
+Some minor changes should also likely be made to the dump truck agents to better resemble real world dump trucks.
+Currently emptying and loading happens instantaneously, which is unrealistic. Its possible they require one or more timesteps to do, which would allow other agents to move in this time.
+An excavator is also able to load more than a single dump truck at a time which is obviously impossible.
+
+\subsection{Future work conclusion}
+There are both small and big changes to be made. Due to limited time and resources we are not currently able to implement them, even though implementation of the smaller changes would not take a lot of time, the bigger issue is retraining the algorithm and measure performance before and after, if the change is performance based, but even in the case of realism based changes the training and graphs would have to be remade.
+
+% -----------------------------------
+% ----------- REFERENCES ------------
+% -----------------------------------
+\newpage
+
+
+% \nocite{*}        % This includes all references that haven't been explicitly cited
+\bibliography{citations.bib}
+\bibliographystyle{plain}
+
+
+% -----------------------------------
+% -------- ETHICS STATEMENT ---------
+% -----------------------------------
+\newpage
+
+\appendices
+\section{Ethics Statement}
+In the course of our project on Multiagent Reinforcement Learning, aimed at mitigating \coo{} emissions
+from construction sites, we have conducted research that involves no experiments with human participants.
+While this specific phase of our work does not directly raise concerns regarding wages or human
+participation, it is essential to recognize that the technologies and methodologies we are developing
+may eventually be applied in real-world settings where human interactions are integral. In such instances,
+it becomes crucial to address ethical considerations associated with human safety and well-being.
+
+We acknowledge that our current implementation serves as a simulation, and it is not as robust as a
+real-world application would need to be. However, we are committed to exploring ways to ensure that the
+agents, which are part of the system, incorporate safeguards to prevent harm to humans and machinery.
+This commitment reflects our ethical responsibility to uphold the safety and welfare of individuals who
+may interact with these agents in practical applications.
+
+Moreover, our reinforcement learning framework includes a reward function that assigns a substantial
+negative reward for agent collisions, with the intent of discouraging such incidents. The severity of
+this negative feedback is designed to minimize the likelihood of agents crashing into one another. It
+is important to note, though, that while our design minimizes such events, it does not guarantee their
+complete avoidance.
+
+The dataset we have employed for this project, generated by Skanska Norge AS and provided by Norwegian
+Artificial Intelligence Research Consortium (NORA), does not contain any personally identifiable
+information. Although the dataset's availability has yet to be confirmed, it was shared with us by NORA
+following the conclusion of the RoadAI competition.
+
+The primary objective of our project is to significantly reduce \coo{} emissions originating from
+construction sites, potentially leading to substantial environmental and societal benefits.
+Construction sites contribute 1.5\% of total Norwegian \coo{} emissions, making the reduction of
+emissions in this sector a vital endeavour. Implementing our system across numerous construction sites
+in Norway could result in a significant reduction in total \coo{} emissions, a crucial step toward a more
+sustainable future.
+
+In line with our commitment to ethical AI deployment, transparency and explainability need to be
+addressed. It is imperative to ensure stakeholders can understand and trust the model's decisions.
+Thus we have to make efforts to ensure that MARL algorithms are interpretable, allowing a comprehensive
+understanding of factors influencing decisions.
+
+Our research and project implementation do not support or enable any form of discrimination against
+individuals or groups. Furthermore, they do not entail risks related to deception or harassment.
+Our work is firmly rooted in legal activities and does not promote any restrictions on human rights.
+Our ethical commitment is to conduct research and develop technologies that contribute to a greener,
+more sustainable world without compromising the well-being of individuals or society as a whole.
 
 
 \end{document}
@@ -275,7 +527,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 % Title - 1 sentence
 %   (Your paper title should be specific, concise, and descriptive. Avoid using unnecessary words such as “new” or “novel”. Include keywords that will help a reader find your paper.)
-%   Proposal: RoadAI - A Multiagent Reinforcement Learning approach to reducing \coo emissions at a construction site
+%   Proposal: RoadAI - A Multiagent Reinforcement Learning approach to reducing \coo{} emissions at a construction site
 
 % Abstract - 4 sentences
 %   (Provide a concise summary of the research conducted. Include the conclusions reached and the potential implications of those conclusions. Your abstract should also:
