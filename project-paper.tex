@@ -237,8 +237,7 @@ The goal of these metrics was not only to see how our models performed throughou
 \end{figure}
 \\
 As you could see from the graphs the algorithms performed quite similiarly.
-Both algorithms managed to converge to what we could consider the reasonable optimum for the simulation ebnvironment as we defined. Note that
-
+Both algorithms managed to converge to what we could consider the reasonable optimum for the simulation ebnvironment as we defined. Note that the amount of mass moved is increasing
 
 \noindent
 
@@ -285,6 +284,8 @@ There is however the big caveat that the reality gap between our environment and
 Real construction sites aren't perfectly square and trucks aren't pixels capable of turning in every cardinal direction instantly. There is certainly more analysis needed on the cost-benefit tradeoff between having a lightweight simple environment, or a more realistic and complex one.
 Another big caveat is the lack of a proper baseline of comparasion to our solution.
 Originally we had planned to compare our solution to the solutions of the others contestants in the competion, but as far as we can tell no solution have been offically published, eventhough the competition is concluded.
+Another approach would be to create the environment based on images from real-life construction sites, and then
+compare the simulated trucks to the trucks in real life.
 Keeping these caveats in mind, this paper still shows the promise of MARL algorithms to solve these kind of
 problems where reinforcement learning doesn't traditionally come to mind.
 
