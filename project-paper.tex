@@ -52,7 +52,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 	ilyab@ifi.uio.no}
 	\and \\
 	\IEEEauthorblockN{Tom Frode Hansen}
-	\IEEEauthorblockA{\textit{NGI- Norges Geotekniske Institutt} \\
+	\IEEEauthorblockA{\textit{NGI- Norges Geotekniske Institutt}\\
 	Oslo, Norway \\
 	tom.frode.hansen@ngi.no
 	}
@@ -64,12 +64,28 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 % -----------------------------------
 % ------------ ABSTRACT -------------
 % -----------------------------------
-% \begin{abstract}
-% % Abstract is last thing we should write.
+\begin{abstract}
+\coo{} gas is one of the major contributors to greenhouse gases. Reducing greenhouse gases is an essential
+task in reducing the environmental impacts of global warming. From extreme weather to the ruin of ecosystems
+and mass extinctions, it is clear that global warming, caused by greenhouse gases, is a major existential issue.
+In Norway, 1.5\% of the total \coo{} emissions come from construction machines. Given the total greenhouse gas
+emissions adding up to almost 50 million metric tonnes of \coo{} equivalences, a reduction in emissions from
+construction machines will lead to a significant reduction in the country's total emissions.
 
-% % Should have 3-5 keywords.
-% Index Terms - Multi-Agent Reinforcement Learning (MARL),
-% \end{abstract}
+Although there have been studies conducted that use Reinforcement Learning techniques to reduce emissions by
+optimizing routes and scheduling, our attempt in this paper is to extend this to the use of Multi-Agent
+Reinforcement Learning techniques. The field of Multi-Agent Reinforcement Learning has gained more and more
+applications.
+
+This paper demonstrates implementations of Multi-Agent versions of two well-tested Reinforcement Learning
+methods: Proximal Policy Optimization and Deep Q-Networks. This paper shows the promising results of how 
+Multi-Agent Reinforcement Learning could be used to reduce \coo{} emissions, but it also highlights many ways in
+which these methods can be improved.
+
+
+% Should have 3-5 keywords.
+Index Terms - Multi-Agent Reinforcement Learning (MARL),
+\end{abstract}
 
 
 % -----------------------------------
@@ -92,7 +108,7 @@ emissions.
 
 % RL for GHG reduction
 In a Swiss and German study, the goal was to use Reinforcement Learning (RL) for route optimization in
-an attempt to reduce \coo emissions. \cite{MORADI2022111882} The study used an implementation of three
+an attempt to reduce \coo{}emissions. \cite{MORADI2022111882} The study used an implementation of three
 different RL algorithms in order to optimize the ship's speed and direction: Deep Q-Network (DQN),
 Deep Deterministic Policy Gradient (DDPG) and Proximal Policy Optimization (PPO). The study reported a
 saving in fuel consumption of between approx. 1 and 6 percent, where DDPG demonstrates the best result,
@@ -108,7 +124,16 @@ payload and maintenence requirements. As a result, the model showed an up to 30\
 gases while having no impact on production levels.
 
 % MARL?
-The field of Multi-agent Reinforcement Learning (MARL) is a 
+The field of Multi-agent Reinforcement Learning (MARL) is an emerging field in informatics. We see a wide
+range of applications, such as robotics where it's been used to make joints in a single robot more
+cooperative with others \cite{Perrusquia_Yu_Li_2020} as well as multiple robots. \cite{Wang2022}
+Other usages of MARL is in railroad scheduling \cite{laurent2021flatland} and solving various games
+\cite{ellis2022smacv2} and \cite{yu2022surprising}.
+
+As we see there's a diverse set of use-cases for MARL. This paper will be presenting a way of implementing
+MARL techniques seen in \cite{Perrusquia_Yu_Li_2020}, \cite{Wang2022}, \cite{laurent2021flatland},
+\cite{ellis2022smacv2} and \cite{yu2022surprising} to expand upon the works done in emissions reduction
+with single-agent RL seen in \cite{HUO2023106664} and \cite{MORADI2022111882}.
 
 % Environments?
 
@@ -121,7 +146,7 @@ effectiveness of the PPO algorithm on multiagent cooperative problems. \cite{yu2
 % DQN / QMIX?
 
 % Our work
-The purpose of this paper is to highlight the use of MARL algorithms in order to reduce \coo emissions
+The purpose of this paper is to highlight the use of MARL algorithms in order to reduce \coo{} emissions
 from construction sites. This is done through reducing the distance driven by dump trucks at the site,
 reducing idle time and optimal route finding in order to reduce acceleration due to topography. In this
 paper, we will demonstrate an implementation of two different MARL algorithms:
@@ -238,7 +263,7 @@ multi-agent problems. However, the \textit{Flatlands-RL} paper is most concerned
 In the paper \textit{The Surprising Effectiveness of PPO in Cooperative, Multi-Agent Games}, \cite{yu2022surprising}
 we see another case where a PPO-algorithm performs well in multi-agent problems.
 
-We aim to evaluate MARL methods as a way to reduce \coo emissions at a construction site in this paper.
+We aim to evaluate MARL methods as a way to reduce \coo{} emissions at a construction site in this paper.
 Seeing promising results for MAPPO in several related works, including \textit{Flatlands-RL} \cite{laurent2021flatland},
 \textit{The Surprising Effectiveness of PPO [...]} \cite{yu2022surprising} and \textit{SMACv2} \cite{ellis2022smacv2}-
 it is natural to choose this algorithm. In addition we will attempt a Multi-Agent implementation of DQN. Although the
@@ -246,11 +271,12 @@ overall goal of this paper isn't to compare MARL algorithms, this could yield so
 usage of the two algorithms in this sort of problem.
 
 
+
+
 % -----------------------------------
 % ----------- CONCLUSION ------------
 % -----------------------------------
 \section{Conclusion}
-
 The RoadAIs competition goal was to reduce \coo{} emissions from the construction of roads.
 The competition and dataset was certainly not created with a MARL solution in mind.
 This papers goal was to lay the framwork for a possible MARL solution to the problem.
@@ -306,11 +332,10 @@ There are both small and big changes to be made. Due to limited time and resourc
 
 
 
-
 % -----------------------------------
 % -------- ETHICS STATEMENT ---------
 % -----------------------------------
-\newpage
+% \newpage
 
 \appendices
 \section{Ethics Statement}
