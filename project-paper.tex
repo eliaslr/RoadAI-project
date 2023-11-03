@@ -75,6 +75,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 	% -----------------------------------
 	% - INTRODUCTION  -
 	% -----------------------------------
+	\section{Indroduction}
 	Carbon dioxide (\coo{}) emission is one of the largest contributions to greenhouse gasses and global warming.
 	Reducing \coo{} emissions is an important step in preventing global warming and all of the negative
 	consequences associated with it. Norway's total greenhouse gas emissions were, according to Statistics
@@ -183,7 +184,6 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 	2.500.000 timesteps and took in total 2 hours on a NVIDIA GTX 3070 with 8gb of video ram.
 	\subsection{Hyperparameter Optimization}
 	We used the optuna library to hyperparameter optimize our the PPO algorithm. Optuna uses a baynesian search to find the best parameters for us. This way we could make sure that our results reach high average rewards when combined with a fitting policy.
-	\newpage
 	% -----------------------------------
 	% ------ RESULTS AND DISCUSSION -----
 	% -----------------------------------
@@ -208,7 +208,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 	\end{figure}
 	\\
 	As you could see from the graphs the algorithms performed quite similiarly.
-	Both algorithms managed to converge to what we could consider the reasonable optimum.
+	Both algorithms managed to converge to what we could consider the reasonable optimum for the simulation ebnvironment as we defined. Note that
 
 
 	\noindent
@@ -259,8 +259,19 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 	% -----------------------------------
 	\section{Conclusion}
 
+	The RoadAIs competition goal was to reduce \coo{} emissions from the construction of roads.
+	The competition and dataset was certainly not created with a MARL solution in mind.
+	This papers goal was to lay the framwork for a possible MARL solution to the problem.
+	By training the agents on our custom environment we have shown that MARL algorithms can be used to solve this problem.
+	There is hoverver the big caveat that reality gap between our environment and real life.
+	Real construction sites aren't perfectly square and trucks aren't pixels capable of turning in every cardinal direction instantly.
+	Another big caveat is the lack of a proper baseline of comparasion to our solution.
+	Originally we had planned to compare our solution to the others contestants in the competion solutions, but
+	as far as we can tell no solution have been offically published.
+	Keeping these caveats in mind, this paper still shows the promise of MARL algorithms to show these kind of
+	problems where reinforcement learning doesn't traditionally come to mind.
 
-	\newpage
+
 
 	\section{Future work}
 	% -----------------------------------
