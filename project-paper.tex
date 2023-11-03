@@ -176,9 +176,14 @@ PPO is an actor-critic method that is currently considered state of the art, and
 It implements clipping of the gradient to ensure we don't overshoot when climbing.
 It is also stochastic by design where the policy $\pi_\theta$ chooses random actions according to a certain heat which decreases over time.
 
+PPO as an algorithm is a reasonable choice as it's very sample efficient when learning which is important because getting training examples is a very time consuming project.
+Even though we didnt manage to make use of real world examples to train, this might be relevant in the future if this project is expanded upon. It is shown later in this paper that PPO learns faster than DQN in our specific project which is to be expected.
+
 \subsection{Multiagent DQN}
 We attempted a version of DQN where the reward for an action is given as the average reward for all the actions in that timestep. The issue with this is that it might reward a "bad" action and punish a "good" action if the average reward that timestep was high or low respectively, it turns out not treating it as a cooperative system but rather a system where every agent attempts to maximise their own reward is significantly more effecient.
-It's possible that with better hyperparameters or longer training time our multi agent implementation of DQN might outperform the single agent implementation, but with the training time and hyperparameters used we struggled to get positive rewards at all with this approach. We ended up using the Stable-Baselines3 implementation of DQN.
+It's possible that with better hyperparameters or longer training time our multi agent implementation of DQN might outperform the single agent implementation, but with the training time and hyperparameters used we struggled to get positive rewards at all with this approach.
+We ended up using the Stable-Baselines3 implementation of DQN, which may have affected the difference in performance as well as the attempted multi agent DQN was based on the DQN tutorial found at pytorch.org/tutorials/intermediate/reinforcement\_q\_learning.html
+Having more than one policy is important for research to make sure choice of policy doesn't heavily affect the outcome of training. As is shown later in this paper, both of these methods performed quite similarly.
 \subsection{Stable-Baselines}
 While Stable-Baselines is not inherently compatible with multi-agent environments we found that if you
 query the algorithm for each agent, and then return the observation for the next agent in line you could make it work in an MARL situation. This approach was suprisingly effective.
@@ -212,7 +217,11 @@ The goal of these metrics was not only to see how our models performed throughou
 \end{figure}
 \\
 As you could see from the graphs the algorithms performed quite similiarly.
-Both algorithms managed to converge to what we could consider the reasonable optimum for the simulation ebnvironment as we defined. Note that
+Both algorithms managed to converge to what we could consider the reasonable optimum for the simulation ebnvironment as we defined. Note that the amount of mass moved is increasing with each iteration, which means that both algorithms are learning and improving over time. The PPO algorithm shows a slightly higher performance initially, but the DQN eventually stabilizes at a similar value. This shows that although PPO may learn quicker initially, both of the algorithms, given enough time reaches a near optimal performance.
+
+Also noteworthy are the noticeable negative spikes, which indicate the points at which the agents got stuck and were unable to perform their task. These spikes are more pronounced in the case of DQN, suggesting that it might have a higher variance or instability during the learning process.
+
+Overall, this test shows that both DQN and PPO can be effective algorithms for this type of reinforcement learning task. However, the specific choice between the two might depend on other factors such as computational resources, the complexity of the environment, and the desired speed and stability of learning.
 
 
 \noindent
@@ -294,6 +303,11 @@ If the state is the image and not a transformation of the image into a microgrid
 A better approach might be to transform it into a microgrid like environment and in the real world update it for example every 5 timesteps to the current state with a new image and new segmenting to make sure the real world doesn't deviate too far from what the environment looks like.
 A way to implement this in training is to not make the environment entirely deterministic, and only update the environment to what it "actually" is every 5 timesteps.
 
+\begin{figure}[h!]
+	%TODO ADD new image
+	\includegraphics[width=\columnwidth]{graphs/construction_site.jpg}
+	\caption{Example of what would need to be segmented}
+\end{figure}
 \subsection{Agents}
 Currently the excavators in our simulations are stationary, but in a real world scenario there isn't an infinite amount of mass where the excavators are stationed, so they would have to move every now and then, or possibly more often.
 This could be done by moving the excavators to the closest depot whenever they empty the depot of gravel they're standing by, but a potential better solution is adding them to the pool of agents with their own actions, this will most likely increase training time but might very well increase performance over all.
