@@ -75,6 +75,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 	% -----------------------------------
 	% - INTRODUCTION  -
 	% -----------------------------------
+  \section{Introduction}
 	Carbon dioxide (\coo{}) emission is one of the largest contributions to greenhouse gasses and global warming.
 	Reducing \coo{} emissions is an important step in preventing global warming and all of the negative
 	consequences associated with it. Norway's total greenhouse gas emissions were, according to Statistics
@@ -90,11 +91,14 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 	emissions.
 
 	% RL for GHG reduction
-	In a study from 2022, a group of researchers from Germany and Switzerland used reinforcement learning
-	(RL) for route optimization of marine transport. \cite{MORADI2022111882} This study ... \textless Elaborate. You need
-	Eduroam to read the article\footnote{\url{https://www.sciencedirect.com/science/article/abs/pii/S0029801822012239?casa_token=kkxSoukxDkgAAAAA:eDAPRTWeGqMvCvfZxtBB9mJLswCbGDP2922zGX3HWtWn_hDtYkWM_PWqaJWsSmJBTc42HzL8BYI}} \textgreater % Need to fix these footnotes to proper citations
+  In a Swiss and German study, the goal was to use Reinforcement Learning (RL) for route optimization in
+  an attempt to reduce \coo emissions. \cite{MORADI2022111882} The study used an implementation of three
+  different RL algorithms in order to optimize the ship's speed and direction: Deep Q-Network (DQN),
+  Deep Deterministic Policy Gradient (DDPG) and Proximal Policy Optimization (PPO). The study reported a
+  saving in fuel consumption of between approx. 1 and 6 percent, where DDPG demonstrates the best result,
+  and DQN yields the least improvement.
 
-	Another study from Canada \cite{HUO2023106664} showed promising results in reduction of greenhouse gas
+	Another study, from Canada, \cite{HUO2023106664} showed promising results in reduction of greenhouse gas
 	emissions
 	from dump trucks' fuel consumption in a open-pit mining fleet. This model is a Q-learning RL algorithm
 	which aims to improve fleet productivity, and decreasing idle time, which in turn reduces the greenhouse
@@ -183,7 +187,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 	2.500.000 timesteps and took in total 2 hours on a NVIDIA GTX 3070 with 8gb of video ram.
 	\subsection{Hyperparameter Optimization}
 	We used the optuna library to hyperparameter optimize our the PPO algorithm. Optuna uses a baynesian search to find the best parameters for us. This way we could make sure that our results reach high average rewards when combined with a fitting policy.
-	\newpage
+	% \newpage
 	% -----------------------------------
 	% ------ RESULTS AND DISCUSSION -----
 	% -----------------------------------
@@ -218,38 +222,37 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 	% ---------- RELATED WORK -----------
 	% -----------------------------------
 	\section{Related works}
-	SMACv2\cite{ellis2022smacv2} evaluates two MARL algorithms for problems using centralized training with
-	decentralized execution (CTDE); QMIX and MAPPO.
+	The SMACv2 \cite{ellis2022smacv2} research paper describes a new version of the StarCraft Multi-Agent
+  Challenge (SMAC), hence the title. The SMAC testbed has been vital in the testing- and in turn improvement
+  of Multi-Agent ML algorithms. Given the updated version of SMAC, the team tested the performance og two
+  MARL- algorithms: (1) QMIX- a multi-agent implementation of DQN- and (2) MAPPO- Multi-Agent PPO. The
+  results yielded an up to 80\% win rate. The QMIX-algorithm generally performs better than that of MAPPO.
+  However, they note that MAPPO is still increasing its win rate towards the end of training, implying
+  that with further training, this algorithm could yield better results.
+	% In this paper, we have implemented multi-agent implementations of both DQN and PPO. The goal is to compare
+  % the results from both of these implementations. 
 
-	QMIX employs a centralized critic to estimate joint action-value functions, while MAPPO uses a decentralized
-	actor-critic framework with a centralized value function.
-
-	QMIX outperformed MAPPO on most scenarios, but QMIX is memory-intensive due to its large replay buffer. For
-	this reason, QMIX requires more computational power. In addition, the paper notes that MAPPO was still
-	increasing its performance at the time of termination in several scenarios, which indicates it could end up
-	with a better result.
-
-	This paper aims to evaluate both the QMIX and MAPPO algorithms.
+  Flatlands \cite{laurent2021flatland} introduces an environment for testing MARL algorithms aimed at
+  solving the vehicle rescheduling problem (VRSP). They also test several RL and IL algorithms for
+  multiple agents: DQN, Ape-X and PPO. 
+	% Flatlands \cite{laurent2021flatland} was a competition where contestants to design a MARL algorithm for
+	% train scheduling. This is similar to the approach we seek to use to solve RoadAI.
+	% In the competition MAPPO performed well and is a pointer for what we could use in our own MARL implementation.
 
 
-	Flatlands\cite{laurent2021flatland} was a competition where contestants to design a MARL algorithm for
-	train scheduling. This is similar to the approach we seek to use to solve RoadAI.
-	In the competition MAPPO performed well and is a pointer for what we could use in our own MARL implementation.
+	% The application of Multi-Agent Reinforcement Learning (MARL) for carbon reduction in the construction industry is relatively recent field. Here are some other related works:
 
+	% \begin{itemize}
 
-	The application of Multi-Agent Reinforcement Learning (MARL) for carbon reduction in the construction industry is relatively recent field. Here are some other related works:
+	% 	\item \textbf{Optimized Resource Allocation:}
+	% 		MARL has been used to optimize resource allocation in construction sites, ensuring that machinery and equipment are used in a most efficient way. By minimizing idle times and optimizing machinery routes, fuel consumption can be reduced, leading to a decrease in carbon emissions\cite{resource_allocation}.
 
-	\begin{itemize}
+	% 	\item \textbf{Dynamic Scheduling:}
+	% 		Construction projects often involve multiple tasks that need a proper coordination. MARL algorithms has been used for dynamic scheduling, ensuring that tasks are carried out in an optimized way, reducing potential delays and minimizing the carbon footprint due to inefficiencies\cite{dynamic_scheduling}.
 
-		\item \textbf{Optimized Resource Allocation:}
-			MARL has been used to optimize resource allocation in construction sites, ensuring that machinery and equipment are used in a most efficient way. By minimizing idle times and optimizing machinery routes, fuel consumption can be reduced, leading to a decrease in carbon emissions\cite{resource_allocation}.
+	% \end{itemize}
 
-		\item \textbf{Dynamic Scheduling:}
-			Construction projects often involve multiple tasks that need a proper coordination. MARL algorithms has been used for dynamic scheduling, ensuring that tasks are carried out in an optimized way, reducing potential delays and minimizing the carbon footprint due to inefficiencies\cite{dynamic_scheduling}.
-
-	\end{itemize}
-
-	While the above works have shown the potential of MARL, there is still potential to explore with the advent of newer algorithms. The main challenge remains in integrating these advanced techniques seamlessly into the traditional construction processes and ensuring real-world applicability.
+	% While the above works have shown the potential of MARL, there is still potential to explore with the advent of newer algorithms. The main challenge remains in integrating these advanced techniques seamlessly into the traditional construction processes and ensuring real-world applicability.
 
 	\noindent
 
@@ -260,7 +263,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 	\section{Conclusion}
 
 
-	\newpage
+
 
 	\section{Future work}
 	% -----------------------------------
@@ -308,7 +311,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 	% -----------------------------------
 	% -------- ETHICS STATEMENT ---------
 	% -----------------------------------
-	\newpage
+	% \newpage
 
 	\appendices
 	\section{Ethics Statement}
@@ -357,7 +360,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 	% -----------------------------------
 	% ----------- REFERENCES ------------
 	% -----------------------------------
-	\newpage
+	% \newpage
 
 
 	% \nocite{*}        % This includes all references that haven't been explicitly cited
