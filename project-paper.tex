@@ -91,11 +91,14 @@ present a method for using Multiagent Reinforcement Learning (MARL) algorithms i
 emissions.
 
 % RL for GHG reduction
-In a study from 2022, a group of researchers from Germany and Switzerland used reinforcement learning
-(RL) for route optimization of marine transport. \cite{MORADI2022111882} This study ... \textless Elaborate. You need
-Eduroam to read the article\footnote{\url{https://www.sciencedirect.com/science/article/abs/pii/S0029801822012239?casa_token=kkxSoukxDkgAAAAA:eDAPRTWeGqMvCvfZxtBB9mJLswCbGDP2922zGX3HWtWn_hDtYkWM_PWqaJWsSmJBTc42HzL8BYI}} \textgreater % Need to fix these footnotes to proper citations
+In a Swiss and German study, the goal was to use Reinforcement Learning (RL) for route optimization in
+an attempt to reduce \coo emissions. \cite{MORADI2022111882} The study used an implementation of three
+different RL algorithms in order to optimize the ship's speed and direction: Deep Q-Network (DQN),
+Deep Deterministic Policy Gradient (DDPG) and Proximal Policy Optimization (PPO). The study reported a
+saving in fuel consumption of between approx. 1 and 6 percent, where DDPG demonstrates the best result,
+and DQN yields the least improvement.
 
-Another study from Canada \cite{HUO2023106664} showed promising results in reduction of greenhouse gas
+Another study, from Canada, \cite{HUO2023106664} showed promising results in reduction of greenhouse gas
 emissions
 from dump trucks' fuel consumption in a open-pit mining fleet. This model is a Q-learning RL algorithm
 which aims to improve fleet productivity, and decreasing idle time, which in turn reduces the greenhouse
@@ -104,9 +107,10 @@ fixed one. The RL model, trained on a simulated environment, takes into account 
 payload and maintenence requirements. As a result, the model showed an up to 30\% reduction in greenhouse
 gases while having no impact on production levels.
 
-% MARL
+% MARL?
+The field of Multi-agent Reinforcement Learning (MARL) is a 
 
-% Environments
+% Environments?
 
 % PPO / MAPPO
 Proximal Policy Optimization (PPO) is an RL algorithm used mostly for single-agent reinforcement learning.
@@ -114,7 +118,7 @@ This is due to the fact that PPO is often considered less sample-effective than 
 when it comes to MARL problems. In a study made by researchers from China and USA, however, they showed the
 effectiveness of the PPO algorithm on multiagent cooperative problems. \cite{yu2022surprising}
 
-% DQN / QMIX
+% DQN / QMIX?
 
 % Our work
 The purpose of this paper is to highlight the use of MARL algorithms in order to reduce \coo emissions
@@ -217,40 +221,28 @@ Both algorithms managed to converge to what we could consider the reasonable opt
 % ---------- RELATED WORK -----------
 % -----------------------------------
 \section{Related works}
-SMACv2\cite{ellis2022smacv2} evaluates two MARL algorithms for problems using centralized training with
-decentralized execution (CTDE); QMIX and MAPPO.
+The \textit{SMACv2} \cite{ellis2022smacv2} research paper describes a new version of the StarCraft Multi-Agent
+Challenge (SMAC), hence the title. The SMAC testbed has been vital in the testing- and in turn improvement
+of Multi-Agent ML algorithms. Given the updated version of SMAC, the team tested the performance og two
+MARL- algorithms: (1) QMIX- a multi-agent implementation of DQN- and (2) MAPPO- Multi-Agent PPO. The
+results yielded an up to 80\% win rate. The QMIX-algorithm generally performs better than that of MAPPO.
+However, they note that MAPPO is still increasing its win rate towards the end of training, implying
+that with further training, this algorithm could yield better results.
 
-QMIX employs a centralized critic to estimate joint action-value functions, while MAPPO uses a decentralized
-actor-critic framework with a centralized value function.
+\textit{Flatlands-RL} \cite{laurent2021flatland} introduces an environment for testing MARL algorithms aimed at
+solving the vehicle rescheduling problem (VRSP). They also test several RL and IL algorithms for
+multiple agents with promising results for the MAPPO algorithm. This case shows the use of MARL in cooperative
+multi-agent problems. However, the \textit{Flatlands-RL} paper is most concerned with solving the VRSP problem.
 
-QMIX outperformed MAPPO on most scenarios, but QMIX is memory-intensive due to its large replay buffer. For
-this reason, QMIX requires more computational power. In addition, the paper notes that MAPPO was still
-increasing its performance at the time of termination in several scenarios, which indicates it could end up
-with a better result.
+In the paper \textit{The Surprising Effectiveness of PPO in Cooperative, Multi-Agent Games}, \cite{yu2022surprising}
+we see another case where a PPO-algorithm performs well in multi-agent problems.
 
-This paper aims to evaluate both the QMIX and MAPPO algorithms.
-
-
-Flatlands\cite{laurent2021flatland} was a competition where contestants to design a MARL algorithm for
-train scheduling. This is similar to the approach we seek to use to solve RoadAI.
-In the competition MAPPO performed well and is a pointer for what we could use in our own MARL implementation.
-
-
-The application of Multi-Agent Reinforcement Learning (MARL) for carbon reduction in the construction industry is relatively recent field. Here are some other related works:
-
-\begin{itemize}
-
-	\item \textbf{Optimized Resource Allocation:}
-		MARL has been used to optimize resource allocation in construction sites, ensuring that machinery and equipment are used in a most efficient way. By minimizing idle times and optimizing machinery routes, fuel consumption can be reduced, leading to a decrease in carbon emissions\cite{resource_allocation}.
-
-	\item \textbf{Dynamic Scheduling:}
-		Construction projects often involve multiple tasks that need a proper coordination. MARL algorithms has been used for dynamic scheduling, ensuring that tasks are carried out in an optimized way, reducing potential delays and minimizing the carbon footprint due to inefficiencies\cite{dynamic_scheduling}.
-
-\end{itemize}
-
-While the above works have shown the potential of MARL, there is still potential to explore with the advent of newer algorithms. The main challenge remains in integrating these advanced techniques seamlessly into the traditional construction processes and ensuring real-world applicability.
-
-\noindent
+We aim to evaluate MARL methods as a way to reduce \coo emissions at a construction site in this paper.
+Seeing promising results for MAPPO in several related works, including \textit{Flatlands-RL} \cite{laurent2021flatland},
+\textit{The Surprising Effectiveness of PPO [...]} \cite{yu2022surprising} and \textit{SMACv2} \cite{ellis2022smacv2}-
+it is natural to choose this algorithm. In addition we will attempt a Multi-Agent implementation of DQN. Although the
+overall goal of this paper isn't to compare MARL algorithms, this could yield some interresting results about the
+usage of the two algorithms in this sort of problem.
 
 
 % -----------------------------------
