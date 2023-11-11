@@ -52,7 +52,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 	ilyab@ifi.uio.no}
 	\and \\
 	\IEEEauthorblockN{Tom Frode Hansen}
-	\IEEEauthorblockA{\textit{NGI- Norges Geotekniske Institutt}\\
+	\IEEEauthorblockA{\textit{NGI- Norges Geotekniske Institutt} \\
 	Oslo, Norway \\
 	tom.frode.hansen@ngi.no
 	}
@@ -64,28 +64,12 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 % -----------------------------------
 % ------------ ABSTRACT -------------
 % -----------------------------------
-\begin{abstract}
-\coo{} gas is one of the major contributors to greenhouse gases. Reducing greenhouse gases is an essential
-task in reducing the environmental impacts of global warming. From extreme weather to the ruin of ecosystems
-and mass extinctions, it is clear that global warming, caused by greenhouse gases, is a major existential issue.
-In Norway, 1.5\% of the total \coo{} emissions come from construction machines. Given the total greenhouse gas
-emissions adding up to almost 50 million metric tonnes of \coo{} equivalences, a reduction in emissions from
-construction machines will lead to a significant reduction in the country's total emissions.
+% \begin{abstract}
+% % Abstract is last thing we should write.
 
-Although there have been studies conducted that use Reinforcement Learning techniques to reduce emissions by
-optimizing routes and scheduling, our attempt in this paper is to extend this to the use of Multi-Agent
-Reinforcement Learning techniques. The field of Multi-Agent Reinforcement Learning has gained more and more
-applications.
-
-This paper demonstrates implementations of Multi-Agent versions of two well-tested Reinforcement Learning
-methods: Proximal Policy Optimization and Deep Q-Networks. This paper shows the promising results of how 
-Multi-Agent Reinforcement Learning could be used to reduce \coo{} emissions, but it also highlights many ways in
-which these methods can be improved.
-
-
-% Should have 3-5 keywords.
-Index Terms - Multi-Agent Reinforcement Learning (MARL),
-\end{abstract}
+% % Should have 3-5 keywords.
+% Index Terms - Multi-Agent Reinforcement Learning (MARL),
+% \end{abstract}
 
 
 % -----------------------------------
@@ -108,7 +92,7 @@ emissions.
 
 % RL for GHG reduction
 In a Swiss and German study, the goal was to use Reinforcement Learning (RL) for route optimization in
-an attempt to reduce \coo{}emissions. \cite{MORADI2022111882} The study used an implementation of three
+an attempt to reduce \coo emissions. \cite{MORADI2022111882} The study used an implementation of three
 different RL algorithms in order to optimize the ship's speed and direction: Deep Q-Network (DQN),
 Deep Deterministic Policy Gradient (DDPG) and Proximal Policy Optimization (PPO). The study reported a
 saving in fuel consumption of between approx. 1 and 6 percent, where DDPG demonstrates the best result,
@@ -124,16 +108,7 @@ payload and maintenence requirements. As a result, the model showed an up to 30\
 gases while having no impact on production levels.
 
 % MARL?
-The field of Multi-agent Reinforcement Learning (MARL) is an emerging field in informatics. We see a wide
-range of applications, such as robotics where it's been used to make joints in a single robot more
-cooperative with others \cite{Perrusquia_Yu_Li_2020} as well as multiple robots. \cite{Wang2022}
-Other usages of MARL is in railroad scheduling \cite{laurent2021flatland} and solving various games
-\cite{ellis2022smacv2} and \cite{yu2022surprising}.
-
-As we see there's a diverse set of use-cases for MARL. This paper will be presenting a way of implementing
-MARL techniques seen in \cite{Perrusquia_Yu_Li_2020}, \cite{Wang2022}, \cite{laurent2021flatland},
-\cite{ellis2022smacv2} and \cite{yu2022surprising} to expand upon the works done in emissions reduction
-with single-agent RL seen in \cite{HUO2023106664} and \cite{MORADI2022111882}.
+The field of Multi-agent Reinforcement Learning (MARL) is a
 
 % Environments?
 
@@ -146,7 +121,7 @@ effectiveness of the PPO algorithm on multiagent cooperative problems. \cite{yu2
 % DQN / QMIX?
 
 % Our work
-The purpose of this paper is to highlight the use of MARL algorithms in order to reduce \coo{} emissions
+The purpose of this paper is to highlight the use of MARL algorithms in order to reduce \coo emissions
 from construction sites. This is done through reducing the distance driven by dump trucks at the site,
 reducing idle time and optimal route finding in order to reduce acceleration due to topography. In this
 paper, we will demonstrate an implementation of two different MARL algorithms:
@@ -201,14 +176,9 @@ PPO is an actor-critic method that is currently considered state of the art, and
 It implements clipping of the gradient to ensure we don't overshoot when climbing.
 It is also stochastic by design where the policy $\pi_\theta$ chooses random actions according to a certain heat which decreases over time.
 
-PPO as an algorithm is a reasonable choice as it's very sample efficient when learning which is important because getting training examples is a very time consuming project.
-Even though we didnt manage to make use of real world examples to train, this might be relevant in the future if this project is expanded upon. It is shown later in this paper that PPO learns faster than DQN in our specific project which is to be expected.
-
 \subsection{Multiagent DQN}
 We attempted a version of DQN where the reward for an action is given as the average reward for all the actions in that timestep. The issue with this is that it might reward a "bad" action and punish a "good" action if the average reward that timestep was high or low respectively, it turns out not treating it as a cooperative system but rather a system where every agent attempts to maximise their own reward is significantly more effecient.
-It's possible that with better hyperparameters or longer training time our multi agent implementation of DQN might outperform the single agent implementation, but with the training time and hyperparameters used we struggled to get positive rewards at all with this approach.
-We ended up using the Stable-Baselines3 implementation of DQN, which may have affected the difference in performance as well as the attempted multi agent DQN was based on the DQN tutorial found at pytorch.org/tutorials/intermediate/reinforcement\_q\_learning.html
-Having more than one policy is important for research to make sure choice of policy doesn't heavily affect the outcome of training. As is shown later in this paper, both of these methods performed quite similarly.
+It's possible that with better hyperparameters or longer training time our multi agent implementation of DQN might outperform the single agent implementation, but with the training time and hyperparameters used we struggled to get positive rewards at all with this approach. We ended up using the Stable-Baselines3 implementation of DQN.
 \subsection{Stable-Baselines}
 While Stable-Baselines is not inherently compatible with multi-agent environments we found that if you
 query the algorithm for each agent, and then return the observation for the next agent in line you could make it work in an MARL situation. This approach was suprisingly effective.
@@ -235,6 +205,7 @@ The goal of these metrics was not only to see how our models performed throughou
 	\includegraphics[width=\columnwidth]{graphs/PPOvsDQN250.png}
 	\caption{Mean Episodic rewards}
 \end{figure}
+\\
 \begin{figure}[h!]
 	%TODO ADD new image
 	\includegraphics[width=\columnwidth]{graphs/PPOvsDQN500mass.png}
@@ -242,12 +213,7 @@ The goal of these metrics was not only to see how our models performed throughou
 \end{figure}
 \\
 As you could see from the graphs the algorithms performed quite similiarly.
-Both algorithms managed to converge to what we could consider the reasonable optimum for the simulation ebnvironment as we defined. Note that the amount of mass moved is increasing with each iteration, which means that both algorithms are learning and improving over time. The PPO algorithm shows a slightly higher performance initially, but the DQN eventually stabilizes at a similar value. This shows that although PPO may learn quicker initially, both of the algorithms, given enough time reaches a near optimal performance.
-
-Also noteworthy are the noticeable negative spikes, which indicate the points at which the agents got stuck and were unable to perform their task. These spikes are more pronounced in the case of DQN, suggesting that it might have a higher variance or instability during the learning process.
-
-Overall, this test shows that both DQN and PPO can be effective algorithms for this type of reinforcement learning task. However, the specific choice between the two might depend on other factors such as computational resources, the complexity of the environment, and the desired speed and stability of learning.
-
+Both algorithms managed to converge to what we could consider the reasonable optimum for the simulation ebnvironment as we defined. Note that the amount of mass moved is increasing
 
 \noindent
 
@@ -272,7 +238,7 @@ multi-agent problems. However, the \textit{Flatlands-RL} paper is most concerned
 In the paper \textit{The Surprising Effectiveness of PPO in Cooperative, Multi-Agent Games}, \cite{yu2022surprising}
 we see another case where a PPO-algorithm performs well in multi-agent problems.
 
-We aim to evaluate MARL methods as a way to reduce \coo{} emissions at a construction site in this paper.
+We aim to evaluate MARL methods as a way to reduce \coo emissions at a construction site in this paper.
 Seeing promising results for MAPPO in several related works, including \textit{Flatlands-RL} \cite{laurent2021flatland},
 \textit{The Surprising Effectiveness of PPO [...]} \cite{yu2022surprising} and \textit{SMACv2} \cite{ellis2022smacv2}-
 it is natural to choose this algorithm. In addition we will attempt a Multi-Agent implementation of DQN. Although the
@@ -280,12 +246,11 @@ overall goal of this paper isn't to compare MARL algorithms, this could yield so
 usage of the two algorithms in this sort of problem.
 
 
-
-
 % -----------------------------------
 % ----------- CONCLUSION ------------
 % -----------------------------------
 \section{Conclusion}
+
 The RoadAIs competition goal was to reduce \coo{} emissions from the construction of roads.
 The competition and dataset was certainly not created with a MARL solution in mind.
 This papers goal was to lay the framwork for a possible MARL solution to the problem.
@@ -331,11 +296,6 @@ If the state is the image and not a transformation of the image into a microgrid
 A better approach might be to transform it into a microgrid like environment and in the real world update it for example every 5 timesteps to the current state with a new image and new segmenting to make sure the real world doesn't deviate too far from what the environment looks like.
 A way to implement this in training is to not make the environment entirely deterministic, and only update the environment to what it "actually" is every 5 timesteps.
 
-\begin{figure}[h!]
-	%TODO ADD new image
-	\includegraphics[width=\columnwidth]{graphs/construction_site.jpg}
-	\caption{Example of what would need to be segmented}
-\end{figure}
 \subsection{Agents}
 Currently the excavators in our simulations are stationary, but in a real world scenario there isn't an infinite amount of mass where the excavators are stationed, so they would have to move every now and then, or possibly more often.
 This could be done by moving the excavators to the closest depot whenever they empty the depot of gravel they're standing by, but a potential better solution is adding them to the pool of agents with their own actions, this will most likely increase training time but might very well increase performance over all.
@@ -347,27 +307,14 @@ An excavator is also able to load more than a single dump truck at a time which 
 There are both small and big changes to be made. Due to limited time and resources we are not currently able to implement them, even though implementation of the smaller changes would not take a lot of time, the bigger issue is retraining the algorithm and measure performance before and after, if the change is performance based, but even in the case of realism based changes the training and graphs would have to be remade.
 
 
-% -----------------------------------
-% -------- ACKNOWLEDGEMENTS ---------
-% -----------------------------------
-\section{Acknowledgements}
-Thank you to the University of Oslo, Department of Informatics and the Robotics and
-Intelligent Systems (ROBIN) research group for supporting this project. A special thanks goes to
-Tom Frode Hansen from NGI - Norwegian Geotechnical Institute and the ROBIN group for guiding us through
-this project.
-
-Although the project is based on the RoadAI competition made by NORA, the idea of using multiple
-agents with reinforcement learning was designed by Tom.
 
 
-
-
-\appendices
 % -----------------------------------
 % -------- ETHICS STATEMENT ---------
 % -----------------------------------
-% \newpage
+\newpage
 
+\appendices
 \section{Ethics Statement}
 In the course of our project on Multiagent Reinforcement Learning, aimed at mitigating \coo{} emissions
 from construction sites, we have conducted research that involves no experiments with human participants.

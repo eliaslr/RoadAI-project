@@ -22,15 +22,10 @@ class TruckAgent:
         self.collided = False
         self.out_of_bounds = False
         self.dir = 1  # Start pointing North
+        self.adjecent = False
 
     # For now we have the observation space as square with the truck in the middle
     def observe(self):
-        adj_pos = [
-            (self.pos_y + 1, self.pos_x),
-            (self.pos_y - 1, self.pos_x),
-            (self.pos_y, self.pos_x + 1),
-            (self.pos_y, self.pos_x - 1),
-        ]
         closest = np.inf
         target = [0, 0]
         for i, pos in enumerate(self.env.excavators):
@@ -41,11 +36,12 @@ class TruckAgent:
                 target[1] = pos[1]
 
         adj = []
-        for pos in adj_pos:
-            if self._in_bounds(pos):
-                adj.append(self.env.map[pos[0], pos[1]])
-            else:
-                adj.append(1000)
+        for i in range(self.pos_y - 2, self.pos_y + 3):
+            for j in range(self.pos_x - 2, self.pos_x + 3):
+                if self._in_bounds((i, j)):
+                    adj.append(self.env.map[i, j])
+                else:
+                    adj.append(10000)
 
         obs = {
             "filled": int(self.filled),
@@ -107,6 +103,7 @@ class TruckAgent:
             (self.pos_y, self.pos_x - 1),
         ]
 
+        self.adjecent = False
         for pos in adj:
             if not self._in_bounds(pos):
                 continue
@@ -118,4 +115,5 @@ class TruckAgent:
                 self.env.holes[pos] -= self.capacity
                 if self.env.holes[pos] <= 0:
                     self.env.map[pos[0], pos[1]] = 1
-                break
+            elif self.env.map[pos[0], pos[1]] <= -3:
+                self.adjecent = True
