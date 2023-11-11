@@ -6,17 +6,17 @@ def reward(agent, env):
     previous = agent.prev_agent
 
     # Rewards
-    idle_penalty = -1
-    step_penalty = -0.5
-    collision_pen = -100
-    incline_pen = -0.1
-    right_direction = 5
-    wrong_direction = -5
+    idle_penalty = -0.1
+    step_penalty = -0.05
+    collision_pen = -10
+    incline_pen = -0.01
+    right_direction = 0.5
+    wrong_direction = -0.5
     out_of_bounds = -100
     adjecency_pen = -1
 
-    filled = 20
-    emptied = 50
+    filled = 10
+    emptied = 1000
 
     if agent.adjecent:
         tot_reward += adjecency_pen

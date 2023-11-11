@@ -9,12 +9,10 @@ from optuna_dashboard import run_server
 import matplotlib.pyplot as plt
 import numpy as np
 import pickle
+import time
 
 MAX_EPS = 500
 MAX_STEPS = MAX_EPS * 5000
-
-
-plt.style.use("bmh")
 
 
 def tune_PPO(trial):
@@ -24,7 +22,7 @@ def tune_PPO(trial):
     gamma = trial.suggest_float("gamma", 0.5, 0.95)
     model = PPO(
         "MultiInputPolicy", env, clip_range=cliprange, learning_rate=lr, gamma=gamma
-    ).learn(total_timesteps=1_000_000)
+    ).learn(total_timesteps=500_000)
     avg_ret = np.mean(env.avg_rewards)
     return avg_ret
 
@@ -64,32 +62,35 @@ def show_models():
 
 
 def make_plot(ppo_rews, ppo_mass, dqn_rews, dqn_mass):
-    for rew in ppo_rews:
-        if rew < -500:
-            ppo_rews.remove(rew)
-    for rew in dqn_rews:
-        if rew < -500:
-            dqn_rews.remove(rew)
     plt.title(f"PPOvsDQN {MAX_EPS} episode rewards")
     plt.xlabel("Number of episodes")
     plt.ylabel("Average episodic reward")
-    plt.plot(np.arange(len(ppo_rews)), ppo_rews, label="PPO")
-    plt.plot(np.arange(len(dqn_rews)), dqn_rews, label="DQN")
+    plt.ylim(-50, 50)
+    ppo_mu = np.full(len(ppo_rews), np.convolve(ppo_rews, np.ones(5) / 5, mode="same"))
+    dqn_mu = np.full(len(dqn_rews), np.convolve(dqn_rews, np.ones(5) / 5, mode="same"))
+    plt.plot(ppo_mu, label="PPO", color="orange")
+    plt.plot(dqn_mu, label="DQN", color="deepskyblue")
+    plt.plot(np.arange(len(ppo_rews)), ppo_rews, alpha=0.2, color="orange")
+    plt.plot(np.arange(len(dqn_rews)), dqn_rews, alpha=0.2, color="deepskyblue")
     plt.legend()
     plt.savefig(f"graphs/PPOvsDQN{MAX_EPS}rews.png")
     plt.show()
     plt.title(f"PPOvsDQN {MAX_EPS} Mass per episode")
     plt.xlabel("Number of episodes")
     plt.ylabel("Mass in kgs")
-    plt.plot(np.arange(len(ppo_mass)), ppo_mass, label="PPO")
-    plt.plot(np.arange(len(dqn_mass)), dqn_mass, label="DQN")
+    ppo_mu = np.full(len(ppo_rews), np.convolve(ppo_mass, np.ones(5) / 5, mode="same"))
+    dqn_mu = np.full(len(dqn_rews), np.convolve(dqn_mass, np.ones(5) / 5, mode="same"))
+    plt.plot(ppo_mu, color="orange", label="PPO")
+    plt.plot(dqn_mu, color="deepskyblue", label="DQN")
+    plt.plot(np.arange(len(ppo_mass)), ppo_mass, alpha=0.2, color="orange")
+    plt.plot(np.arange(len(dqn_mass)), dqn_mass, alpha=0.2, color="deepskyblue")
     plt.legend()
     plt.savefig(f"graphs/PPOvsDQN{MAX_EPS}mass.png")
-    plt.show()
 
 
 def main(render):
     """
+    start = time.time()
     ppo_rews, ppo_mass = train_ppo()
     with open(f"results/ppo{MAX_EPS}rews.pkl", "wb") as file:
         pickle.dump(ppo_rews, file)
@@ -99,7 +100,14 @@ def main(render):
     with open(f"results/dqn{MAX_EPS}rews.pkl", "wb") as file:
         pickle.dump(dqn_rews, file)
     with open(f"results/dqn{MAX_EPS}mass.pkl", "wb") as file:
-        pickle.dump(dqn_mass, file)"""
+        pickle.dump(dqn_mass, file)
+    end = time.time()
+    total_time = end - start
+    print(
+        f"Fininished training {MAX_EPS} episodes in {total_time // 3600} hours {(total_time % 3600) // 60} minutes {(total_time % 3600) % 60} seconds"
+    )
+
+    """
     with open(f"results/ppo{MAX_EPS}rews.pkl", "rb") as file:
         ppo_rews = pickle.load(file)
     with open(f"results/ppo{MAX_EPS}mass.pkl", "rb") as file:
@@ -108,9 +116,8 @@ def main(render):
         dqn_rews = pickle.load(file)
     with open(f"results/dqn{MAX_EPS}mass.pkl", "rb") as file:
         dqn_mass = pickle.load(file)
-
-    # make_plot(ppo_rews, ppo_mass, dqn_rews, dqn_mass)
-    show_models()
+    make_plot(ppo_rews, ppo_mass, dqn_rews, dqn_mass)
+    # show_models()
 
     """
     storage = optuna.storages.InMemoryStorage()

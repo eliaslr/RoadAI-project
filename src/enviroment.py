@@ -32,7 +32,7 @@ class RoadEnv(gym.Env):
         if render_mode == "pygame":
             pygame.init()
             # TODO ADD CONSTANTS IN HYDRA
-            self._margin = 25
+            self._margin = 5
         self.reset()
 
     def _reset_screen(self):
@@ -51,24 +51,24 @@ class RoadEnv(gym.Env):
     # Called from learning algorithm
     def step(self, action):
         agent = self.agents[self.curr_step % self._num_agents]
+        agent.step(action)
         self.curr_step += 1
         next_agent = self.agents[self.curr_step % self._num_agents]
-        agent.step(action)
         obs = next_agent.observe()
         # Get reward
         rew = self.reward_func(agent, self)
-        self.avg_reward = (
-            self.avg_reward * (self.curr_step - 1) + rew
-        ) / self.curr_step
+        self.avg_reward += rew
         term = False
+        self.render()
+
         if self.curr_step > MAX_STEPS:
             mass = 0
             for m in self.holes.values():
                 mass += 1000 - m
             term = True
             self.avg_mass.append(mass)
-            self.avg_rewards.append(self.avg_reward)
-        self.render()
+            self.avg_rewards.append(self.avg_reward / MAX_STEPS)
+            self.avg_reward = 0
         return (
             obs,
             rew,
@@ -205,7 +205,7 @@ class RoadEnv(gym.Env):
                 np.random.randint(5, max(20, H - start_pos[0])),
                 np.random.randint(5, max(20, W - start_pos[1])),
             )
-            mag = 3
+            mag = 2
             self._topograph_feature(start_pos, size[0], size[1], mag)
 
         num_excavators = np.random.randint(3, 10)
