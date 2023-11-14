@@ -11,8 +11,8 @@ import numpy as np
 import pickle
 import time
 
-MAX_EPS = 500
-MAX_STEPS = MAX_EPS * 5000
+MAX_EPS = 750
+MAX_STEPS = MAX_EPS * 7500
 
 
 def tune_PPO(trial):
@@ -33,7 +33,7 @@ def train_ppo(load_model=False):
         ppo = PPO.load("models/baselines-ppo")
     else:
         ppo = PPO(
-            "MultiInputPolicy", env, learning_rate=0.0001, clip_range=0.20, gamma=0.90
+            "MultiInputPolicy", env, learning_rate=0.001, clip_range=0.20, gamma=0.95
         )
     ppo = ppo.learn(total_timesteps=MAX_STEPS)
     ppo.save("models/baselines-ppo")
@@ -65,7 +65,6 @@ def make_plot(ppo_rews, ppo_mass, dqn_rews, dqn_mass):
     plt.title(f"PPOvsDQN {MAX_EPS} episode rewards")
     plt.xlabel("Number of episodes")
     plt.ylabel("Average episodic reward")
-    plt.ylim(-50, 50)
     ppo_mu = np.full(len(ppo_rews), np.convolve(ppo_rews, np.ones(5) / 5, mode="same"))
     dqn_mu = np.full(len(dqn_rews), np.convolve(dqn_rews, np.ones(5) / 5, mode="same"))
     plt.plot(ppo_mu, label="PPO", color="orange")
@@ -88,49 +87,42 @@ def make_plot(ppo_rews, ppo_mass, dqn_rews, dqn_mass):
     plt.savefig(f"graphs/PPOvsDQN{MAX_EPS}mass.png")
 
 
-def main(render):
-    """
-    start = time.time()
-    ppo_rews, ppo_mass = train_ppo()
-    with open(f"results/ppo{MAX_EPS}rews.pkl", "wb") as file:
-        pickle.dump(ppo_rews, file)
-    with open(f"results/ppo{MAX_EPS}mass.pkl", "wb") as file:
-        pickle.dump(ppo_mass, file)
-    dqn_rews, dqn_mass = train_dqn()
-    with open(f"results/dqn{MAX_EPS}rews.pkl", "wb") as file:
-        pickle.dump(dqn_rews, file)
-    with open(f"results/dqn{MAX_EPS}mass.pkl", "wb") as file:
-        pickle.dump(dqn_mass, file)
-    end = time.time()
-    total_time = end - start
-    print(
-        f"Fininished training {MAX_EPS} episodes in {total_time // 3600} hours {(total_time % 3600) // 60} minutes {(total_time % 3600) % 60} seconds"
-    )
+def main(args):
+    if args.train:
+        start = time.time()
+        ppo_rews, ppo_mass = train_ppo()
+        with open(f"results/ppo{MAX_EPS}rews.pkl", "wb") as file:
+            pickle.dump(ppo_rews, file)
+        with open(f"results/ppo{MAX_EPS}mass.pkl", "wb") as file:
+            pickle.dump(ppo_mass, file)
+        dqn_rews, dqn_mass = train_dqn()
+        with open(f"results/dqn{MAX_EPS}rews.pkl", "wb") as file:
+            pickle.dump(dqn_rews, file)
+        with open(f"results/dqn{MAX_EPS}mass.pkl", "wb") as file:
+            pickle.dump(dqn_mass, file)
+        end = time.time()
+        total_time = end - start
+        print(
+            f"Fininished training {MAX_EPS} episodes in {total_time // 3600} hours {(total_time % 3600) // 60} minutes {(total_time % 3600) % 60} seconds"
+        )
 
-    """
-    with open(f"results/ppo{MAX_EPS}rews.pkl", "rb") as file:
-        ppo_rews = pickle.load(file)
-    with open(f"results/ppo{MAX_EPS}mass.pkl", "rb") as file:
-        ppo_mass = pickle.load(file)
-    with open(f"results/dqn{MAX_EPS}rews.pkl", "rb") as file:
-        dqn_rews = pickle.load(file)
-    with open(f"results/dqn{MAX_EPS}mass.pkl", "rb") as file:
-        dqn_mass = pickle.load(file)
-    make_plot(ppo_rews, ppo_mass, dqn_rews, dqn_mass)
-    # show_models()
-
-    """
-    storage = optuna.storages.InMemoryStorage()
-    study = optuna.create_study(direction="maximize", storage=storage)
-    study.optimize(tune_PPO, n_trials=30)
-    run_server(storage)
-    # Show an episode to see how the system performs
-    # rewards.append(env.eval_episode(render_mode="pygame", train=True))
-    # Show an episode to see how the system performs
-    # ppo.train(render_mode=render)
-    # rewards.append(env.eval_episode(render_mode="pygame", train=True))
-    # Show an episode to see how the system performs
-    """
+    if args.plot:
+        with open(f"results/ppo{MAX_EPS}rews.pkl", "rb") as file:
+            ppo_rews = pickle.load(file)
+        with open(f"results/ppo{MAX_EPS}mass.pkl", "rb") as file:
+            ppo_mass = pickle.load(file)
+        with open(f"results/dqn{MAX_EPS}rews.pkl", "rb") as file:
+            dqn_rews = pickle.load(file)
+        with open(f"results/dqn{MAX_EPS}mass.pkl", "rb") as file:
+            dqn_mass = pickle.load(file)
+        make_plot(ppo_rews, ppo_mass, dqn_rews, dqn_mass)
+    if args.show:
+        show_models()
+    if args.tune:
+        storage = optuna.storages.InMemoryStorage()
+        study = optuna.create_study(direction="maximize", storage=storage)
+        study.optimize(tune_PPO, n_trials=30)
+        run_server(storage)
 
 
 def parse_args():
@@ -138,10 +130,11 @@ def parse_args():
 
     parser = argparse.ArgumentParser("Train roadAI MARL.")
     parser.add_argument(
-        "-r",
-        "--render",
-        help="How to render the model while training (console, pygame). Leave blank to not render",
+        "-s", "--show", action="store_true", help="Shows pretrained model"
     )
+    parser.add_argument("-t", "--train", action="store_true", help="Trains model")
+    parser.add_argument("-m", "--plot", action="store_true", help="Makes plot")
+    parser.add_argument("-o", "--tune", action="store_true", help="Tunes with Optuna")
 
     return parser.parse_args()
 
@@ -152,4 +145,5 @@ if __name__ == "__main__":
 
     # study.best_params
     args = parse_args()
-    main(args.render)
+    print(args)
+    main(args)
