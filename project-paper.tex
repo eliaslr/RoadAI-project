@@ -6,6 +6,7 @@
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{url}
+\usepackage{algorithm2e}
 \usepackage{xcolor}
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
 T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
@@ -45,12 +46,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 	eliaslr@ifi.uio.no
 	}
 	\and
-	\IEEEauthorblockN{Ilya Berezin}
-	\IEEEauthorblockA{\textit{Dept. of Informatics} \\
-	\textit{University of Oslo}\\
-	Oslo, Norway \\
-	ilyab@ifi.uio.no}
-	\and \\
+	\\
 	\IEEEauthorblockN{Tom Frode Hansen}
 	\IEEEauthorblockA{\textit{NGI- Norges Geotekniske Institutt} \\
 	Oslo, Norway \\
@@ -182,6 +178,18 @@ It's possible that with better hyperparameters or longer training time our multi
 \subsection{Stable-Baselines}
 While Stable-Baselines is not inherently compatible with multi-agent environments we found that if you
 query the algorithm for each agent, and then return the observation for the next agent in line you could make it work in an MARL situation. This approach was suprisingly effective.
+The custom training procedure would look something like this:
+\begin{algorithm}[h!]
+	\For{$t = 0 \ \mathbf{to} \ N$}{
+		$agent_{t} \gets env.agents[t\ \% \ M]$;\\
+		$obs_t \gets agent_t.observe()$;\\
+		$act_{t} \gets \theta(obs_{t})$; \\
+		$env.step(act_t)$;\\
+		$r_t \gets R(agent_t, act_t)$;\\
+	}
+\end{algorithm}\\
+Where $N$ is maximum steps, $M$ is the number of agents, $R$ is the reward function, $\theta$ is the action function of the model action function.
+Using this procedure Stable-baselines
 
 \subsection{Training Procedure}
 Each algorithm was trained for 500 episiodes of a fixed length of 5000 steps. In total the training was
