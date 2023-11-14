@@ -11,7 +11,7 @@ import numpy as np
 import pickle
 import time
 
-MAX_EPS = 750
+MAX_EPS = 1000
 MAX_STEPS = MAX_EPS * 7500
 
 
@@ -22,7 +22,7 @@ def tune_PPO(trial):
     gamma = trial.suggest_float("gamma", 0.5, 0.95)
     model = PPO(
         "MultiInputPolicy", env, clip_range=cliprange, learning_rate=lr, gamma=gamma
-    ).learn(total_timesteps=500_000)
+    ).learn(total_timesteps=1_000_000)
     avg_ret = np.mean(env.avg_rewards)
     return avg_ret
 

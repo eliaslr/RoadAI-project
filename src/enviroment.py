@@ -6,7 +6,7 @@ from agent import TruckAgent
 
 WINDOW_H = 600
 WINDOW_W = 600
-MAX_STEPS = 5000  # Episode length
+MAX_STEPS = 5000  #  Max Episode length
 
 
 # Note that we use (y,x) instead of (x, y) in our coordinates
@@ -61,10 +61,8 @@ class RoadEnv(gym.Env):
         term = False
         self.render()
 
-        if self.curr_step > MAX_STEPS:
-            mass = 0
-            for m in self.holes.values():
-                mass += 1000 - m
+        if self.curr_step >= MAX_STEPS:
+            mass = 1000 * len(self.holes.keys()) - sum(self.holes.values())
             term = True
             self.avg_mass.append(mass)
             self.avg_rewards.append(self.avg_reward / MAX_STEPS)
@@ -144,7 +142,7 @@ class RoadEnv(gym.Env):
         if self.curr_ep % 100 == 0:
             print(f"Done Training {self.curr_ep} Episodes")
         obs, _, _, _, _ = self.step(0)
-        return obs, {}
+        return obs, _
 
     # Generates topographic "hills" where the hills get larger as you get to the center
     def _topograph_feature(self, start_pos, h, w, mag):
@@ -195,7 +193,7 @@ class RoadEnv(gym.Env):
         # Add terrain noise
         self.map = np.random.randint(10, size=(H, W))
         # TODO add topological features / noise
-        num_of_features = np.random.randint(3, 10)
+        num_of_features = np.random.randint(3, 5)
         for _ in range(num_of_features):
             start_pos = (
                 np.random.randint(0, 4 * H // 5 - 20),
@@ -205,7 +203,7 @@ class RoadEnv(gym.Env):
                 np.random.randint(5, max(20, H - start_pos[0])),
                 np.random.randint(5, max(20, W - start_pos[1])),
             )
-            mag = 2
+            mag = 3
             self._topograph_feature(start_pos, size[0], size[1], mag)
 
         num_excavators = np.random.randint(3, 10)
