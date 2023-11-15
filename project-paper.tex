@@ -71,45 +71,49 @@ construction machines will lead to a significant reduction in the country's tota
 Although there have been studies conducted that use Reinforcement Learning techniques to reduce emissions by
 optimizing routes and scheduling, our attempt in this paper is to extend this to the use of Multi-Agent
 Reinforcement Learning techniques. The field of Multi-Agent Reinforcement Learning has gained more and more
-applications.
+applications recently, and has been used in various optimization problems.
 
 This paper demonstrates implementations of Multi-Agent versions of two well-tested Reinforcement Learning
-methods: Proximal Policy Optimization and Deep Q-Networks. This paper shows the promising results of how 
+methods: Proximal Policy Optimization and Deep Q-Networks. It shows the promising results of how 
 Multi-Agent Reinforcement Learning could be used to reduce \coo{} emissions, but it also highlights many ways in
 which these methods can be improved.
 
 
 % Should have 3-5 keywords.
-Index Terms - Multi-Agent Reinforcement Learning (MARL),
+Index Terms - Multi-Agent Reinforcement Learning (MARL), Emissions reduction, Proximal Policy Optimization (PPO),
+Deep Q-Network (DQN).
 \end{abstract}
   
 
 % -----------------------------------
 % - INTRODUCTION  -
 % -----------------------------------
+\section{Introduction}
 Carbon dioxide (\coo{}) emission is one of the largest contributions to greenhouse gasses and global warming.
 Reducing \coo{} emissions is an important step in preventing global warming and all of the negative
 consequences associated with it. Norway's total greenhouse gas emissions were, according to Statistics
-Norway, in 2022 48.9 million tonnes of \coo{}
-equivalences\footnote{https://www.ssb.no/natur-og-miljo/forurensning-og-klima/statistikk/utslipp-til-luft}.
-1.5\% of which are emitted by construction machines. \cite{noraRoadAIReducing} The reduction of such
-a significant percentage of the total emissions is a crucial task.
+Norway, in 2022 48.9 million tonnes of \coo{} equivalences. \cite{SSB_2023}
+1.5\% of these are emitted by construction machines. \cite{noraRoadAIReducing} The reduction of such
+a significant part of the total emissions is a crucial task.
 
 This project is based on the RoadAI competition held by Norwegian Artificial Intelligence Research
-Consortium (NORA). \cite{noraRoadAIReducing} The objective in the RoadAI competition is to reduce the
-total \coo{} emissions from a road construction site using machine learning methods. In this paper, we will
-present a method for using Multi-agent Reinforcement Learning (MARL) algorithms in order to reduce such
-emissions.
+Consortium (NORA). \cite{noraRoadAIReducing} The objective in the RoadAI competition was to improve
+sustainability at a road construction site using data driven methods. For this paper, we have taken the
+task i an a somehwat different direction, and will present a method for using Multi-agent Reinforcement
+Learning (MARL) algorithms in order to reduce construction machine emissions.
+
+% Green House Gas (GHG) emissions and the effects of global warming
+% <TODO>
 
 % RL for GHG reduction
-In a Swiss and German study, the goal was to use Reinforcement Learning (RL) for route optimization in
-an attempt to reduce \coo{} emissions. \cite{MORADI2022111882} The study used an implementation of three
+In \cite{MORADI2022111882}, the goal was to use Reinforcement Learning (RL) for route optimization in
+an attempt to reduce \coo{} emissions. The study used an implementation of three
 different RL algorithms in order to optimize the ship's speed and direction: Deep Q-Network (DQN),
 Deep Deterministic Policy Gradient (DDPG) and Proximal Policy Optimization (PPO). The study reported a
 saving in fuel consumption of between approx. 1 and 6 percent, where DDPG demonstrates the best result,
 and DQN yields the least improvement.
 
-Another study, from Canada, \cite{HUO2023106664} showed promising results in reduction of greenhouse gas
+Another study, \cite{HUO2023106664}, showed promising results in reduction of greenhouse gas
 emissions
 from dump trucks' fuel consumption in a open-pit mining fleet. This model is a Q-learning RL algorithm
 which aims to improve fleet productivity, and decreasing idle time, which in turn reduces the greenhouse
@@ -118,28 +122,38 @@ fixed one. The RL model, trained on a simulated environment, takes into account 
 payload and maintenence requirements. As a result, the model showed an up to 30\% reduction in greenhouse
 gases while having no impact on production levels.
 
-% MARL?
+% MARL
 The field of Multi-agent Reinforcement Learning (MARL) is an emerging field in informatics. We see a wide
 range of applications, such as robotics where it's been used to make joints in a single robot more
-cooperative with others \cite{Perrusquia_Yu_Li_2020} as well as multiple robots. \cite{Wang2022}
-Other usages of MARL is in railroad scheduling \cite{laurent2021flatland} and solving various games
-\cite{ellis2022smacv2} and \cite{yu2022surprising}.
+cooperative with others, \cite{Perrusquia_Yu_Li_2020} as well as using MARL in a system with multiple robots
+to either compete or cooperate in order to get a task done. \cite{Wang2022}
+Other usages of MARL is in railroad scheduling \cite{laurent2021flatland} and solving various games.
+\cite{ellis2022smacv2}, \cite{yu2022surprising}
 
-As we see there's a diverse set of use-cases for MARL. This paper will be presenting a way of implementing
+There is a diverse set of use cases for MARL. This paper will be presenting a way of implementing
 MARL techniques seen in \cite{Perrusquia_Yu_Li_2020}, \cite{Wang2022}, \cite{laurent2021flatland},
 \cite{ellis2022smacv2} and \cite{yu2022surprising} to expand upon the works done in emissions reduction
-with single-agent RL seen in \cite{HUO2023106664} and \cite{MORADI2022111882}.
+with single-agent RL \cite{HUO2023106664} and \cite{MORADI2022111882}.
 
 
-% Environments?
+% Environments
+% <TODO>
 
 % PPO / MAPPO
 Proximal Policy Optimization (PPO) is an RL algorithm used mostly for single-agent reinforcement learning.
 This is due to the fact that PPO is often considered less sample-effective than other off-policy algorithms
-when it comes to MARL problems. In a study made by researchers from China and USA, however, they showed the
-effectiveness of the PPO algorithm on multi-agent cooperative problems. \cite{yu2022surprising}
+when it comes to MARL problems. In \cite{yu2022surprising}, however, they showed the effectiveness of the PPO
+algorithm on multi-agent cooperative problems.
+
+Several implementations of PPO for multi-agent problems have been shown tp yield good results in articles such
+as \cite{ellis2022smacv2} and \cite{laurent2021flatland}.
+
 
 % DQN / QMIX?
+\cite{ellis2022smacv2} reported good results using the QMIX algorithm on the SMAC environment. QMIX is an
+MARL algorithm based on Deep Q-Network (DQN). DQN is described in \cite{DBLP:journals/corr/MnihKSGAWR13} to
+produce groundbreaking results in various gaming environments.
+
 
 % Our work
 The purpose of this paper is to highlight the use of MARL algorithms in order to reduce \coo{} emissions
@@ -149,7 +163,6 @@ paper, we will demonstrate an implementation of two different MARL algorithms:
 (1) multi-agent PPO (MAPPO) and (2) multi-agent DQN. In addition to these algorithms, we have implemented a
 custom environment based on \texttt{gymnasium}. \cite{Towers_Gymnasium}
 
-% Include this?
 Our work shows the potential of MARL algorithms to reduce emissions at construction sites using MARL
 algorithms. The model is learning, however it is learning very slowly. This shows the potential of
 the algorithms tested in this paper, but there is room for improvement.
@@ -164,8 +177,11 @@ The goal of the RoadAI project is to demonstrate an algorithm that could reduce 
 We are using MARL to train agents on a simulation of road construction and to demonstrate how it can be utilized to solve this problem.
 Our methodology primarily focuses on the utilization of Multi-Agent Reinforcement Learning to tackle the problem of emissions in road construction. Given the complexity of the task, we adopted a step-by-step approach to ensure that the model is not only accurate but also efficient.
 
+
 \subsection{Problem Formulation}
 The first step in our methodology was to formulate the problem in the context of MARL. We defined each construction vehicle as an agent with its own set of actions, observations, and rewards. The joint action space consisted of moving, idling, loading, or unloading materials. Observations for each agent included the status of the road construction, the position of other agents, and the current load of materials. Rewards were also implemented to promote actions that lead to reduced emissions.
+
+
 
 \subsection{Simulation Environment}
 To train our agents, we developed a custom simulation environment using \texttt{gymnasium}. The environment replicates a typical road construction site, with details like topography and material locations. In this environment every object is represented as a particle in a grid.
@@ -194,6 +210,7 @@ The observation space is defined as a \texttt{gymnasium Dict} with the following
 	\item \texttt{Target}: the position of the closest excavator
 \end{enumerate}
 Using a named dictionary for the observation space makes it easier to explain what the agents are actually observing in the environment.
+
 
 \subsection{MAPPO}
 We used the Stable-Baselines implementation of the PPO algorithm to train our agents.
@@ -385,11 +402,11 @@ If the state is the image and not a transformation of the image into a microgrid
 A better approach might be to transform it into a microgrid like environment and in the real world update it for example every 5 timesteps to the current state with a new image and new segmenting to make sure the real world doesn't deviate too far from what the environment looks like.
 A way to implement this in training is to not make the environment entirely deterministic, and only update the environment to what it "actually" is every 5 timesteps.
 
-\begin{figure}[h!]
-	%TODO ADD new image
-	\includegraphics[width=\columnwidth]{graphs/construction_site.jpg}
-	\caption{Example of what would need to be segmented}
-\end{figure}
+% \begin{figure}[h!]
+% 	%TODO ADD new image
+% 	\includegraphics[width=\columnwidth]{graphs/construction_site.jpg}
+% 	\caption{Example of what would need to be segmented}
+% \end{figure}
 
 \subsection{Agents}
 Currently the excavators in our simulations are stationary, but in a real world scenario there isn't an infinite amount of mass where the excavators are stationed, so they would have to move every now and then, or possibly more often.
@@ -400,6 +417,23 @@ An excavator is also able to load more than a single dump truck at a time which 
 
 \subsection{Future work conclusion}
 There are both small and big changes to be made. Due to limited time and resources we are not currently able to implement them, even though implementation of the smaller changes would not take a lot of time, the bigger issue is retraining the algorithm and measure performance before and after, if the change is performance based, but even in the case of realism based changes the training and graphs would have to be remade.
+
+
+% % -----------------------------------
+% % -------- Declaration of -----------
+% % ------ competing interests --------
+% % -----------------------------------
+% \section{Declaration of competing interest}
+% The authors declare no competing interests
+
+
+% % -----------------------------------
+% % ------- Data Availability ---------
+% % -----------------------------------
+% \section{Data availability}
+% No datasets were used in this paper.
+% % The RoadAI competition did, however, preset its participants with several relevant datasets, which we might have
+% % used to evaluate our model given some more time.
 
 
 % -----------------------------------
@@ -419,9 +453,9 @@ agents with reinforcement learning was designed by Tom.
 % -----------------------------------
 % -------- ETHICS STATEMENT ---------
 % -----------------------------------
-\newpage
+% \newpage
 
-\appendices
+% \appendices
 \section{Ethics Statement}
 In the course of our project on Multi-agent Reinforcement Learning, aimed at mitigating \coo{} emissions
 from construction sites, we have conducted research that involves no experiments with human participants.
@@ -442,10 +476,10 @@ this negative feedback is designed to minimize the likelihood of agents crashing
 is important to note, though, that while our design minimizes such events, it does not guarantee their
 complete avoidance.
 
-The dataset we have employed for this project, generated by Skanska Norge AS and provided by Norwegian
-Artificial Intelligence Research Consortium (NORA), does not contain any personally identifiable
-information. Although the dataset's availability has yet to be confirmed, it was shared with us by NORA
-following the conclusion of the RoadAI competition.
+% The dataset we have employed for this project, generated by Skanska Norge AS and provided by Norwegian
+% Artificial Intelligence Research Consortium (NORA), does not contain any personally identifiable
+% information. Although the dataset's availability has yet to be confirmed, it was shared with us by NORA
+% following the conclusion of the RoadAI competition.
 
 The primary objective of our project is to significantly reduce \coo{} emissions originating from
 construction sites, potentially leading to substantial environmental and societal benefits.
@@ -468,7 +502,7 @@ more sustainable world without compromising the well-being of individuals or soc
 % -----------------------------------
 % ----------- REFERENCES ------------
 % -----------------------------------
-\newpage
+% \newpage
 
 
 % \nocite{*}        % This includes all references that haven't been explicitly cited
