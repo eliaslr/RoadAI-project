@@ -59,14 +59,16 @@ class DQN(nn.Module):
 
     def __init__(self, n_observations, n_actions):
         super(DQN, self).__init__()
-        self.layer1 = nn.Linear(n_observations, 128)
-        self.layer2 = nn.Linear(128, 128)
-        self.layer3 = nn.Linear(128, n_actions)
+        self.layer1 = nn.Linear(n_observations, 256)
+        self.layer2 = nn.Linear(256, 128)
+        self.layer3 = nn.Linear(128, 128)
+        self.layer4 = nn.Linear(128, n_actions)
 
     def forward(self, x):
         x = F.relu(self.layer1(x))
         x = F.relu(self.layer2(x))
-        return self.layer3(x)
+        x = F.relu(self.layer3(x))
+        return self.layer4(x)
 
 BATCH_SIZE = 128
 GAMMA = 0.99
@@ -169,7 +171,7 @@ def optimize_model():
     # state_batch = torch.tensor(state_batch, dtype = torch.float32)
     # Compute Q(s_t, a), we compute Q(s_t) then we select action. these are the actions we wouldve
     # taken for each batch state according to policy_net
-    state_action_values = policy_net(torch.transpose(state_batch,-2,0)).gather(1, action_batch)
+    state_action_values = policy_net(state_batch).gather(1, action_batch)
 
     next_state_values = torch.zeros(BATCH_SIZE, device = device)
     with torch.no_grad():
