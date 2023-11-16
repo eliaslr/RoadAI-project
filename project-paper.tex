@@ -8,6 +8,7 @@
 \usepackage{url}
 \usepackage{algorithm2e}
 \usepackage{xcolor}
+\usepackage{multirow}
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
 T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
@@ -189,7 +190,7 @@ Every agent gets assigned a reward for each action they take with positive rewar
 While simulating the trucks we collect the rewards which the reinforcement learning algorithms uses to train.
 Using the average episodic rewards we can estimate the algorithms performance over the training, and compare them to each other.
 
-\begin{figure}[h!]
+\begin{figure}[!ht]
 	\includegraphics[width=\columnwidth]{graphs/example_env.png}
 	\caption{Example randomly generated environment}
 \end{figure}
@@ -224,7 +225,7 @@ Even though we didnt manage to make use of real world examples to train, this mi
 in the future if this project is expanded upon. It is shown later in this paper that DQN learns
 faster than PPO in our specific project.
 
-\begin{algorithm}[h!]
+\begin{algorithm}[!ht]
   Initialize actor function $\pi$ with weigths $\theta$ \\
   Initialize critic function $V$ with weights $\phi$\\
   \For{$k = 0,1,2\ldots$}{
@@ -256,7 +257,7 @@ found at pytorch.org/tutorials/intermediate/reinforcement\_q\_learning.html. Hav
 policy is important for research to make sure choice of policy doesn't heavily affect the outcome
 of training. As is shown later in this paper, both of these methods performed quite similarly.
 
-\begin{algorithm}[h!]
+\begin{algorithm}[!ht]
   Initialize replaybuffer $D$ with capacity $N$\\
   Initialize action-value function $Q$ with weights $\theta$\\
   Initialize target-value function $\hat{Q}$ with weights $\hat{\theta}$\\
@@ -285,7 +286,7 @@ While Stable-Baselines is not inherently compatible with multi-agent environment
 query the algorithm for each agent, and then return the observation for the next agent in line you could make it work in an MARL situation. This approach was suprisingly effective.
 The custom training procedure would look something like this:
 
-\begin{algorithm}[h!]
+\begin{algorithm}[!ht]
 	\For{$t = 0 \ \mathbf{to} \ N$}{
 		$agent_{t} \gets env.agents[t\ \% \ M]$;\\
 		$obs_t \gets agent_t.observe()$;\\
@@ -300,14 +301,55 @@ Using this procedure allows us to iterate through every agent and enables Stable
 
 
 \subsection{Training Procedure}
-Each algorithm was trained for 500 episiodes of a fixed length of 5000 steps. In total the training was
-2.500.000 timesteps and took in total 2 hours on a NVIDIA GTX 3070 with 8gb of video ram.
+% Each algorithm was trained for 500 episiodes of a fixed length of 5000 steps. In total the training was
+% 2.500.000 timesteps and took in total 2 hours on a NVIDIA GTX 3070 with 8gb of video ram.
+\begin{tabular}{ |p{0.3\columnwidth}||p{0.5\columnwidth}|  }
+  \hline
+  \multicolumn{2}{|c|}{Training procedure parameters} \\
+  \hline
+  \hline
+  Parameter         & Parameter value\\
+  \hline
+  Episodes          & 500\\
+  \hline
+  Steps per episode & 5,000\\
+  \hline
+  Total steps       & 2.5M\\
+  \hline
+  \hline
+  Device used       & NVIDIA GTX 3070 w/ 8gb of video ram\\
+  \hline
+  Time              & Approx. 2 hours\\
+  \hline
+ \end{tabular}
 
 
 \subsection{Hyperparameter Optimization}
 We used the optuna library to hyperparameter optimize the PPO algorithm. Optuna uses a baynesian
 search to find the best parameters for us. This way we could make sure that our results reach high
 average rewards when combined with a fitting policy.
+
+The following were the resulting hyperparameters after optimizing with Optuna:
+\begin{tabular}{ |p{0.3\columnwidth}||p{0.5\columnwidth}|  }
+  \hline
+  \multicolumn{2}{|c|}{Hyperparameters post Optuna optimization} \\
+  \hline
+  \hline
+  Parameter         & Parameter value\\
+  \hline
+  learning rate     & 0.001\\
+  \hline
+  clip range        & 0.20\\
+  \hline
+  gamma             & 0.95\\
+  \hline
+ \end{tabular}
+
+
+% -----------------------------------
+% ------------ REALITY GAP ----------
+% -----------------------------------
+\section{Reality Gap}
 
 
 
@@ -357,7 +399,7 @@ learning.
 % -----------------------------------
 \section{Related works}
 The \textit{SMACv2} \cite{ellis2022smacv2} research paper describes a new version of the StarCraft Multi-Agent
-Challenge (SMAC), hence the title. The SMAC testbed has been vital in the testing- and in turn improvement
+Challenge (SMAC), SMACv2. The SMAC testbed has been vital in the testing- and in turn improvement
 of Multi-Agent ML algorithms. Given the updated version of SMAC, the team tested the performance og two
 MARL- algorithms: (1) QMIX- a multi-agent implementation of DQN- and (2) MAPPO- Multi-Agent PPO. The
 results yielded an up to 80\% win rate. The QMIX-algorithm generally performs better than that of MAPPO.
@@ -443,11 +485,11 @@ If the state is the image and not a transformation of the image into a microgrid
 A better approach might be to transform it into a microgrid like environment and in the real world update it for example every 5 timesteps to the current state with a new image and new segmenting to make sure the real world doesn't deviate too far from what the environment looks like.
 A way to implement this in training is to not make the environment entirely deterministic, and only update the environment to what it "actually" is every 5 timesteps.
 
-\begin{figure}[h!]
-	%TODO ADD new image
-	\includegraphics[width=\columnwidth]{graphs/construction_site.jpg}
-	\caption{Example of what would need to be segmented}
-\end{figure}
+% \begin{figure}[h!]
+% 	%TODO ADD new image
+% 	\includegraphics[width=\columnwidth]{graphs/construction_site.jpg}
+% 	\caption{Example of what would need to be segmented}
+% \end{figure}
 
 \subsection{Agents}
 Currently the excavators in our simulations are stationary, but in a real world scenario there isn't an infinite amount of mass where the excavators are stationed, so they would have to move every now and then, or possibly more often.
@@ -543,10 +585,10 @@ more sustainable world without compromising the well-being of individuals or soc
 % -----------------------------------
 % ----------- REFERENCES ------------
 % -----------------------------------
-% \newpage
+\newpage
 
 
-% \nocite{*}        % This includes all references that haven't been explicitly cited
+\nocite{*}        % This includes all references that haven't been explicitly cited
 \bibliography{citations.bib}
 \bibliographystyle{plain}
 
