@@ -80,8 +80,7 @@ which these methods can be improved.
 
 
 % Should have 3-5 keywords.
-Index Terms - Multi-Agent Reinforcement Learning (MARL), Emissions reduction, Proximal Policy Optimization (PPO),
-Deep Q-Network (DQN).
+Index Terms - Multi-Agent Reinforcement Learning (MARL), Emissions reduction. Road Construction.
 \end{abstract}
   
 
@@ -99,7 +98,7 @@ a significant part of the total emissions is a crucial task.
 This project is based on the RoadAI competition held by Norwegian Artificial Intelligence Research
 Consortium (NORA). \cite{noraRoadAIReducing} The objective in the RoadAI competition was to improve
 sustainability at a road construction site using data driven methods. For this paper, we have taken the
-task i an a somehwat different direction, and will present a method for using Multi-agent Reinforcement
+task i an a somehwat different direction, and will present a method for using multi-agent Reinforcement
 Learning (MARL) algorithms in order to reduce construction machine emissions.
 
 % Green House Gas (GHG) emissions and the effects of global warming
@@ -172,7 +171,6 @@ the algorithms tested in this paper, but there is room for improvement.
 % ------------- METHODS -------------
 % -----------------------------------
 \section{Methodology}
-
 The goal of the RoadAI project is to demonstrate an algorithm that could reduce emissions from road construction.
 We are using MARL to train agents on a simulation of road construction and to demonstrate how it can be utilized to solve this problem.
 Our methodology primarily focuses on the utilization of Multi-Agent Reinforcement Learning to tackle the problem of emissions in road construction. Given the complexity of the task, we adopted a step-by-step approach to ensure that the model is not only accurate but also efficient.
@@ -220,19 +218,33 @@ It implements clipping of the gradient to ensure we don't overshoot when climbin
 It is also stochastic by design where the policy $\pi_\theta$ chooses random actions
 according to a certain heat which decreases over time.
 
-PPO as an algorithm is a reasonable choice as it's very sample efficient when learning which
-is important because getting training examples is a very time consuming project.
-Even though we didnt manage to make use of real world examples to train, this might be relevant
+Using PPO is a reasonable choice for this project as it's very sample efficient when learning, which
+is important when getting training examples is a very time consuming project.
+Even though we didnt manage to make use of real world examples to train, this might have been relevant
 in the future if this project is expanded upon. It is shown later in this paper that DQN learns
-faster than PPO in our specific project, which is to be expected.
+faster than PPO in our specific project.
+
+\begin{algorithm}[h!]
+  Initialize actor function $\pi$ with weigths $\theta$ \\
+  Initialize critic function $V$ with weights $\phi$\\
+  \For{$k = 0,1,2\ldots$}{
+    Collect set of trajectories $D_k = \{\tau_i \}$ by running policy $\pi_k = \pi(\theta_k)$ \\
+    Compute rewards-to-go $\hat{R}_t$\\
+    Compute advantage emstimates $\hat{A}_t$ based on $V$\\
+    Update the policy by maximizing: \\
+    $ \sum_{\tau}^{D_k} \sum_{t}^T \ \min \left( \frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta k}(a_t \mid s_t)} A^{\pi_{\theta k}}(s_t, a_t), \mathbf{clip}(A^{\pi_{\theta k}}(s_t, a_t), \epsilon) \right) $ using gradient ascent\\
+    Update the critic by regression via gradient descent:
+    $ \sum_{\tau}^{D_k} \sum_{t = 0}^T \left( V_\phi (s_t) - \hat{R}_t\right)^2$
+  }
+\end{algorithm}
 
 
 \subsection{Multi-agent DQN}
-We attempted a version of DQN where the reward for an action is given as the average reward for
+We first attempted to implement a version of DQN where the reward for an action is given as the average reward for
 all the actions in that timestep. The issue with this is that it might reward a "bad" action and
 punish a "good" action if the average reward that timestep was high or low respectively, it turns
 out not treating it as a cooperative system but rather a system where every agent attempts to
-maximise their own reward is significantly more effecient.
+maximise their own reward is significantly more efficient.
 
 It's possible that with better hyperparameters or longer training time our multi agent
 implementation of DQN might outperform the single agent implementation, but with the training
@@ -243,6 +255,29 @@ difference in performance as well as the attempted multi agent DQN was based on 
 found at pytorch.org/tutorials/intermediate/reinforcement\_q\_learning.html. Having more than one
 policy is important for research to make sure choice of policy doesn't heavily affect the outcome
 of training. As is shown later in this paper, both of these methods performed quite similarly.
+
+\begin{algorithm}[h!]
+  Initialize replaybuffer $D$ with capacity $N$\\
+  Initialize action-value function $Q$ with weights $\theta$\\
+  Initialize target-value function $\hat{Q}$ with weights $\hat{\theta}$\\
+  \While{$t < N$}{
+    Reset environment and set $o_t$\\
+    \While{Episode is not finished}{
+      With probablility $\epsilon$ select random action $a_t$\\
+      Otherwise select $a_t = argmax_a \; Q(o_t, a ; \theta)$\\
+      Execute $a_t$ in environment and get reward $r_t$ and $o_{t+1}$\\
+      Store transition $\left( o_t, a_t, r_t, o_{t+1} \right)$ in $D$\\
+      $t \gets t + 1$\\
+    }
+    Sample random minibatch $\bar{D}$ from $D$\\
+    \For{$\left( o_j, a_j, r_j, o_{j+1} \right) \ \mathbf{in} \ \bar{D}$}{
+      $y_j \gets r_j$ if epsisode terminates at $j$, $r_j + \gamma \hat{Q}(o_{t+1}, a';\hat{\theta})$ otherwise \\
+      Gradient descent step $(y_j - Q(o_j, a_j; \theta))^2$ on $\theta$
+    }
+    Every C steps set $\hat{\theta} = \theta$\\
+
+  }
+\end{algorithm}
 
 
 \subsection{Stable-Baselines}
@@ -261,7 +296,7 @@ The custom training procedure would look something like this:
 \end{algorithm}
 
 Where $N$ is maximum steps, $M$ is the number of agents, $R$ is the reward function, $\theta$ is the action function of the model action function.
-Using this procedure Stable-baselines
+Using this procedure allows us to iterate through every agent and enables Stable-baselines to be used in a Multi-agent setting.
 
 
 \subsection{Training Procedure}
@@ -377,13 +412,19 @@ problems where reinforcement learning doesn't traditionally come to mind.
 \section{Future work}
 
 \subsection{Reward function}
-% I actually fixed a lot of whats mentioned here
-There are several potential improvements we could make to the reward function, that might alleviate the agents from performing some unwanted actions that currently occur.
-Firstly, sometimes an agent will get stuck north of a hill not realizing it can reach the holes it wants to fill by going around it and instead get stuck in a loop going up and down.
-% This behaviour might be caused by the fact that going the wrong direction currently doesn't give it a negative reward, but going the right direction does yield a positive reward, so such a behaviour where it gets stuck going up and down does actually yield a positive reward even though it doesn't actually contribute to the goal of the problem.
-Possible fixes are giving a penalty for going the wrong way or giving a possible reward for going sideways to encourage going around obstacles in cases where going the right way is impossible or not encouraged.
-Secondly multiple agents will sometimes get stuck trying to leave and fill holes among each other where all of them try to avoid colliding while also trying to go different ways.
-Their behaviour might be improved by giving them a penalty for being too close to one another or a reward for keeping proper distance, not just collision.
+	There are several potential improvements we could make to the reward function, that might alleviate the agents from performing some unwanted actions that currently occur.
+	Firstly, sometimes an agent will get stuck north of a hill not realizing it can reach the holes it wants to fill by going around it and instead get stuck in a loop going up and down.
+	Possible fixes are giving a penalty for going the wrong way or giving a possible reward for going sideways to encourage going around obstacles in cases where going the right way is impossible or not encouraged.
+	Secondly multiple agents will sometimes get stuck trying to leave and fill holes among each other where all of them try to avoid colliding while also trying to go different ways.
+	Their behaviour might be improved by giving them a penalty for being too close to one another or a reward for keeping proper distance, not just collision.
+
+	\subsection{Environment and action space}
+	Currently the environment we're using is a microgrid environment. This allows for moving up, down, right and left.
+	While this is sufficient for a lot of states, in several cases we might want to go diagonally between two points as this means fewer steps, as well as a potentially shorter time between two holes are filled by one dump truck.
+	Using a continuous environment instead with a continuous action space might cause the training time to increase but the asymptotic reward possible to reach would increase. The representation of the state could still be very similar to what it currently is, but the action space would significantly change.
+	One possible implementation of this action space could instead of being a discrete set of directions be an angle and speed.
+	As a consequence of this the reward function would also have to change, to not just encourage dump trucks to go for example 3000km/h to reach their goal in a single timestep, or not just give them a reward for getting closer to their goal, but how much distance is closed.
+	The DQN approach would not be sufficient in this case because it is designed for discrete action spaces, PPO however is designed to both work for discrete and continuous action spaces.
 
 \subsection{Environment and action space}
 Currently the environment we're using is a microgrid environment. This allows for moving up, down, right and left.
@@ -402,11 +443,11 @@ If the state is the image and not a transformation of the image into a microgrid
 A better approach might be to transform it into a microgrid like environment and in the real world update it for example every 5 timesteps to the current state with a new image and new segmenting to make sure the real world doesn't deviate too far from what the environment looks like.
 A way to implement this in training is to not make the environment entirely deterministic, and only update the environment to what it "actually" is every 5 timesteps.
 
-% \begin{figure}[h!]
-% 	%TODO ADD new image
-% 	\includegraphics[width=\columnwidth]{graphs/construction_site.jpg}
-% 	\caption{Example of what would need to be segmented}
-% \end{figure}
+\begin{figure}[h!]
+	%TODO ADD new image
+	\includegraphics[width=\columnwidth]{graphs/construction_site.jpg}
+	\caption{Example of what would need to be segmented}
+\end{figure}
 
 \subsection{Agents}
 Currently the excavators in our simulations are stationary, but in a real world scenario there isn't an infinite amount of mass where the excavators are stationed, so they would have to move every now and then, or possibly more often.
