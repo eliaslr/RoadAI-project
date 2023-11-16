@@ -177,8 +177,13 @@ Our methodology primarily focuses on the utilization of Multi-Agent Reinforcemen
 
 
 \subsection{Problem Formulation}
-The first step in our methodology was to formulate the problem in the context of MARL. We defined each construction vehicle as an agent with its own set of actions, observations, and rewards. The joint action space consisted of moving, idling, loading, or unloading materials. Observations for each agent included the status of the road construction, the position of other agents, and the current load of materials. Rewards were also implemented to promote actions that lead to reduced emissions.
-
+The problem we want to solve is to reduce idle and travel time per mass moved in an environment meant to simulate a construction site using MARL.
+We want to do this by first designing a gridlike environment with stationary geological features, excavators and holes to be filled. There also has to be movable agents to move the mass from the excavators to the holes.
+We defined each construction vehicle as an agent with its own set of actions, observations, and rewards. 
+The joint action space consisted of moving, idling. Loading and unloading materials happens automatically as the construction vehicle reaches the desired spot. Observations for each agent included nearest part if the environment, specifically we ended up using 5 tiles range, whether the dump trucks are filled with materials, the agents position, and the closest excavators position.
+Rewards were also implemented to discourage idling and unnecessary moving as well as promoting moving towards the current goal, either hole or excavator. 
+There were also certain geological features that we wanted to avoid climbing as this would lead to increased emissions. 
+The last penalty the agents would recieve, and perhaps the most obvious one, is for colliding, which would induce a severe penalty.
 
 
 \subsection{Simulation Environment}
@@ -305,8 +310,8 @@ Each algorithm was trained for 500 episiodes of a fixed length of 5000 steps. In
 
 
 \subsection{Hyperparameter Optimization}
-We used the optuna library to hyperparameter optimize the PPO algorithm. Optuna uses a baynesian
-search to find the best parameters for us. This way we could make sure that our results reach high
+We used the optuna library to hyperparameter optimize the PPO algorithm. Optuna uses a bayesian
+search, known as parzen tree estimator to find near optimal parameters for maximizing reward. This way we could make sure that our results reach high
 average rewards when combined with a fitting policy.
 
 
@@ -403,7 +408,7 @@ is concluded. Another approach would be to create the environment based on image
 construction sites, and then compare the simulated trucks to the trucks in real life.
 
 Keeping these caveats in mind, this paper still shows the promise of MARL algorithms to solve these kind of
-problems where reinforcement learning doesn't traditionally come to mind.
+problems where reinforcement learning doesn't traditionally come to mind. We believe that with slight modifications to our solution as well as fixing the reality gap as discussed in the future work section a MARL solution could find a near optimal policy for such a problem, given that we avoid local maxima. This would be massively helpful in the fight against climate change as construction sites have emissions major enough so that only a slight reduction would mean a lot.
 
 
 % -----------------------------------
