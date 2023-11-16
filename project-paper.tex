@@ -135,7 +135,6 @@ MARL techniques seen in \cite{Perrusquia_Yu_Li_2020}, \cite{Wang2022}, \cite{lau
 \cite{ellis2022smacv2} and \cite{yu2022surprising} to expand upon the works done in emissions reduction
 with single-agent RL \cite{HUO2023106664} and \cite{MORADI2022111882}.
 
-
 % Environments
 % <TODO>
 
@@ -193,6 +192,7 @@ Using the average episodic rewards we can estimate the algorithms performance ov
 \begin{figure}[!ht]
 	\includegraphics[width=\columnwidth]{graphs/example_env.png}
 	\caption{Example randomly generated environment}
+  \label{fig:environment}
 \end{figure}
 
 While this environment is very simplified in contrast to real life, it is easy to randomly generate.
@@ -350,7 +350,33 @@ The following were the resulting hyperparameters after optimizing with Optuna:
 % ------------ REALITY GAP ----------
 % -----------------------------------
 \section{Reality Gap}
+Although the purpose of this study has been to highlight the possible benefits of using MARL in
+emissions reduction, rather than solving the actual problem in full, we need to address the reality
+gap of this study.
 
+There are 
+
+
+\subsection{Environment}
+\begin{figure}[!ht]
+  \includegraphics[width=\columnwidth]{graphs/road-construction-site-example.jpeg}
+  \caption{Example of road construction site}
+  \label{fig:construction-site}
+\end{figure}
+
+The environment which we have implemented in this study is by no means close to a
+real-world road construction site. We easily see this if we compare Figure \ref{fig:construction-site}
+to Figure \ref{fig:environment}. To specify, we know that the real world is continuous, and not a
+discrete grid-like environment.
+
+Although we have attempted to generate random topography in order to make the environment more like
+the real world, the topographical features are not sufficiently gradual to emulate the real world as is.
+
+
+\subsection{Agents}
+- acceleration
+- cardinal movement
+- 
 
 
 % -----------------------------------
