@@ -367,7 +367,7 @@ Although the purpose of this study has been to highlight the possible benefits o
 emissions reduction, rather than solving the actual problem in full, we need to address the reality
 gap of this study.
 
-There are 
+% <TODO>
 
 
 \subsection{Environment}
@@ -379,17 +379,37 @@ There are
 
 The environment which we have implemented in this study is by no means close to a
 real-world road construction site. We easily see this if we compare Figure \ref{fig:construction-site}
-to Figure \ref{fig:environment}. To specify, we know that the real world is continuous, and not a
-discrete grid-like environment.
+to Figure \ref{fig:environment}. For example, we know that the real world is continuous, and not a discrete
+grid-like environment.
+
+Further, the excavators have the ability to load a truck with an unlimited amount of construction mass,
+but we know that there is no such thing as infinite amounts of mass. The excavators are also stationary,
+which is related to the fact that they never run out of construction mass. In a real world scenario,
+excavators would need to move to a new site in order to have more available mass to dig up. Lastly,
+excavators fill up dump trucks instantaneously, which is not accurate to the real world. 
 
 Although we have attempted to generate random topography in order to make the environment more like
 the real world, the topographical features are not sufficiently gradual to emulate the real world as is.
+Instead, the topography, or "hills", are more like stair in the real world.
 
 
 \subsection{Agents}
-- acceleration
-- cardinal movement
-- 
+Agents are quite limited as compared to an actual Dump Truck in a real world setting. For example,
+our dump truck agents do not have the ability to move as freely as a real world truck does. Due to the
+constraints of the environment, the agents only possess the ability to move in the cardinal directions,
+rather than turning a specific degree, like a truck would.
+
+% Does this fit better in the discussions section?
+As a consequence, this could certainly have an effect on the emission from a real world dump truck, as
+it would have to use fuel to turn around. Meanwhile, the truck agents in our simulation can turn around
+instantaneously.
+
+
+\subsection{Summary}
+As we have described, there are many ways in which this simulation is not a full emulation of the
+real world. Thus, the findings of this paper are not directly applicable to real world applications
+as is. However, we hope that this study can be a contribution to the further reseach on the topic of
+using MARL to reduce emissions.
 
 
 % -----------------------------------
