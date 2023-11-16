@@ -1,8 +1,13 @@
 import numpy as np
+import gymnasium as gym
+
+
 import torch
 
+
 class TruckAgent:
-    def __init__(self, pos_y, pos_x, ground, holes, agent_num):
+    def __init__(self, id, pos_y, pos_x, ground, env, holes):
+        self.id = id
         self.pos_x = pos_x
         self.pos_y = pos_y
         # We have to keep track of whats under the truck when we replace tiles on the map
@@ -13,15 +18,45 @@ class TruckAgent:
         # Remember previous state of the agent to calculate reward later
         self.prev_agent = None
         self.capacity = 1000
-        self.holes = holes
+        self.env = env
         self.collided = False
-        self.agent_num = agent_num
-        self.info = torch.tensor([agent_num, self.filled]).unsqueeze(0)
+        self.out_of_bounds = False
+        self.dir = 1  # Start pointing North
+        self.adjecent = False
 
-    def _in_bounds(self, pos, env):
-        return (0 < pos[0] < env.map.shape[0]) and (0 < pos[1] < env.map.shape[1])
+    # For now we have the observation space as square with the truck in the middle
+    def observe(self):
+        closest = np.inf
+        target = [0, 0]
+        for i, pos in enumerate(self.env.excavators):
+            dist = abs(pos[0] - self.pos_y) + abs(pos[1] - self.pos_x)
+            if dist < closest:
+                closest = dist
+                target[0] = pos[0]
+                target[1] = pos[1]
 
-    def step(self, map, act_space, env):
+        adj = []
+        for i in range(self.pos_y - 2, self.pos_y + 3):
+            for j in range(self.pos_x - 2, self.pos_x + 3):
+                if self._in_bounds((i, j)):
+                    adj.append(self.env.map[i, j])
+                else:
+                    adj.append(10000)
+
+        obs = {
+            "filled": int(self.filled),
+            "pos": np.array([self.pos_y, self.pos_x]),
+            "adj": np.array(adj),
+            "target": np.array(target),
+        }
+        return obs
+
+    def _in_bounds(self, pos):
+        return (0 <= pos[0] < self.env.map.shape[0]) and (
+            0 <= pos[1] < self.env.map.shape[1]
+        )
+
+    def step(self, action):
         self.prev_agent = {
             "pos_x": self.pos_x,
             "pos_y": self.pos_y,
@@ -29,23 +64,36 @@ class TruckAgent:
             "filled": self.filled,
             "collided": self.collided,
         }
+        # Change dir we are facing
+        dx, dy = 0, 0
+        if action == 1:
+            dy = -1
+        elif action == 2:
+            dy = 1
+        elif action == 3:
+            dx = -1
+        elif action == 4:
+            dx = 1
 
-        # For now we just move randomly
-        dy = act_space[0].sample()
-        dx = act_space[1].sample()
-
-        if dx or dy:
-            map[self.pos_y, self.pos_x] = self._ground
-            if 0 < self.pos_x + dx < map.shape[1]:
-                self.pos_x += dx
-            if 0 < self.pos_y + dy < map.shape[0]:
-                self.pos_y += dy
-            if map[self.pos_y, self.pos_x] <= -3 or map[self.pos_y, self.pos_x] == -1:
+        if (dx or dy) and self._in_bounds((self.pos_y, self.pos_x)):
+            self.dir = action
+            self.env.map[self.pos_y, self.pos_x] = self._ground
+            self.pos_x += dx
+            self.pos_y += dy
+            if not self._in_bounds((self.pos_y, self.pos_x)):
+                self.out_of_bounds = True
+                self.pos_x -= dx
+                self.pos_y -= dy
+            else:
+                self.out_of_bounds = False
+            if self.env.map[self.pos_y, self.pos_x] <= -3:
                 self.collided = True
+                self.pos_x -= dx
+                self.pos_y -= dy
             else:
                 self.collided = False
-                self._ground = map[self.pos_y, self.pos_x]
-                map[self.pos_y, self.pos_x] = -3-self.agent_num
+                self._ground = self.env.map[self.pos_y, self.pos_x]
+                self.env.map[self.pos_y, self.pos_x] = -self.id - 3
 
         # fill if were by an
         adj = [
@@ -55,75 +103,17 @@ class TruckAgent:
             (self.pos_y, self.pos_x - 1),
         ]
 
+        self.adjecent = False
         for pos in adj:
-            if not self._in_bounds(pos, env):
+            if not self._in_bounds(pos):
                 continue
-            if map[pos[0], pos[1]] == -1:
+            if self.env.map[pos[0], pos[1]] == -1:
                 self.filled = True
-
-            elif map[pos[0], pos[1]] == -2 and self.filled:
+                break
+            elif self.env.map[pos[0], pos[1]] == -2 and self.filled:
                 self.filled = False
-                self.holes[pos] -= self.capacity
-                if self.holes[pos] <= 0:
-                    map[pos[0], pos[1]] = 1
-
-
-    def deep_step(self, env, action):
-
-        self.prev_agent = {
-                            "pos_x"     : self.pos_x,
-                            "pos_y"     : self.pos_y,
-                            "ground"    : self._ground,
-                            "filled"    : self.filled,
-                            "info"      : self.info,
-                            }
-
-
-        dx = 0
-        dy = 0
-        if action == 0:
-            dy = -1
-        elif action == 1:
-            dy = 1
-        elif action == 2:
-            dx = -1
-        elif action == 3:
-            dx = 1
-
-
-        if dx or dy:
-            env.map[self.pos_y, self.pos_x] = self._ground
-            if 0 < self.pos_x + dx < env.map.shape[1]:
-                self.pos_x += dx
-            if 0 < self.pos_y + dy < env.map.shape[0]:
-                self.pos_y += dy
-
-            if env.map[self.pos_y, self.pos_x] <= -1:
-                self.collided = True
-                self.pos_x -= dx
-                self.pos_y -= dy
-            else:
-                self.collided = False
-                self._ground = env.map[self.pos_y, self.pos_x]
-                env.map[self.pos_y, self.pos_x] = -3 -self.agent_num
-
-        #fill or empty
-        adj = [
-            (self.pos_y + 1, self.pos_x),
-            (self.pos_y - 1, self.pos_x),
-            (self.pos_y, self.pos_x + 1),
-            (self.pos_y, self.pos_x - 1),
-        ]
-
-        for pos in adj:
-            if not self._in_bounds(pos, env):
-                continue
-            if env.map[pos[0], pos[1]] == -1:
-                self.filled = True
-                self.info[0,1] = 1.
-            elif env.map[pos[0], pos[1]] == -2 and self.filled:
-                self.filled = False
-                self.info[0,1] = 0.
-                self.holes[pos] -= self.capacity
-                if self.holes[pos] <= 0:
-                    self.map[pos[0], pos[1]] = 1
+                self.env.holes[pos] -= self.capacity
+                if self.env.holes[pos] <= 0:
+                    self.env.map[pos[0], pos[1]] = 1
+            elif self.env.map[pos[0], pos[1]] <= -3:
+                self.adjecent = True

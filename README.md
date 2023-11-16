@@ -1,50 +1,38 @@
-# ----------------------------
 # RoadAI-project
-# Project for in5490
-# ----------------------------
-
-## --------
-## Make sure you have installed a programming environment.
-Options: venv, conda, poetry.
-We have used venv.
-
-### Installation
-python -m venv venv
-
-### Open environment
-source venv/bin/activate
-
-### install required packets
-pip install -r requirements.txt
-
-## --------
-## Make sure you have a config system installed.
-We'll be using Hydra
-Full tutorial: https://hydra.cc/docs/tutorials/basic/your_first_app/simple_cli/
-
-### Installation
-pip install hydra-core --upgrade
-
-## --------
-## Class Overview
-### TruckAgent class
-#### `__init__(self, pos_y, pos_x, ground, holes, agent_num)`:
-Initializes the agent with its initial position, ground type, capacity, and other relevant parameters. It also creates an initial tensor to store agent-related information.
-
-#### `_in_bounds(self, pos, env)`:
-A helper method that checks if a given position is within the bounds of the environment.
-
-#### `step(self, map, act_space, env)`:
-Represents a single time step of the agent's behavior. It includes logic for random movement, collision detection, and cargo handling. The agent can move in random directions and interact with its surroundings.
-
-#### `deep_step(self, env, action)`:
-Similar to the step method, but allows external control of the agent's actions. The agent can move up, down, left, or right based on the provided action.
+## Project for <a href="https://www.uio.no/studier/emner/matnat/ifi/IN5490/">in5490 </a>
 
 
-## --------
-## [Subsection]
-[something here]
 
-### [subsubsection]
+<p align="center">
+<a href="#About"></a> •
+<a href="#Installing prerequisites">Installing dependencies</a> •
+<a href="#Runnning the program">How to run the program</a> •
+</p>
+
+## About
+This is a MARL solution for the <a href="https://www.nora.ai/competition/roadai-competition/">ROADAI</a> competition held by NORA. The project is written for the UiO course IN5490 Advanced Topics in Artificial Intelligence for Intelligent Systems.
+## Installing prerequisites
+
+
+```bash
+# Example using venv
+$ python -m venv venv
+$ source venv/bin/activate
+# Install dependencies
+$ pip install -r requirements.txt
+```
+## Running the program
+```
+# To start training the agents
+$ python /src/main.py -t
+# To render a pretrained model
+$ python /src/main.py -s
+# To make plots of a the previous training run
+$ python /src/main.py -m
+```
+
+---
+
+
 
 

@@ -6,22 +6,38 @@ def reward(agent, env):
     previous = agent.prev_agent
 
     # Rewards
-    idle_penalty = -0.01
-    step_penalty = -0.1
-    collision_pen = 100
-    right_direction = 1
+    idle_penalty = -0.1
+    step_penalty = -0.05
+    collision_pen = -10
+    incline_pen = -0.01
+    right_direction = 0.5
+    wrong_direction = -0.5
+    out_of_bounds = -100
+    adjecency_pen = -1
 
-    filled_emptied = 10
+    filled = 10
+    emptied = 1000
 
+    if agent.adjecent:
+        tot_reward += adjecency_pen
     if agent.collided:
-        tot_reward -= collision_pen
-
-    if previous["pos_x"] == agent.pos_x and previous["pos_y"] == agent.pos_y:
+        tot_reward += collision_pen
+    if agent.out_of_bounds:
+        tot_reward += out_of_bounds
+    elif previous["pos_x"] == agent.pos_x and previous["pos_y"] == agent.pos_y:
         tot_reward += idle_penalty
     else:
         tot_reward += step_penalty
+        if env.map[previous["pos_y"], previous["pos_x"]] < agent._ground:
+            tot_reward += (
+                abs(env.map[previous["pos_y"], previous["pos_x"]] - agent._ground)
+                * incline_pen
+            )
 
-    tot_reward += (previous["filled"] != agent.filled) * filled_emptied
+    if agent.filled and not previous["filled"]:
+        tot_reward += filled
+    if not agent.filled and previous["filled"]:
+        tot_reward += emptied
 
     distances = []
     prev_dist = []
@@ -48,6 +64,5 @@ def reward(agent, env):
     if np.min(distances) < np.min(prev_dist):
         tot_reward += right_direction
     elif np.min(distances) > np.min(prev_dist):
-        tot_reward += -right_direction
-
+        tot_reward += wrong_direction
     return tot_reward
