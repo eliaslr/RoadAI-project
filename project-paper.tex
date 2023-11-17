@@ -9,6 +9,7 @@
 \usepackage{algorithm2e}
 \usepackage{xcolor}
 \usepackage{multirow}
+\usepackage{xcolor}           % Colors
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
 T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \renewcommand{\baselinestretch}{1.1} % Uncomment to make pagecount
@@ -16,6 +17,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 % Custom commands:
 \newcommand{\coo}{\ensuremath{\mathrm{CO_2}}}
+\newcommand\crule[3][black]{\textcolor{#1}{\rule{#2}{#3}}}
 
 % -----------------------------------
 % -------------- TITLE --------------
@@ -82,7 +84,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 
 		% Should have 3-5 keywords.
-		Index Terms - Multi-Agent Reinforcement Learning (MARL), Emissions reduction. Road Construction.
+		Index Terms - Multi-Agent Reinforcement Learning (MARL), Emissions reduction, Road Construction.
 	\end{abstract}
 
 
@@ -115,6 +117,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 	The rising sea levels caused by ice melting and ocean temperatures increasing is also devestating for all coastal areas, humans and ecology alike.
 	Poor nations will be especially affected as relocating masses of people is no small task, as you won't be able to sell your house.
 	And in all cases you should care about ecology, even if you only care about humanity, because in all cases ecology is affected humanity is affected in the end.
+
 	% RL for GHG reduction
 	In \cite{MORADI2022111882}, the goal was to use Reinforcement Learning (RL) for route optimization in
 	an attempt to reduce \coo{} emissions. The study used an implementation of three
@@ -157,12 +160,10 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 	Several implementations of PPO for multi-agent problems have been shown tp yield good results in articles such
 	as \cite{ellis2022smacv2} and \cite{laurent2021flatland}.
 
-
 	% DQN / QMIX?
 	\cite{ellis2022smacv2} reported good results using the QMIX algorithm on the SMAC environment. QMIX is an
 	MARL algorithm based on Deep Q-Network (DQN). DQN is described in \cite{DBLP:journals/corr/MnihKSGAWR13} to
 	produce groundbreaking results in various gaming environments.
-
 
 	% Our work
 	The purpose of this paper is to highlight the use of MARL algorithms in order to reduce \coo{} emissions
@@ -197,19 +198,43 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 
 	\subsection{Simulation Environment}
-	To train our agents, we developed a custom simulation environment using \texttt{gymnasium}. The environment replicates a typical road construction site, with details like topography and material locations. In this environment every object is represented as a particle in a grid.
-	The agents of the simulation, construction trucks are able to move cardinally in this grid with the goal of hauling construction materials from excavators to the unfinished road.
-	Every agent gets assigned a reward for each action they take with positive rewards for productive moves, and negative rewards for unproductive ones (idling, or unnecessary moving).
-	While simulating the trucks we collect the rewards which the reinforcement learning algorithms uses to train.
-	Using the average episodic rewards we can estimate the algorithms performance over the training, and compare them to each other.
-
-	\begin{figure}[!ht]
+  \begin{figure}[!ht]
 		\includegraphics[width=\columnwidth]{graphs/example_env.png}
 		\caption{Example randomly generated environment}
 		\label{fig:environment}
 	\end{figure}
 
-	While this environment is very simplified in contrast to real life, it is easy to randomly generate.
+	To train our agents, we developed a custom simulation environment using \texttt{gymnasium}. The environment replicates a typical road construction site, with details like topography and material locations. In this environment every object is represented as a particle in a grid.
+	The agents of the simulation, dump trucks are able to move cardinally (North/South/East/West) in this grid with the goal of hauling construction materials from excavators to the unfinished road.
+	Every agent gets assigned a reward for each action they take with positive rewards for productive moves, and negative rewards for unproductive ones (idling, or unnecessary moving).
+	While simulating the trucks we collect the rewards which the reinforcement learning algorithms uses to train.
+	Using the average episodic rewards we can estimate the algorithms performance over the training, and compare them to each other.
+
+	While this environment is simplified in comparison to real life, it is an intuitive representation of a road construction site.
+
+  The following table describes each pixel color's representation in Figure \ref{fig:environment}:\\
+
+  \begin{tabular}{ |p{0.3\columnwidth}||p{0.5\columnwidth}|  }
+    \hline
+		\multicolumn{2}{|c|}{Training procedure parameters} \\
+		\hline
+		\hline
+    \textbf{Pixel (with color)}                 & \textbf{Representation}\\
+    \hline
+    \crule[lightgray]{0.25cm}{0.25cm} Grey      & Construction site\\
+    \hline
+    \crule[gray]{0.25cm}{0.25cm} Darker Grey    & Topography\\
+    \crule[black]{0.25cm}{0,25cm} Black         & (The darker the color, the higher the elevation)\\
+    \hline
+    \crule[blue]{0.25cm}{0.25cm} Blue           & Site of road construction\\
+    \hline
+    \crule[cyan]{0.25cm}{0.25cm} Light Blue     & Excavators\\
+    \hline
+    \crule[red]{0.25cm}{0.25cm} Red             & Dump Truck (unloaded)\\
+    \hline
+    \crule[green]{0.25cm}{0.25cm} Green         & Dump Truck (loaded)\\
+    \hline
+  \end{tabular}
 
 
 	\subsection{Agent Architecture}
@@ -369,15 +394,13 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 	gap of this study.
 
 	% <TODO>
-
-
-	\subsection{Environment}
-	\begin{figure}[!ht]
+  \begin{figure}[!ht]
 		\includegraphics[width=\columnwidth]{graphs/road-construction-site-example.jpeg}
 		\caption{Example of road construction site}
 		\label{fig:construction-site}
 	\end{figure}
 
+	\subsection{Environment}
 	The environment which we have implemented in this study is by no means close to a
 	real-world road construction site. We easily see this if we compare Figure \ref{fig:construction-site}
 	to Figure \ref{fig:environment}. For example, we know that the real world is continuous, and not a discrete
