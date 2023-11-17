@@ -390,27 +390,28 @@ excavators would need to move to a new site in order to have more available mass
 excavators fill up dump trucks instantaneously, which is not accurate to the real world.
 
 Although we have attempted to generate random topography in order to make the environment more like
-the real world, the topographical features are not sufficiently gradual to emulate the real world as is.
-Instead, the topography, or "hills", are more like stair in the real world.
+the real world, the topographical features generated are not sufficiently gradual to emulate the real world as is.
+Instead, the topography, or "hills", are more like stairs in the real world.
 
 
 \subsection{Agents}
 Agents are quite limited as compared to an actual Dump Truck in a real world setting. For example,
 our dump truck agents do not have the ability to move as freely as a real world truck does. Due to the
 constraints of the environment, the agents only possess the ability to move in the cardinal directions,
-rather than turning a specific degree, like a truck would.
+rather than turning a specific degree, like a truck would. Additionally the agents in our simulation have the
+ability to instantly accelerate or deaccelerate, and are only able to move at a constant speed.
 
 % Does this fit better in the discussions section?
-As a consequence, this could certainly have an effect on the emission from a real world dump truck, as
-it would have to use fuel to turn around. Meanwhile, the truck agents in our simulation can turn around
-instantaneously.
+As a consequence, this could certainly have an effect on the emissions from a real world dump truck, as
+it would have to use fuel to turn around. Meanwhile, the truck agents in our simulation can brake and turn around
+instantaneously. This also makes the simulated agents much more capable of avoiding collisions and generally means that traffic pileup is not really an issue in our environment.
 
 
 \subsection{Summary}
 As we have described, there are many ways in which this simulation is not a full emulation of the
 real world. Thus, the findings of this paper are not directly applicable to real world applications
 as is. However, we hope that this study can be a contribution to the further reseach on the topic of
-using MARL to reduce emissions.
+using MARL to reduce emissions or in similiar setting.
 
 
 % -----------------------------------
@@ -424,7 +425,9 @@ Post-training, we evaluated our models based on following metrics:
 	\item Total mass moved per episode
 \end{enumerate}
 
-The goal of these metrics was not only to see how our models performed throughout the training period, but also compare how the average rewards and mass hauled developed.
+The goal of these metrics was not only to see how our models performed and developed throughout the training period, but also compare how the average rewards and mass hauled developed compared to eachother.
+The mean episodic rewards gives insight to roughly how well each algorithm is learning.
+The total mass moved per episode is the metric which is the most important as it tells us how well each algorithm actually performs divorced from the arbitrary rewards we have assigned.
 
 \begin{figure}[h!]
 	%TODO ADD new image
